@@ -1,0 +1,2866 @@
+{
+  "EspecificacaoSistema": {
+    "NomeSistema": "AppCondominium",
+    "DescricaoSistema": "Sistema de Administração de Condomínios",
+    "Backend": "API .net C# framework 8.0",
+    "Frontend": "Angular CLI 18",
+    "BancoDados": "MySQL (localhost, usuário: root e senha:mysql)",
+    "VersaoMobile": "Flutter 3.44 + Dart",
+    "Arquitetura": "clean architeture e clean code",
+    "Observacao": "",
+    "RegrasGerais": [
+      {
+        "Regra": "RN-Gerais 01",
+        "Tipo": "Regra de Negócio",
+        "Descricao": "exibição das interfaces em swagger quando em ambiente de desenvolvimento"
+      },
+      {
+        "Regra": "RT-Gerais 02",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Todos os CRUDs deverão deve iniciar com uma tela com a lista paginada da entidade. Essa lista deverá possuir scrolls de modo que ocupe fração da tela e permita a exibição dos componentes de naveção e botão de novo, sem que haja um scroll da tela inteira (somente o da Lista)."
+      },
+      {
+        "Regra": "RT-Gerais 03",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Os componentes de paginação são: os botões 'Primeira' e 'Anterior', um campo editável com o número da página atual que se digitado um número o sistema deverá ir para a página referente, e os botões de 'Próxima' e 'Última'. Caso não haja registro os botões de navegação entre páginas devem ficar desabilitados, bem como o campo com o número da página. Caso esteja na primeira página os botões de primeira página e página anterior devem ficar desabilitados. Caso esteja na última página, os botões de próxima página e última página devem ficar desabilitados. Caso não haja registros no lugar da lista deverá aparecer 'Nenhum registro encontrado'."
+      },
+      {
+        "Regra": "RT-Gerais 04",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Os botões 'Primeira' e 'Anterior' servem para que o sistema exiba a primeira página e a página anterior respectivamente. Os botões 'Próxima' e 'Última' servem para que o sistema exiba a próxima página e a última página respectivamente."
+      },
+      {
+        "Regra": "RT-Gerais 05",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Os componentes de navegação deverão ser exibidos abaixo da lista alinhado à direita, o botão 'Novo' deve ser apresentado acima da lista, também à direita, e serve para a criação de um novo registro e que levará o sistema a tela para preenchimento dos campos."
+      },
+      {
+        "Regra": "RT-Gerais 06",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Deve ser apresentado o componente de Filtro composto de um label contendo o texto 'Filtro: ', uma textbox que ao ser digitado no mínimo de 3 letras e o botão filtrar, o sistema irá filtrar pelos campos apontados nas entidade com o atributo 'Filtro=Sim', para esse filtro o conteúdo deve ser pesquisado nesses campos com o critério 'ou' Ex: Descricao contendo 'ABC' ou Nome contendo 'ABC'. O compoenente de filtro deve ser apresentado antes do botão novo."
+      },
+      {
+        "Regra": "RT-Gerais 07",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Combobox_customizada, é uma combobox que deve ser digitável e na medida em que usuário digita a lista de elementos é filtrada para exibir os elementos que contenham o texto digitado. Além disso caso a quantidade de elementos seja maior que 15, essa lista deve ser paginada."
+      },
+      {
+        "Regra": "RT-Gerais 08",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Cada linha da lista deverá ser clicável o que nesse caso fará com que o sistema exiba a tela de edição do referido registro."
+      },
+      {
+        "Regra": "RT-Gerais 09",
+        "Tipo": "Regra de Tela",
+        "Descricao": "A tela de edição do registro deve ter os campos editáveis (exceto o(s) campo(s) chave-primária, e caso o usuário tenha permissão para editá-los, caso contrário os campos deverão ser exibidos como somente leitura."
+      },
+      {
+        "Regra": "RT-Gerais 10",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Na tela de edição do registro deve ter, também, o botão 'Excluir' para que o registro seja excluído do banco de dados. Esse deverá ser exibido caso o usuário tenha permissão de exclusão, caso contrário o botão deverá ser suprimido."
+      },
+      {
+        "Regra": "RT-Gerais 11",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Todos os campos Ids que for Foreign Key na entidade deverão ser exibidos na tela lista, na tela de consulta/exclusão  o campo da EntidadeForeignKey que esteja marcado como ExibirForeignKey=Sim, bem como nas telas de inclusão e alteração esses mesmos campos deverão ser exibidos em formatos de combobox_customizada. Caso haja mais de um campo ExibirForeignKey = Sim, deverá ser apresentada uma combinação dos varios campos separando-os por ' - '. Caso o campo ExibirForeignKey = Sim seja também uma Foreign Key o sistema deverá buscar na EntidadeForeignKey descrita nesse campo os campos ExibirForeignKey = Sim, como por exemplo na entidade Bairro onde temos dois campos ExibirForeignKey = Sim e um deles é uma Foreign Key para Municipio, nesse caso o sistema deverá combinar campo Nome da entidade Bairro com o Nome e SiglaUF da entidade Município."
+      },
+      {
+        "Regra": "RT-Gerais 12 (Regra de Ouro)",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Deverá haver uma variável global que armazenará o IdCondominio. Essa variável servirá de filtro para que toda a informação e telas em que o usuário logado fique restrita ao condomínio que ele escolheu e que ele tenha acesso. Esse filtro garantirá que a informação de um condomínio NÃO possa ser vista por usuários de outro condomínio."
+      },
+      {
+        "Regra": "RT-Gerais 13",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Deverá haver dua telas de login: na primeira o sistema deverá exibir os campos usuário, senha e o Id do condomínio (Combobox_customizada) ao qual o usuário está se logando; o layout de Tela será o padrão/fixo. Na segunda o sistema devera ter recebido o código do condomínio por querystring a partir do domínio do site do condomínio (se houver) e deverá exibir somente usuário e senha; o layout da tela mudará para as cofigurações de cor e imagem que o usuário escolherá e editará na entidade Configicuração do Condomínio."
+      },
+      {
+        "Regra": "RN-Gerais 14",
+        "Tipo": "Regra de Negócio",
+        "Descricao": "O campo CNPJ deverá possuir uma máscara de exibição: AA.AAA.AAA/AAAA-99. Ao receber o foco o sistema deverá retirar a máscara deixando apenas os números/letras e ao perder o foco o sistema deve reestabelecer a máscara. Esse campo deverá ser validado, para tanto utilize o arquivo DocumentoValidator.cs. No banco de dados esse campo deverá ser gravado sem a máscara."
+      },
+      {
+        "Regra": "RN-Gerais 15",
+        "Tipo": "Regra de Negócio",
+        "Descricao": "O campo CPF deverá possuir uma máscara de exibição: 999.999.999-99. Ao receber o foco o sistema deverá retirar a máscara deixando apenas os números/letras e ao perder o foco o sistema deve reestabelecer a máscara. Esse campo deverá ser validado, para tanto utilize o arquivo DocumentoValidator.cs. No banco de dados esse campo deverá ser gravado sem a máscara."
+      },
+      {
+        "Regra": "RN-Gerais 1e",
+        "Tipo": "Regra de Negócio",
+        "Descricao": "Para o usuário se logar no sistema ele deverá ter um vinculo em PessoaCondominio ou PessoaUnidade. Caso o vinculo de PessoaUnidade, os tipos de vínculo   'Administrador Imobiliário', 'Proprietário Morador', 'Morador com Procuração' deve ser atribuído o perfil de Proprietário"
+      }
+    ],
+    "Entidades": [
+      {
+        "Entidade": "PerfilAcesso",
+        "RotuloEntidade": "Perfil de Acesso",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [],
+        "Campos": [
+          {
+            "Campo": "IdPerfil",
+            "RotuloCampo": "Id Perfil",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "varchar(150)",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          }
+        ],
+        "RegistrosAdicionadosAutomaticamente": [
+          "Administrador",
+          "Síndico",
+          "Subsíndico",
+          "Conselheiro",
+          "Funcionário Administração",
+          "funcionário Manutenção",
+          "Proprietário",
+          "Morador"
+        ]
+      },
+      {
+        "Entidade": "UF",
+        "RotuloEntidade": "UF",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "SiglaUF",
+            "RotuloCampo": "Sigla UF",
+            "TipoDado": "char(2)",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Primary Key",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "Estado",
+            "RotuloCampo": "Estado",
+            "TipoDado": "varchar(150)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key"
+          },
+          {
+            "Campo": "CodigoIBGE",
+            "RotuloCampo": "Código IBGE",
+            "Filtro": "Sim",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - UF 01",
+            "Tipo": "Regra de Negocio",
+            "Descricao": "Deverá ser exibida, somente para leitura, nas telas de edição do CRUD uma lista com os nomes dos múnicípios que tenham a UF selecionada como sua UF (SiglaUF como Foreign Key)."
+          }
+        ]
+      },
+      {
+        "Entidade": "Municipio",
+        "RotuloEntidade": "Município",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "CodigoIBGEMunicipio",
+            "RotuloCampo": "Código IBGE Município",
+            "TipoDado": "MEDIUMINT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primay Key"
+          },
+          {
+            "Campo": "Nome",
+            "RotuloCampo": "Município",
+            "TipoDado": "varchar(150)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "SiglaUF",
+            "RotuloCampo": "UF",
+            "TipoDado": "char(2)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "UF",
+            "ExibirForeignKey": "Sim"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Municipio 01",
+            "Tipo": "Regra de Negocio",
+            "Descricao": "Deverá ser exibida nas telas de edição do CRUD uma lista, para somente leitura, com os nomes dos Bairros que tenham o Município selecionado como seu Município e UF."
+          },
+          {
+            "Regra": "RN - Municipio 02",
+            "Tipo": "Regra de Tela",
+            "Descricao": "O campo SiglaUF deve ser apresentado como combobox_customizada"
+          }
+        ]
+      },
+      {
+        "Entidade": "Bairro",
+        "RotuloEntidade": "Bairro",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdBairro",
+            "RotuloCampo": "Id Bairro",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primay Key"
+          },
+          {
+            "Campo": "Nome",
+            "RotuloCampo": "Bairro",
+            "TipoDado": "varchar(150)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Index",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "CodigoIBGEMunicipio",
+            "RotuloCampo": "Município",
+            "Filtro": "Sim",
+            "TipoDado": "MEDIUMINT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Municipio",
+            "ExibirForeignKey": "Sim"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Bairro 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "O campo CodigoIBGEMunicipio deve ser apresentado como combobox_customizada"
+          }
+        ]
+      },
+      {
+        "Entidade": "Endereco",
+        "RotuloEntidade": "Endereço",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdEndereco",
+            "RotuloCampo": "Id Endereço",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "CEP",
+            "RotuloCampo": "CEP",
+            "TipoDado": "CHAR(8)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Index",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "Logradouro",
+            "RotuloCampo": "Logradouro",
+            "TipoDado": "VARCHAR(100)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "IdBairro",
+            "RotuloCampo": "Id Bairro",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Bairro",
+            "ExibirForeignKey": "Sim"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Endereço 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "A entidade endereço deverá ter um componente que será utilizado nas telas de todas as entidades que possuírem vínculo. Esse componente exibirá os Campos: CEP, Logradouro, Número, Complemento, UF, Município, Bairro."
+          },
+          {
+            "Regra": "RN - Endereço 02",
+            "Tipo": "Regra de Tela",
+            "Descricao": "O campo CEP deverá possuir uma máscara de exibição: 99.999-999. Ao receber o foco o sistema deverá retirar a máscara deixando apenas os números e ao perder o foco o sistema deve reestabelecer a máscara. No banco de dados esse campo deverá ser gravado sem a máscara."
+          },
+          {
+            "Regra": "RN - Endereço 03",
+            "Tipo": "Regra de Negocio",
+            "Descricao": "Tanto no componente como na tela de edição do CRUD, logo após um CEP ser informado, quando o foco sair do campo, o sistema deverá fazer uma busca desse CEP na entidade de modo a verificar se esse CEP já foi utilizado antes para reaproveitá-lo. Caso encontre mais de um endereço, deverá ser exibida as informações recuperadas sob a forma de lista para que o usuário escolha a mais adequada. Caso não encontre o sistema deverá fazer uma busca na API viacep.com.br"
+          },
+          {
+            "Regra": "RN - Endereço 04",
+            "Tipo": "Regra de Negocio",
+            "Descricao": "Para fazer a busca na API viacep.com.br, utilize: viacep.com.br/ws/<<CEP>>/json/  onde <<CEP>> deve ser substituído pelo CEP digitado (sem máscara). Caso seja retornado mais de um endereço, o sistema deverá exibir as informações recuperadas sob a forma de lista para que o usuário escolha a mais adequada. Se só houver apenas um registro o sistema deverá preencher os dados da tela diretamente. Caso a UF não exista na entidade UF a mesma deverá ser incluída, as duas primeiras posições do campo IBGE é o CodigoIBGE em UF. O campo IBGE é o CodigoIBGEMunicipio, o campo Localidade é o nome do município, a entidade deverá ser incluída automaticamente caso não exista, assim como o Bairro."
+          },
+          {
+            "Regra": "RN - Endereço 05",
+            "Tipo": "Regra de Negocio",
+            "Descricao": "No componente os campos número e complemento, não fazem parte da entidade Endereço, entratando figuram no componente de endereço e virão das entidades em que a entidade Endereço Fizerem parte. Esse ficarão editáveis quando a entidade vinculada estiver em edição e ficarão desabilitados caso contrário."
+          },
+          {
+            "Regra": "RN - Endereço 06",
+            "Tipo": "Regra de Negocio",
+            "Descricao": "Os campos UF e município, não fazem parte da entidade Endereço, entretanto figuram tanto no componente como na tela de edição do CRUD de endereço e virão da entidade Bairro (IdBairro) que se liga ao município que se liga a UF."
+          },
+          {
+            "Regra": "RN - Endereço 07",
+            "Tipo": "Regra de Negocio",
+            "Descricao": "No modo de edição o componente de endereço só deverá permitir o preenchimento dos campos Logradouro, UF, município e Bairro diretamente no caso de a busca do CEP, tanto na entidade endereço como no site viacep não retornarem nenhum valor. Caso contrário esses campos deverão permanecer desabilitados."
+          },
+          {
+            "Regra": "RN - Endereço 08",
+            "Tipo": "Regra de Negocio",
+            "Descricao": "Tanto no componente como na tela de edição do CRUD, os campos: UF, município e Bairro devem ser apresentados como combobox e ao ser escolhida uma UF, a combobox município deverá exibir os municípios relativos aquela UF e após ser escolhido o município deverão ser filtrados os bairros daquele município."
+          }
+        ]
+      },
+      {
+        "Entidade": "Condominio",
+        "RotuloEntidade": "Condomínio",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Primary Key",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "Nome",
+            "RotuloCampo": "Nome",
+            "TipoDado": "VARCHAR(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "IdEndereco",
+            "RotuloCampo": "Id Endereço",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Endereco"
+          },
+          {
+            "Campo": "NumeroEndereco",
+            "RotuloCampo": "Número",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "ComplementoEndereco",
+            "RotuloCampo": "Complemento Endereço",
+            "TipoDado": "varchar(255)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "AreaTerreno",
+            "RotuloCampo": "Área Terreno",
+            "TipoDado": "DECIMAL(10,3) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "AreaTotalEdificada",
+            "RotuloCampo": "Área Total Edificada",
+            "TipoDado": "DECIMAL(10,3) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "AreaTotalUnidades",
+            "RotuloCampo": "Área Total Unidades",
+            "TipoDado": "DECIMAL(10,3) - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "QuantidadeTotalUnidades",
+            "RotuloCampo": "Quantidade Total Unidades",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "CNPJ",
+            "RotuloCampo": "CNPJ",
+            "TipoDado": "CHAR(14)",
+            "Obrigatorio": "Não",
+            "Indice": "Unique"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Condomínio 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "O campo IdEndereco deve ser utilizado o componente de endereço."
+          },
+          {
+            "Regra": "RN - Condomínio 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Para campo CNPJ, verificar as regras gerais para esse campo."
+          },
+          {
+            "Regra": "RN - Condomínio 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo AreaTotalUnidades deverá aparecer sempre como somente leitura. Este deve ser calculado conforme descrito na regra 'RN - unidade 03'."
+          },
+          {
+            "Regra": "RN - Condomínio 04",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo QuantidadeTotalUnidades deverá aparecer sempre como somente leitura. Este deve ser calculado conforme descrito na regra 'RN - unidade 04'."
+          }
+        ]
+      },
+      {
+        "Entidade": "ConfiguracaoCondominio",
+        "RotuloEntidade": "Configuração do Condomínio",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdConfiguracao",
+            "RotuloCampo": "Id Configuração",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "CorPadrao",
+            "RotuloCampo": "Cor Padrão",
+            "TipoDado": "CHAR(7)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "ImagemLogin",
+            "RotuloCampo": "Imagem Tela de Login",
+            "TipoDado": "MEDIUMBLOB",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "ImagemIcone",
+            "RotuloCampo": "Ícone",
+            "TipoDado": "BLOB",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Configuracao Condominio 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "O campo IdCondominio não deve ser exibido, deve utilizado o IdCondominio da variável global do sistema conforme especificado RT-Gerais 12 (Regra de Ouro)."
+          }
+        ]
+      },
+      {
+        "Entidade": "Bloco",
+        "RotuloEntidade": "Bloco",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdBloco",
+            "RotuloCampo": "Id Bloco",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "VARCHAR(100)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio",
+            "ExibirForeignKey": "Sim"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Bloco 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "O campo IdCondominio não deve ser exibido, deve utilizado o IdCondominio da variável global do sistema conforme especificado RT-Gerais 12 (Regra de Ouro)."
+          }
+        ]
+      },
+      {
+        "Entidade": "TipoUnidade",
+        "RotuloEntidade": "Tipo Unidade",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdTipoUnidade",
+            "RotuloCampo": "Id Tipo Unidade",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "varchar(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "QtdSalas",
+            "RotuloCampo": "Quantidade de Salas",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "QtdQuartos",
+            "RotuloCampo": "Quantidade de Quartos",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "QtdSuites",
+            "RotuloCampo": "Quantidade de Suítes",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "QtdBanheiros",
+            "RotuloCampo": "Quntidade de Banheiros",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Area",
+            "RotuloCampo": "Área",
+            "TipoDado": "DECIMAL(10,3) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Tipo Unidade 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "O campo IdCondominio não deve ser exibido, deve utilizado o IdCondominio da variável global do sistema conforme especificado RT-Gerais 12 (Regra de Ouro)."
+          }
+        ],
+        "IndicesEspeciais": [
+          {
+            "Indice": "IdxCKTipoUnidade",
+            "Tipo": "Candidate Key",
+            "Campos": [
+              "IdCondominio",
+              "Descricao"
+            ],
+            "MensagemErroViolacao": "Descrição já existente para esse condomínio."
+          }
+        ]
+      },
+      {
+        "Entidade": "Unidade",
+        "RotuloEntidade": "Unidade",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdUnidade",
+            "RotuloCampo": "Id Unidade",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdBloco",
+            "RotuloCampo": "Id Bloco",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Bloco"
+          },
+          {
+            "Campo": "Numero",
+            "RotuloCampo": "Número",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "IdTipoUnidade",
+            "RotuloCampo": "Id Tipo Unidade",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "TipoUnidade"
+          },
+          {
+            "Campo": "IdHidrometro",
+            "RotuloCampo": "Id Hidrômetro",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Hidrometro"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - unidade 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo IdCondominio não deve ser exibido, deve utilizado o IdCondominio da variável global do sistema conforme especificado RT-Gerais 12 (Regra de Ouro)."
+          },
+          {
+            "Regra": "RN - unidade 02",
+            "Tipo": "Regra de Tela",
+            "Descricao": "O campo IdBloco deve ser exibido em uma Combobox_customizada."
+          },
+          {
+            "Regra": "RN - unidade 03",
+            "Tipo": "Regra de Tela",
+            "Descricao": "Toda vez que uma unidadade for incluída, alterada ou excluída o sistema deverá realizar a soma dos valores de metros quadrados de todos os tipos de unidade vinculados às unidades de todo o condomínio e colocar no campo AreaTotalUnidades."
+          },
+          {
+            "Regra": "RN - unidade 04",
+            "Tipo": "Regra de Tela",
+            "Descricao": "Toda vez que uma unidadade for incluída ou excluída o sistema deverá somar ou subitrair uma unidade no campo QuantidadeTotalUnidades na entidade Condominio."
+          }
+        ]
+      },
+      {
+        "Entidade": "Hidrometro",
+        "RotuloEntidade": "Hidrômetro",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdHidrometro",
+            "RotuloCampo": "Id Hidrometro'",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdUnidade",
+            "RotuloCampo": "Id Unidade",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Unidade"
+          },
+          {
+            "Campo": "NumeroSerie",
+            "RotuloCampo": "Número de Série",
+            "TipoDado": "varchar(40)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "",
+            "EntidadeForeignKey": "Unidade"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Hidrometro 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo IdCondominio não deve ser exibido, deve utilizado o IdCondominio da variável global do sistema conforme especificado RT-Gerais 12 (Regra de Ouro)."
+          }
+        ],
+        "IndicesEspeciais": [
+          {
+            "Indice": "IdxCKHidrometro",
+            "Tipo": "Candidate Key",
+            "Campos": [
+              "IdCondominio",
+              "NumeroSerie"
+            ],
+            "MensagemErroViolacao": "Já existe um hidrômetro com esse número de série para esse condomínio."
+          }
+        ]
+      },
+      {
+        "Entidade": "ConsumoAgua",
+        "RotuloEntidade": "Consumo Água",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdConsumo",
+            "RotuloCampo": "Id Consumo",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdUnidade",
+            "RotuloCampo": "Id Unidade",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Unidade"
+          },
+          {
+            "Campo": "IdHidrometro",
+            "RotuloCampo": "Id Hidrometro",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Hidrometro"
+          },
+          {
+            "Campo": "DataLeitura",
+            "RotuloCampo": "Data da Leitura",
+            "TipoDado": "DATETIME",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "LeituraHidrometro",
+            "RotuloCampo": "Leitura do Hidrômetro",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Consumo",
+            "RotuloCampo": "Consumo",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "MesReferencia",
+            "RotuloCampo": "MesReferencia",
+            "TipoDado": "CHAR(7)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": "Unique"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - unidade 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo IdCondominio não deve ser exibido, deve utilizado o IdCondominio da variável global do sistema conforme especificado RT-Gerais 12 (Regra de Ouro)."
+          },
+          {
+            "Regra": "RN - unidade 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo Consumo deve sempre ser somente leitura. O valor atribuído a ele deve ser calculado pelo sistema (tanto na inclusão como na alteração) a partir da subtração entre a leitura atual e a leitura apontada no ultimo consumo gravado para o referido hidrômetro. Nota importante: se essa subtração der um valor negativo, pode ser que o hidômetro tem sido instalado invertido e esteja marcando em contagem regrassiva, para verificar se o hidrômetro está em contagem regressiva, obtenha as últimas 3 leituras gravadas e verifique se estão decrescentes. Em se confirmando a contagem regressiva o valor aferido para o consumo deve ser multiplicado por -1. "
+          }
+        ],
+        "IndicesEspeciais": [
+          {
+            "Indice": "IdxCKConsumoAgua",
+            "Tipo": "Candidate Key",
+            "Campos": [
+              "IdUnidade",
+              "MesReferencia",
+              "IdHidrometro"
+            ],
+            "MensagemErroViolacao": "Já existe um consumo registrado para essa unidade, mês de referência e hidrômetro."
+          }
+        ]
+      },
+      {
+        "Entidade": "Pessoa",
+        "RotuloEntidade": "Pessoa",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "Id Pessoa",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "CPFCNPJ",
+            "RotuloCampo": "CPF/CNPJ",
+            "TipoDado": "VARCHAR(14)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key"
+          },
+          {
+            "Campo": "Nome",
+            "RotuloCampo": "Nome",
+            "TipoDado": "VARCHAR(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "Telefone",
+            "RotuloCampo": "Telefone",
+            "TipoDado": "VARCHAR(15)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Pessoa 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "A entidade Pessoa é uma abtração de Pessoa Física ou Pessoa Jurídica"
+          },
+          {
+            "Regra": "RN - Pessoa 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo CPFCNPJ, deverá conter um CPF (11 digitos numéricos) ou um CPNJ (14 caracteres), obrigatóriamente. Sua validação deverá ser feita por intermédio das funções descritas em DocumentoValidator.cs."
+          },
+          {
+            "Regra": "RN - Pessoa 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo CPFCNPJ, deverá receber uma máscara 999.999.999-99 para o CPF ou XX.XXX.XXX/XXXX-99 para o CNPJ ao perder o foco. E toda vez que o campo receber o foco a mascara deverá ser removida."
+          }
+        ]
+      },
+      {
+        "Entidade": "PessoaEndereco",
+        "RotuloEntidade": "Pessoa Endereço",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "Id Pessoa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "IdEndereco",
+            "RotuloCampo": "Id Endereço",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Endereco"
+          },
+          {
+            "Campo": "NumeroEndereco",
+            "RotuloCampo": "Numero no Endereço",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "ComplementoEndereco",
+            "RotuloCampo": "Complemento do Endereço",
+            "TipoDado": "VARCHAR(100)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "TipoEndereco",
+            "RotuloCampo": "Tipo de Endereço",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Principal",
+              "Secundário",
+              "Inativo"
+            ]
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Pessoa 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Não poderá haver dois endereços principais para a mesma pessoa. Caso seja cadastrado ou editado um endereço como principal para uma pessoa que ja tenha outro endereço principal o registro atual passa a ser o principal e o outro passa a ser endereço secundário."
+          },
+          {
+            "Regra": "RN - Pessoa 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Em caso de inativação de um endereço Principal ou de tornar o endereço Principal como secundário o sistema não deverá permitir e deverá emitir a mensagem: 'Cadastre outro endereço principal antes de Inativar ou tornar esse endereço Secundário.'."
+          }
+        ]
+      },
+      {
+        "Entidade": "pessoafisica",
+        "RotuloEntidade": "pessoafisica",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "IdPessoa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "DataNascimento",
+            "RotuloCampo": "Data de Nascimento",
+            "TipoDado": "DATE",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "email",
+            "RotuloCampo": "e-mail",
+            "TipoDado": "VARCHAR(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": "Unique Key"
+          },
+          {
+            "Campo": "Senha",
+            "RotuloCampo": "Senha",
+            "TipoDado": "VARCHAR(60)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "Foto",
+            "RotuloCampo": "Foto",
+            "TipoDado": "MEDIUMBLOB",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "FotoEmbedding",
+            "RotuloCampo": "Incorporação Foto",
+            "TipoDado": "JSON",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Pessoa Física 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "A Pessoa Física é uma especialização da entidade Pessoa."
+          },
+          {
+            "Regra": "RN - Pessoa Física 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo FotoEmbedding não deve ser exibido no CRUD, mas deve ser calculado toda vez que a Foto mudar. O objetivo desse campo servirá para busca do reconhecimento facial, que deverá utilizar InsightFace + ONNX para gerar o conteúdo desse campo e as funções de busca e reconhecimento."
+          },
+          {
+            "Regra": "RN - Pessoa Física 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Na tela de edição deverá ser apresentada uma lista com os endereços vinculados à pessoa, ao clicar no endereço deve ser apresentado o componente de endereço para alteração ou exclusão do mesmo, o que nesse caso só será permitido alterar o número ou complemento. Ao lado dessa lista deverá ter um botão que permida so usuário incluir novo endereço."
+          }
+        ]
+      },
+      {
+        "Entidade": "PessoaJuridica",
+        "RotuloEntidade": "Pessoa Jurídica",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "IdPessoa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "IdResponsavel",
+            "RotuloCampo": "IdResponsavel",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "PessoaFisica"
+          },
+          {
+            "Campo": "NomeFantasia",
+            "RotuloCampo": "Nome Fantasia",
+            "TipoDado": "VARCHAR(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "DataFundacao",
+            "RotuloCampo": "Data de Fundacao",
+            "TipoDado": "DATE",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "InscricaoEstadual",
+            "RotuloCampo": "Inscrição Estadual",
+            "TipoDado": "VARCHAR(40)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "InscricaoMunicipal",
+            "RotuloCampo": "Inscrição Municipal",
+            "TipoDado": "VARCHAR(40)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Pessoa jurídica 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "A Pessoa Jurídica é uma especialização da entidade Pessoa."
+          },
+          {
+            "Regra": "RN - Pessoa jurídica 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo Inscrição Estadual, se preenchido, deverá ser único para o estado (UF) informado no endereço principal. Ou seja, só essa empresa deverá ter a Inscrição Estadual Informada dentro do Estado (UF) em questão. Caso esse campo não seja preenchido essa regra deverá ser ignorada."
+          },
+          {
+            "Regra": "RN - Pessoa jurídica 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo Inscrição Municipal, se preenchido, deverá ser único para o Município informado no endereço principal. Ou seja, só essa empresa deverá ter a Inscrição Municipal Informada dentro do Estado (UF) em questão. Caso esse campo não seja preenchido essa regra deverá ser ignorada."
+          },
+          {
+            "Regra": "RN - Pessoa jurídica 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Na tela de edição deverá ser apresentada uma lista com os endereços vinculados à pessoa, ao clicar no endereço deve ser apresentado o componente de endereço para alteração ou exclusão do mesmo do mesmo, o que nesse caso só será permitido alterar o número ou complemento. Ao lado dessa lista deverá ter um botão que permida so usuário incluir novo endereço."
+          }
+        ]
+      },
+      {
+        "Entidade": "Fornecedor",
+        "RotuloEntidade": "Fornecedor",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "IdPessoa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "PessoaJuridica"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Fornecedor 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O Fornecedor é uma especialização da entidade Pessoa."
+          },
+          {
+            "Regra": "RN - Fornecedor 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Dependendo do que for informado no campo CPFCNPJ, por regra de negócio a entidade Fornecedor deverá especializar Pessoa Física ou Pessoa Jurídica também. Se no campo CPFCNPJ for informado um CPF a tela de Edição/Inclusão do Fornecedor deverá exibir as informações para Edição/Inclusão de uma Pessoa Física. E caso contrário, deverá exibir as informações de Pessoa Jurídica. E além de gravar em Pessoa, deverá gravar em Pessoa Física ou Jurídica e em Fornecedor."
+          },
+          {
+            "Regra": "RN - Fornecedor 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Se ao informar um CPFCNPJ, o sistema deverá verificar se esse existe na Entidade PessoaFisica ou PassoaJuridica, dependendo da quantidade de caracteres digitados, se já houver registro o sistema deverá exibir todos os campos desabilitados, exceto para adicionar endereço e telefone, e obviamente para estabelecer um novo vínculo entre aquela pessoa e o condomínio."
+          }
+        ]
+      },
+      {
+        "Entidade": "TipoAtividadeEconomica",
+        "RotuloEntidade": "Tipo de Atividade Econômica",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "CodigoTipoAtividadeEconomica",
+            "RotuloCampo": "Codigo Tipo Atividade Economica",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "VARCHAR(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - TipoAtividadeEconomica 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O Código do Tipo da Atividade Econômica deve ser digitado quando da Inclusão, mas não editável para alteração ou exclusão."
+          }
+        ]
+      },
+      {
+        "Entidade": "AtividadeEconomica",
+        "RotuloEntidade": "Atividade Econômica",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "CodigoTipoAtividadeEconomica",
+            "RotuloCampo": "Código",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "VARCHAR(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim"
+          },
+          {
+            "Campo": "CodigoTipoAtividadeEconomica",
+            "RotuloCampo": "Tipo Atividade",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "TipoAtividadeEconomica"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - AtividadeEconomica 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O Código da Atividade Econômica deve ser digitado quando da Inclusão, mas não editável para alteração ou exclusão."
+          }
+        ]
+      },
+      {
+        "Entidade": "FornecedorAtividade",
+        "RotuloEntidade": "Fornecedor Atividade Econômica",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "IdPessoa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "PessoaJuridica"
+          },
+          {
+            "Campo": "CodigoTipoAtividadeEconomica",
+            "RotuloCampo": "Atividade Economica",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "AtividadeEconomica"
+          }
+        ]
+      },
+      {
+        "Entidade": "PessoaCondominio",
+        "RotuloEntidade": "Pessoa Condominio",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "IdPessoa",
+            "TipoDado": "INT",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "IdCondominio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "DataInicio",
+            "RotuloCampo": "DataInicio",
+            "TipoDado": "DATE",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "TipoVinculo",
+            "RotuloCampo": "TipoVinculo",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Administrador",
+              "Síndico",
+              "Subsíndico",
+              "Conselheiro",
+              "Funcionário Administração",
+              "Funcionário Manutenção",
+              "Visitante",
+              "Prestador Serviço"
+            ]
+          },
+          {
+            "Campo": "DataFim",
+            "RotuloCampo": "DataFim",
+            "TipoDado": "DATE",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ]
+      },
+      {
+        "Entidade": "Equipamento",
+        "RotuloEntidade": "Equipamento",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdEquipamento",
+            "RotuloCampo": "IdEquipamento",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "IdCondominio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descricao",
+            "TipoDado": "VARCHAR(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "ValorAluguel",
+            "RotuloCampo": "ValorAluguel",
+            "TipoDado": "DECIMAL(10,2) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "DuracaoHoras",
+            "RotuloCampo": "DuracaoHoras",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          }
+        ]
+      },
+      {
+        "Entidade": "AluguelEquipamento",
+        "RotuloEntidade": "Aluguel de Equipamento",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdAluguelEquipamento",
+            "RotuloCampo": "IdAluguelEquipamento",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdUnidade",
+            "RotuloCampo": "IdUnidade",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Unidade"
+          },
+          {
+            "Campo": "IdEquipamento",
+            "RotuloCampo": "IdEquipamento",
+            "TipoDado": "BIGINT",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Equipamento"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "IdCondominio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "DataInicio",
+            "RotuloCampo": "DataInicio",
+            "TipoDado": "DATETIME",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "DataFim",
+            "RotuloCampo": "DataFim",
+            "TipoDado": "DATETIME",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "Valor",
+            "RotuloCampo": "Valor",
+            "TipoDado": "DECIMAL(10,2)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - AluguelEquipamento 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Não pode haver dois aluguéis de um equipamento com datas conflitantes.Por exemplo: Aluguel do Salão de Festas com data hora início em 23/04/2027 14:00 e com data fim 23/04/2027 22:00 e o mesmo Salão de Festas em 23/04/2027 15:00 e com data fim 23/04/2027 22:30. O segundo intervalo de datas é conflitante com o primeiro porque o início do segundo intervalo está entre as data do primeiro intervlo de datas."
+          }
+        ]
+      },
+      {
+        "Entidade": "PessoaUnidade",
+        "RotuloEntidade": "Pessoa Unidade",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "Id Pessoa",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "IdUnidade",
+            "RotuloCampo": "Id Unidade",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Unidade"
+          },
+          {
+            "Campo": "DataInicio",
+            "RotuloCampo": "Data Início",
+            "TipoDado": "DATE",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "DataFim",
+            "RotuloCampo": "Data Fim",
+            "TipoDado": "DATE",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "TipoVinculo",
+            "RotuloCampo": "TipoVinculo",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Administrador Imobiliário",
+              "Proprietário",
+              "Proprietário Morador",
+              "Morador com Procuração Proprietário",
+              "Morador"
+            ]
+          },
+          {
+            "Campo": "Resposavel",
+            "RotuloCampo": "Resposável",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim"
+          },
+          {
+            "Campo": "Procuracao",
+            "RotuloCampo": "Procuração",
+            "TipoDado": "LONGBLOB",
+            "Obrigatorio": "Não"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - PessoaUnidade 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Não poderá haver dois Responsáveis (Pessoa) para a mesma Unidade. Caso seja cadastrado ou editado e a Pessoa do registro corrente seja apontado como Responsável e outra pessoa seja o Resposável, a pessoa do registro atual passa a ser o Responsável e a do outro deve ser desmarcada (Responsável=false)."
+          },
+          {
+            "Regra": "RN - PessoaUnidade 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Se a Pessoa for uma Pessoa Jurídica, os tipos de vínculo a serem listados devem ser e aceitos são: Administrador ou Proprietário."
+          }
+        ]
+      },
+      {
+        "Entidade": "Concorrencia",
+        "RotuloEntidade": "Concorrência",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdConcorrencia",
+            "RotuloCampo": "IdConcorrencia",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "IdCondominio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "idTipoDespesa",
+            "RotuloCampo": "idTipoDespesa",
+            "TipoDado": "INT",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "TipoDespesa"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descricao",
+            "TipoDado": "TEXT",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "TipoConcorrencia",
+            "RotuloCampo": "TipoConcorrencia",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Preço",
+              "Qualidade",
+              "Prazo Entrega",
+              "Capacidade Técnica"
+            ]
+          },
+          {
+            "Campo": "Fase",
+            "RotuloCampo": "Fase",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Divulgação",
+              "Recebimento Proposta",
+              "Análise",
+              "Escolha Vencedor",
+              "Assinatura Contrato",
+              "Finalizado"
+            ]
+          },
+          {
+            "Campo": "DataAbertura",
+            "RotuloCampo": "DataAbertura",
+            "TipoDado": "DATETIME",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "DataPrevistaEncerramento",
+            "RotuloCampo": "Data Prevista Encerramento",
+            "TipoDado": "DATETIME",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "DataEncerramento",
+            "RotuloCampo": "DataEncerramento",
+            "TipoDado": "DATETIME",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": "Index"
+          }
+        ]
+      },
+      {
+        "Entidade": "TipoDespesa",
+        "RotuloEntidade": "Tipo de Despesa",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "idTipoDespesa",
+            "RotuloCampo": "Id Tipo Despesa",
+            "TipoDado": "INT - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descricao",
+            "TipoDado": "VARCHAR(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "TipoRateio",
+            "RotuloCampo": "TipoRateio",
+            "TipoDado": "CHAR(1)",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Por Metro Quadrado Unidade",
+              "Pela Quantidade Unidades"
+            ]
+          },
+          {
+            "Campo": "CodigoContabil",
+            "RotuloCampo": "CodigoContabil",
+            "TipoDado": "VARCHAR(50)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ]
+      },
+      {
+        "Entidade": "Despesa",
+        "RotuloEntidade": "Despesa",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdDespesa",
+            "RotuloCampo": "Id Despesa",
+            "TipoDado": "BIGINT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdFornecedor",
+            "RotuloCampo": "IdFornecedor",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Fornecedor"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "IdCondominio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdConcorrencia",
+            "RotuloCampo": "Id Concorrência",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Concorrencia"
+          },
+          {
+            "Campo": "idTipoDespesa",
+            "RotuloCampo": "idTipoDespesa",
+            "TipoDado": "INT",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "TipoDespesa"
+          },
+          {
+            "Campo": "DataDespesa",
+            "RotuloCampo": "DataDespesa",
+            "TipoDado": "DATE",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descricao",
+            "TipoDado": "VARCHAR(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "DataLancamento",
+            "RotuloCampo": "DataLancamento",
+            "TipoDado": "DATETIME",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Valor",
+            "RotuloCampo": "Valor",
+            "TipoDado": "DECIMAL(10,2)",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Observacoes",
+            "RotuloCampo": "Observacoes",
+            "TipoDado": "TEXT",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ]
+      },
+      {
+        "Entidade": "OfertaConcorrencia",
+        "RotuloEntidade": "Oferta Concorrência",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdOfertaConcorrencia",
+            "RotuloCampo": "Id Oferta",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdFornecedor",
+            "RotuloCampo": "Id Fornecedor",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Fornecedor"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdConcorrencia",
+            "RotuloCampo": "Id Concorrência",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Concorrencia"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "TEXT",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "DocumentoComprobatorio",
+            "RotuloCampo": "Documento Comprobatório",
+            "TipoDado": "LONGBLOB",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "Preco",
+            "RotuloCampo": "Preco",
+            "TipoDado": "DECIMAL(10,2) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "DataOferta",
+            "RotuloCampo": "Data da Oferta",
+            "TipoDado": "DATE",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "DataValidade",
+            "RotuloCampo": "Data Validade",
+            "TipoDado": "DATE",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "Vencedora",
+            "RotuloCampo": "Vencedora",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "Justificativa",
+            "RotuloCampo": "Justificativa",
+            "TipoDado": "TEXT",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "Desistente",
+            "RotuloCampo": "Desistente",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ]
+      },
+      {
+        "Entidade": "Banco",
+        "RotuloEntidade": "Banco",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "CodigoBanco",
+            "RotuloCampo": "CodigoBanco",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "DigitoVerificador",
+            "RotuloCampo": "DigitoVerificador",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Nome",
+            "RotuloCampo": "Nome",
+            "TipoDado": "VARCHAR(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key"
+          }
+        ]
+      },
+      {
+        "Entidade": "DadosBancarios",
+        "RotuloEntidade": "Dados Bancários",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "Conta",
+            "RotuloCampo": "Conta",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "CodigoBanco",
+            "RotuloCampo": "CodigoBanco",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Banco"
+          },
+          {
+            "Campo": "Agencia",
+            "RotuloCampo": "Agencia",
+            "TipoDado": "CHAR(4)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "DigitoAgencia",
+            "RotuloCampo": "DigitoAgencia",
+            "TipoDado": "CHAR(1)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "DigitoConta",
+            "RotuloCampo": "DigitoConta",
+            "TipoDado": "CHAR(1)",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "Ativo",
+            "RotuloCampo": "Ativo",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "DataCadastro",
+            "RotuloCampo": "DataCadastro",
+            "TipoDado": "DATETIME",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "CodigoEmpresaCobranca",
+            "RotuloCampo": "C[odigo Empresa Cobran;a",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ]
+      },
+      {
+        "Entidade": "Cobranca",
+        "RotuloEntidade": "Cobranca",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdCobranca",
+            "RotuloCampo": "IdCobranca",
+            "TipoDado": "BIGINT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdArquivoCobrancaRetorno",
+            "RotuloCampo": "IdArquivoCobrancaRetorno",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "SequencialRegistroRetorno",
+            "RotuloCampo": "SequencialRegistroRetorno",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "IdArquivoCobrancaRemessa",
+            "RotuloCampo": "IdArquivoCobrancaRemessa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Unidade"
+          },
+          {
+            "Campo": "SequencialRegistroRemessa",
+            "RotuloCampo": "SequencialRegistroRemessa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "IdUnidade",
+            "RotuloCampo": "IdUnidade",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Unidade"
+          },
+          {
+            "Campo": "DataGeracao",
+            "RotuloCampo": "DataGeracao",
+            "TipoDado": "DATE",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "DataVencimento",
+            "RotuloCampo": "DataVencimento",
+            "TipoDado": "DATE",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Cobrança 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "Na tela de edição deverá haver uma lista de detalhe cobrança para que sejam exibidos as linhas de detalhe da cobrança corrente. Deverá haver um botão para novo detalhe que abrirá um popup com a tela de inclusão do detalhe. Caso seja clicado em uma linha de detalhe deverá ser aberto o popup com a tela para edição/exclusão da cobrança detalhe."
+          }
+        ]
+      },
+      {
+        "Entidade": "CobrancaDetalhe",
+        "RotuloEntidade": "Cobrança Detalhe",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdCobrancaDetalhe",
+            "RotuloCampo": "IdCobranca Detalhe",
+            "TipoDado": "BIGINT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdAluguelEquipamento",
+            "RotuloCampo": "Id Aluguel Equipamento",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "AluguelEquipamento"
+          },
+          {
+            "Campo": "IdDespesa",
+            "RotuloCampo": "Id Despesa",
+            "TipoDado": "BIGINT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Despesa"
+          },
+          {
+            "Campo": "IdCobranca",
+            "RotuloCampo": "Id Cobranca",
+            "TipoDado": "BIGINT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Cobranca"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descricao",
+            "TipoDado": "VARCHAR(255)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "Valor",
+            "RotuloCampo": "Valor",
+            "TipoDado": "DECIMAL(10,2) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Cobrança Detalhe 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Obrigatoriamente, ou o campo IdDespesas ou IdAluguelEquipamento deve ser preenchido."
+          }
+        ]
+      },
+      {
+        "Entidade": "GuardaEncomenda",
+        "RotuloEntidade": "Guarda Encomenda",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdGuardaEncomenda",
+            "RotuloCampo": "Id Guarda Encomenda",
+            "TipoDado": "BIGINT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdUnidade",
+            "RotuloCampo": "Id Unidade",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Unidade"
+          },
+          {
+            "Campo": "CodigoEncomenda",
+            "RotuloCampo": "Codigo da Encomenda",
+            "Filtro": "Sim",
+            "TipoDado": "VARCHAR(255)",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "IdLocal",
+            "RotuloCampo": "Id Local Armazenamento",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Local"
+          },
+          {
+            "Campo": "DataHoraEntrada",
+            "RotuloCampo": "Data/Hora Entrada",
+            "TipoDado": "DATETIME",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "DataHoraSaida",
+            "RotuloCampo": "Data/Hora Saída",
+            "TipoDado": "DATETIME",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "IdPessoaEntrada",
+            "RotuloCampo": "Id Colaborador Entrada",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "IdPessoaSaida",
+            "RotuloCampo": "Retirado Por",
+            "TipoDado": "INT - Unsigned",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "PessoaUnidade"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - GuardaEncomenda 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O Campo IdPessoaEntrada deve obrigatóriamente ser preenchido por uma pessoa que tenha vínculo em PessoaCondominio ou PessoaUnidade."
+          },
+          {
+            "Regra": "RN - GuardaEncomenda 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Só poderão ser listados Locais do tipo Armazenamento."
+          }
+        ]
+      },
+      {
+        "Entidade": "Local",
+        "RotuloEntidade": "Local",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdLocal",
+            "RotuloCampo": "Id Local",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "varchar(100)",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "IdLocalPai",
+            "RotuloCampo": "Id Local Pai",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Local"
+          },
+          {
+            "Campo": "TipoLocal",
+            "RotuloCampo": "Tipo de Local",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Armazenamento",
+              "Alocação"
+            ]
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Local 01",
+            "Tipo": "Regra de Negocio",
+            "Descricao": "Na tela de edição/inclusão de Local, ao ser apontado um IdLocalPai o TipoLocal corrente deve ser o mesmo e o campo deve ficar desabilitado. Ou seja o TipoLocal só poderá ser escolhido pelo usuário se o Local não tiver um IDLocalPai."
+          }
+        ]
+      },
+      {
+        "Entidade": "TipoMaterial",
+        "RotuloEntidade": "Tipo de Material",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador",
+          "Supervisor"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdTipoMaterial",
+            "RotuloCampo": "Id do Tipo de Material",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "varchar(100)",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key"
+          },
+          {
+            "Campo": "Classificacao",
+            "RotuloCampo": "Classificacao",
+            "TipoDado": "TinyInt(1)",
+            "Obrigatorio": "Não",
+            "Enum": [
+              "Bem Permante",
+              "Bem Intagível",
+              "Material de Consumo"
+            ]
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - TipoMaterial 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "Na tela de incluão do TipoMaterial, logo na entrada o sistema deverá exibir a mensagem: 'Antes de incluir um Tipo de Material, verifique se o mesmo já existe e caso exista faça a associação na tela Tipo de Material - Condomínio, uma vez incuído o Tipo de Material o sistema não permitirá sual alteração e ainda o mesmo poderá ser utilizado para outros condomínios.'."
+          },
+          {
+            "Regra": "RN - TipoMaterial 02",
+            "Tipo": "Regra de Tela",
+            "Descricao": "Antes da inclusão de um TipoMaterial, deverá ser exibida a mensagem:'Ao ser incluído esse tipo de material você não mais poderá alterá-lo, pois o mesmo poderá ser utilizado pelo sistema para outro condomínio. Tem certeza que deseja incluí-lo?'. Deverão ser exibidas as opções Cancelar e Confirmar, e caso seja excolhida a opção cancelar o sistema deverá ignorar a gravação e em caso contrário o sistema deverá efetivar a gravação do registro."
+          },
+          {
+            "Regra": "RN - TipoMaterial 03",
+            "Tipo": "Regra de Tela",
+            "Descricao": "O sistema não deverá permitir alteração e exclusão de TipoMaterial."
+          },
+          {
+            "Regra": "RN - TipoMaterial 04",
+            "Tipo": "Regra de Tela",
+            "Descricao": "Ao ser incluído um TipoMaterial, deverá ser incluído também TipoMaterialCondominio, de forma automática TipoMaterialCondominio para o condomínio corrente."
+          }
+        ]
+      },
+      {
+        "Entidade": "TipoMaterialCondominio",
+        "RotuloEntidade": "Tipo de Material - Condomínio",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdTipoMaterial",
+            "RotuloCampo": "Id do Tipo de Material",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "TipoMaterial"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          }
+        ]
+      },
+      {
+        "Entidade": "Material",
+        "RotuloEntidade": "Material",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador",
+          "Supervisor"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdMaterial",
+            "RotuloCampo": "Id do Material",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "DataAquisicao",
+            "RotuloCampo": "DataAquisicao",
+            "TipoDado": "Date",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "Patrimonio",
+            "RotuloCampo": "Patrimônio",
+            "TipoDado": "varchar(30)",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "varchar(255)",
+            "Obrigatorio": "Não",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "IdTipoMaterial",
+            "RotuloCampo": "Id do Tipo de Material",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "TipoMaterial",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "VidaUtil",
+            "RotuloCampo": "Vida Útil (em anos)",
+            "TipoDado": "SMALLINT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "ValorAquisicao",
+            "RotuloCampo": "Valor de Aquisição",
+            "TipoDado": "Decimal (10,2) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "ValorDepreciavel",
+            "RotuloCampo": "Valor Depreciavel",
+            "TipoDado": "Decimal (10,2) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "ValorDepreciacao",
+            "RotuloCampo": "Valor da Depreciacao",
+            "TipoDado": "Calculado",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "ValorQuotaDepreciacao",
+            "RotuloCampo": "Valor da Quota de Depreciacao",
+            "TipoDado": "Calculado",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "ValorContabil",
+            "RotuloCampo": "Valor Contábil",
+            "TipoDado": "Calculado",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Material 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O ValorQuotaDepreciacao é calculado a partir da divisão do ValorDepreciavel pela VidaUtil.  Como esse campo é calculado não deve ser gravado no banco de dados, deve ser somente exibido na sua classe."
+          },
+          {
+            "Regra": "RN - Material 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O ValorDepreciacao é calculado a partir da multiplicação do ValorQuotaDepreciacao pela quantidade de anos existentes entre a DataAquisicao e a data atual, número inteiro e truncado, Exemplo: se a quantidade de anos entre a DataAquisicao e a data atual for 0.5, portanto seis meses, deve ser considerado 0. Como esse campo é calculado não deve ser gravado no banco de dados, deve ser somente exibido na sua classe."
+          },
+          {
+            "Regra": "RN - Material 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O ValorContabil é calculado a partir da subtração entre o de ValorAquisicao e o ValorDepreciacao. Como esse campo é calculado não deve ser gravado no banco de dados, deve ser somente exibido na sua classe."
+          },
+          {
+            "Regra": "RN - Material 04",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Qundo ValorContabil atingir o valor depreciável a Depreciação deve parar."
+          },
+          {
+            "Regra": "RN - Material 05",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Para entidade Material só podem ser listados Tipos de Material classificados como Bem Permanente e Bem Intangível e que possuam registro em TipoMaterialCondominio."
+          }
+        ]
+      },
+      {
+        "Entidade": "AlocacaoMaterial",
+        "RotuloEntidade": "Alocação de Material",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdAlocacaoMaterial",
+            "RotuloCampo": "Id de Material",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdMaterial",
+            "RotuloCampo": "Id do Material",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Material",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "Locatario",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "PessoaCondominio"
+          },
+          {
+            "Campo": "IdLocal",
+            "RotuloCampo": "Local de Alocação",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Local"
+          },
+          {
+            "Campo": "DataHoraInicio",
+            "RotuloCampo": "Data/Hora Início",
+            "TipoDado": "DateTime",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "DataHoraFim",
+            "RotuloCampo": "Data/Hora Início",
+            "TipoDado": "DateTime",
+            "Obrigatorio": "Não",
+            "Indice": "Index"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - AlocacaoMaterial 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Só poderão ser listados Materiais com Tipos de Material cuja a classificação sejam: Bem Permante e Bem Intagível."
+          },
+          {
+            "Regra": "RN - AlocacaoMaterial 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Só poderão ser listados Locais que o Tipo seja 'Alocação' ."
+          },
+          {
+            "Regra": "RN - AlocacaoMaterial 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O sistema não deve permitir o criação de registro de alocação de um mesmo material dentro do período onde o mesmo esteja alocado."
+          }
+        ]
+      },
+      {
+        "Entidade": "EstoqueMaterialConsumo",
+        "RotuloEntidade": "Estoque de Material de Consumo",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador",
+          "Supervisor"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdEstoqueMaterialConsumo",
+            "RotuloCampo": "Id do Estoque",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdTipoMaterial",
+            "RotuloCampo": "Id do Tipo de Material",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "TipoMaterial",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "DataValidade",
+            "RotuloCampo": "Data/Hora Validade",
+            "TipoDado": "DateTime",
+            "Obrigatorio": "Não",
+            "Indice": "Index",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "Lote",
+            "RotuloCampo": "Lote",
+            "TipoDado": "Varchar(20)",
+            "Obrigatorio": "Não",
+            "Indice": "Index",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "DataUltimaAquisicao",
+            "RotuloCampo": "Data/Hora Última Aquisição",
+            "TipoDado": "DateTime",
+            "Obrigatorio": "Sim",
+            "Indice": "Index",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "ValorUnitarioUltimaAquisicao",
+            "RotuloCampo": "Valor Uniário da Aquisição",
+            "TipoDado": "Decimal (10,2) - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "ValorUnitarioMedio",
+            "RotuloCampo": "Valor Uniário Médio",
+            "TipoDado": "Decimal (10,2) - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "Quantidade",
+            "RotuloCampo": "Quantidade",
+            "TipoDado": "Decimal (10,3) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "ValorTotal",
+            "RotuloCampo": "Valor Total",
+            "TipoDado": "Calculado",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "UnidadeMedida",
+            "RotuloCampo": "Unidade de Medida",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "",
+            "Enum": [
+              "Unidade (UN)",
+              "Quilograma (kg)",
+              "Litro (L)",
+              "Metro (m)",
+              "Metro quadrado (m²)"
+            ]
+          },
+          {
+            "Campo": "IdLocal",
+            "RotuloCampo": "Local de Armazenamento",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Local"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - EstoqueMaterialConsumo 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O campo ValorTotal deve ser calculado a partir da multiplicação entre ValorUnitarioMedio e Quantidade. Como esse campo é calculado não deve ser gravado no banco de dados, deve ser somente exibido na sua classe."
+          },
+          {
+            "Regra": "RN - EstoqueMaterialConsumo 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Para entidade EstoqueMaterialConsumo só podem ser listados Tipos de Material classificados como Material de Consumo."
+          },
+          {
+            "Regra": "RN - EstoqueMaterialConsumo 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Só poderão ser listados Locais que o Tipo seja 'Armazenamento' ."
+          }
+        ]
+      },
+      {
+        "Entidade": "EntradaSaidaMaterialConsumo",
+        "RotuloEntidade": "Entrada e Saída de Material de Consumo",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador",
+          "Supervisor"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdEntradaSaidaMaterialConsumo",
+            "RotuloCampo": "Id Lançamento",
+            "TipoDado": "BIGINT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Id Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "TipoLancamento",
+            "RotuloCampo": "Tipo de Lançamento",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "",
+            "Enum": [
+              "Entrada Por Aquisição",
+              "Entrada Por Devolução",
+              "Saída por utilização",
+              "Saída por Perda",
+              "Saída por Inventário"
+            ]
+          },
+          {
+            "Campo": "IdEstoqueMaterialConsumo",
+            "RotuloCampo": "Id do Estoque",
+            "TipoDado": "BIGINT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "IdTipoMaterial",
+            "RotuloCampo": "Id do Tipo de Material",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "TipoMaterial",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "DataValidade",
+            "RotuloCampo": "Data/Hora Validade",
+            "TipoDado": "DateTime",
+            "Obrigatorio": "Não",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "Lote",
+            "RotuloCampo": "Lote",
+            "TipoDado": "Varchar(20)",
+            "Obrigatorio": "Não",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "ValorUnitarioAquisicao",
+            "RotuloCampo": "Valor Uniário da Aquisição",
+            "TipoDado": "Decimal (10,2) - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "Quantidade",
+            "RotuloCampo": "Quantidade",
+            "TipoDado": "Decimal (10,3) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "UnidadeMedida",
+            "RotuloCampo": "Unidade de Medida",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "",
+            "Enum": [
+              "Unidade (UN)",
+              "Quilograma (kg)",
+              "Litro (L)",
+              "Metro (m)",
+              "Metro quadrado (m²)"
+            ]
+          },
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "Consumidor",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "PessoaCondominio"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - EntradaSaidaMaterialConsumo 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Para entidade EntradaSaidaMaterialConsumo só podem ser listados Tipos de Material classificados como Material de Consumo."
+          },
+          {
+            "Regra": "RN - EntradaSaidaMaterialConsumo 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Quando da Inclusão da EntradaSaidaMaterialConsumo, esse deve sensibilizar a entidade EstoqueMaterialConsumo, ou seja, se já houver um registro em EstoqueMaterialConsumo com o mesmo IdTipoMaterial, mesma DataValidade e mesmo Lote o sistema deverá acrescentar (se for entrada) e subtrair (se for saída) da quantidade existente. Caso não exista, o sistema deverá criar um novo Registro em EstoqueMaterialConsumo. Em ambos os casos o sistema deverá trazer o IdEstoqueMaterialConsumo para ser gravado no registro da EntradaSaidaMaterialConsumo."
+          },
+          {
+            "Regra": "RN - EntradaSaidaMaterialConsumo 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Quando da Entrada por Aquisição o sistema deverá calcular o novo Preco Unitário Médio, para tanto, utilize a fórmula ((Qtd Antiga × Custo Antigo)+(Qtd Nova × Custo Novo)​)/(Qtd Antiga + Qtd Nova)"
+          },
+          {
+            "Regra": "RN - EntradaSaidaMaterialConsumo 04",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Na tela de Inclusão/Edição de Entrada e Saída de Material de Consumo, O Campo Consumidor Saída só deve ser apresentado quando o TipoLancamento for   'Saída por utilização'. E nesse caso o campo consumidor passa a ser de preenchimento obrigatório."
+          }
+        ]
+      }
+    ]
+  }
+}

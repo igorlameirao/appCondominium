@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appcondominium.local/schemas/md_appCondominium.schema.json",
+  "title": "AppCondominium — Especificação do Sistema",
+  "description": "Schema alinhado ao formato de MDs/md_appCondominium.json. Valida estrutura; regras cruzadas (FK existente, PK única) exigem validador customizado.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["EspecificacaoSistema"],
+  "properties": {
+    "EspecificacaoSistema": {
+      "$ref": "#/$defs/especificacaoSistema"
+    }
+  },
+  "$defs": {
+    "simNao": {
+      "type": "string",
+      "enum": ["Sim", "Não"]
+    },
+    "tipoRegra": {
+      "type": "string",
+      "enum": [
+        "Regra de Negócio",
+        "Regra de Negocio",
+        "Regra de Tela"
+      ]
+    },
+    "regra": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["Regra", "Tipo", "Descricao"],
+      "properties": {
+        "Regra": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Ex.: RN-Gerais 14, RT-Gerais 12, RN - UF 01"
+        },
+        "Tipo": { "$ref": "#/$defs/tipoRegra" },
+        "Descricao": { "type": "string", "minLength": 1 }
+      }
+    },
+    "indiceCampo": {
+      "type": "string",
+      "description": "Valor livre no JSON atual; o gerador trata variações (Primary/Primay Key, Foreign Key, etc.)",
+      "examples": [
+        "",
+        "Primary Key",
+        "Primay Key",
+        "Foreign Key",
+        "Unique Key",
+        "Unique",
+        "Index"
+      ]
+    },
+    "tipoDado": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Tipo MySQL/C# descritivo. Ex.: INT - Unsigned - Auto incremental, varchar(150), DECIMAL(10,3) - Unsigned"
+    },
+    "nomeEntidade": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9]*$",
+      "description": "Nome PascalCase da entidade (ex.: PessoaCondominio, pessoafisica)"
+    },
+    "nomeCampo": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9]*$",
+      "description": "Nome do campo (ex.: IdCondominio, CodigoIBGEMunicipio)"
+    },
+    "campo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["Campo", "RotuloCampo", "TipoDado", "Obrigatorio", "Indice"],
+      "properties": {
+        "Campo": { "$ref": "#/$defs/nomeCampo" },
+        "RotuloCampo": { "type": "string", "minLength": 1 },
+        "TipoDado": { "$ref": "#/$defs/tipoDado" },
+        "Obrigatorio": { "$ref": "#/$defs/simNao" },
+        "Indice": { "$ref": "#/$defs/indiceCampo" },
+        "Filtro": { "$ref": "#/$defs/simNao" },
+        "ExibirForeignKey": { "$ref": "#/$defs/simNao" },
+        "EntidadeForeignKey": { "$ref": "#/$defs/nomeEntidade" },
+        "Enum": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "Indice": {
+                "type": "string",
+                "pattern": "(?i)foreign\\s*key"
+              }
+            },
+            "required": ["Indice"]
+          },
+          "then": { "required": ["EntidadeForeignKey"] }
+        },
+        {
+          "if": {
+            "required": ["EntidadeForeignKey"]
+          },
+          "then": {
+            "properties": {
+              "Indice": {
+                "type": "string",
+                "pattern": "(?i)foreign\\s*key"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "indiceEspecial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["Indice", "Tipo", "Campos", "MensagemErroViolacao"],
+      "properties": {
+        "Indice": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Nome do índice (ex.: IdxCKTipoUnidade)"
+        },
+        "Tipo": {
+          "type": "string",
+          "enum": ["Candidate Key", "Unique Key", "Index"]
+        },
+        "Campos": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/nomeCampo" },
+          "uniqueItems": true
+        },
+        "MensagemErroViolacao": { "type": "string", "minLength": 1 }
+      }
+    },
+    "entidade": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["Entidade", "RotuloEntidade", "Gerar CRUD", "Campos"],
+      "properties": {
+        "Entidade": { "$ref": "#/$defs/nomeEntidade" },
+        "RotuloEntidade": { "type": "string", "minLength": 1 },
+        "Gerar CRUD": { "$ref": "#/$defs/simNao" },
+        "PerfisAcesso": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "Perfis que podem acessar o CRUD (referência a PerfilAcesso)"
+        },
+        "Campos": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/campo" }
+        },
+        "Regras": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/regra" }
+        },
+        "RegistrosAdicionadosAutomaticamente": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "Seed data (ex.: perfis em PerfilAcesso)"
+        },
+        "IndicesEspeciais": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/indiceEspecial" }
+        }
+      }
+    },
+    "especificacaoSistema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "NomeSistema",
+        "DescricaoSistema",
+        "Backend",
+        "Frontend",
+        "BancoDados",
+        "RegrasGerais",
+        "Entidades"
+      ],
+      "properties": {
+        "NomeSistema": { "type": "string", "minLength": 1 },
+        "DescricaoSistema": { "type": "string" },
+        "Backend": { "type": "string", "minLength": 1 },
+        "Frontend": { "type": "string", "minLength": 1 },
+        "BancoDados": { "type": "string", "minLength": 1 },
+        "VersaoMobile": { "type": "string" },
+        "Arquitetura": { "type": "string" },
+        "Observacao": { "type": "string" },
+        "RegrasGerais": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/regra" }
+        },
+        "Entidades": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/entidade" }
+        }
+      }
+    }
+  }
+}

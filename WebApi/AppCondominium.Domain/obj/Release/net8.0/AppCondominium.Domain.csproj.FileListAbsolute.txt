@@ -1,0 +1,11 @@
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\bin\Release\net8.0\AppCondominium.Domain.deps.json
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\bin\Release\net8.0\AppCondominium.Domain.dll
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\bin\Release\net8.0\AppCondominium.Domain.pdb
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\obj\Release\net8.0\AppCondominium.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\obj\Release\net8.0\AppCondominium.Domain.AssemblyInfoInputs.cache
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\obj\Release\net8.0\AppCondominium.Domain.AssemblyInfo.cs
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\obj\Release\net8.0\AppCondominium.Domain.csproj.CoreCompileInputs.cache
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\obj\Release\net8.0\AppCondominium.Domain.dll
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\obj\Release\net8.0\refint\AppCondominium.Domain.dll
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\obj\Release\net8.0\AppCondominium.Domain.pdb
+C:\Projetos\appCondominium\WebApi\AppCondominium.Domain\obj\Release\net8.0\ref\AppCondominium.Domain.dll

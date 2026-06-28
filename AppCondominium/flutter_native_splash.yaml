@@ -1,0 +1,5 @@
+flutter_native_splash:
+  color: "#F8A100"
+  image: "assets/images/png/condominium_splash.png"
+  android: true
+  ios: true

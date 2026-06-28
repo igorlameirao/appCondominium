@@ -1,0 +1,15 @@
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\bin\Release\net8.0\AppCondominium.Application.deps.json
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\bin\Release\net8.0\AppCondominium.Application.dll
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\bin\Release\net8.0\AppCondominium.Application.pdb
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\bin\Release\net8.0\AppCondominium.Domain.dll
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\bin\Release\net8.0\AppCondominium.Domain.pdb
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\obj\Release\net8.0\AppCondominium.Application.csproj.AssemblyReference.cache
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\obj\Release\net8.0\AppCondominium.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\obj\Release\net8.0\AppCondominium.Application.AssemblyInfoInputs.cache
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\obj\Release\net8.0\AppCondominium.Application.AssemblyInfo.cs
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\obj\Release\net8.0\AppCondominium.Application.csproj.CoreCompileInputs.cache
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\obj\Release\net8.0\AppCondo.F7427912.Up2Date
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\obj\Release\net8.0\AppCondominium.Application.dll
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\obj\Release\net8.0\refint\AppCondominium.Application.dll
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\obj\Release\net8.0\AppCondominium.Application.pdb
+C:\Projetos\appCondominium\WebApi\AppCondominium.Application\obj\Release\net8.0\ref\AppCondominium.Application.dll

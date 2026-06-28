@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- Cauda curvada: branco 100% opaco -->
+  <path d="M18 18 C 10 22 4 16 6 12" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="1"/>
+  <!-- Ponta da seta: branco 100% opaco -->
+  <path d="M6 12 L 2 12 L 5 8 L 5 16 Z" fill="#ffffff" fill-opacity="1"/>
+</svg>

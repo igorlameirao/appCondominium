@@ -1,0 +1,40 @@
+<div
+  class="app-premium-shell"
+  [class.app-premium-shell--authed]="shouldShowMenu()"
+  [class.app-premium-shell--sidebar-collapsed]="shouldShowMenu() && sidebarCollapsed">
+  <aside *ngIf="shouldShowMenu()" class="app-premium-sidebar" [class.app-premium-sidebar--open]="mobileMenuOpen">
+    <div class="app-premium-sidebar__head">
+      <div class="app-premium-brand">
+        <div class="app-premium-brand__title">AppCondominium</div>
+        <div class="app-premium-brand__sub" *ngIf="condominioCtx.idCondominio">Cond. #{{ condominioCtx.idCondominio }}</div>
+      </div>
+    </div>
+    <nav class="app-premium-sidebar__nav">
+      <div *ngFor="let group of menuGroups" class="sidebar-group">
+        <button type="button" class="sidebar-group__trigger" (click)="toggleGroup(group.label)">
+          <span class="sidebar-group__title">{{ group.label }}</span>
+        </button>
+        <div class="sidebar-group__links" *ngIf="isGroupOpen(group.label)">
+          <a *ngFor="let link of group.links" [routerLink]="link.route" routerLinkActive="sidebar-link--active" class="sidebar-link">{{ link.label }}</a>
+        </div>
+      </div>
+    </nav>
+    <div class="app-premium-sidebar__foot">
+      <button type="button" class="sidebar-logout" (click)="logout()">Sair</button>
+    </div>
+  </aside>
+
+  <div class="app-premium-stage">
+    <header *ngIf="shouldShowMenu()" class="app-premium-topstrip">
+      <button type="button" class="app-premium-burger" (click)="mobileMenuOpen = !mobileMenuOpen" aria-label="Menu">☰</button>
+      <div class="app-premium-topstrip-brand">Administração de Condomínios</div>
+    </header>
+    <main class="app-premium-main">
+      <div class="content-wrapper">
+        <div class="content-card">
+          <router-outlet />
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

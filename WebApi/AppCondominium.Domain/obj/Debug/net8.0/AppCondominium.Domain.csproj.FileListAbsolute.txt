@@ -1,0 +1,11 @@
+C:\Projetos\appCondominium\src\AppCondominium.Domain\obj\Debug\net8.0\AppCondominium.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projetos\appCondominium\src\AppCondominium.Domain\obj\Debug\net8.0\AppCondominium.Domain.AssemblyInfoInputs.cache
+C:\Projetos\appCondominium\src\AppCondominium.Domain\obj\Debug\net8.0\AppCondominium.Domain.AssemblyInfo.cs
+C:\Projetos\appCondominium\src\AppCondominium.Domain\obj\Debug\net8.0\AppCondominium.Domain.csproj.CoreCompileInputs.cache
+C:\Projetos\appCondominium\src\AppCondominium.Domain\bin\Debug\net8.0\AppCondominium.Domain.deps.json
+C:\Projetos\appCondominium\src\AppCondominium.Domain\bin\Debug\net8.0\AppCondominium.Domain.dll
+C:\Projetos\appCondominium\src\AppCondominium.Domain\bin\Debug\net8.0\AppCondominium.Domain.pdb
+C:\Projetos\appCondominium\src\AppCondominium.Domain\obj\Debug\net8.0\AppCondominium.Domain.dll
+C:\Projetos\appCondominium\src\AppCondominium.Domain\obj\Debug\net8.0\refint\AppCondominium.Domain.dll
+C:\Projetos\appCondominium\src\AppCondominium.Domain\obj\Debug\net8.0\AppCondominium.Domain.pdb
+C:\Projetos\appCondominium\src\AppCondominium.Domain\obj\Debug\net8.0\ref\AppCondominium.Domain.dll
