@@ -77,7 +77,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                               FocusScope.of(context).unfocus();
                               _anterior();
                             },
-                            child: Row(children: const [
+                            child: const Row(children: [
                               Icon(Icons.arrow_back),
                               Text('Voltar')
                             ]))
@@ -241,7 +241,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
               fontBold: true,
               onTap: () {
                 FocusScope.of(context).unfocus();
-                //TODO
+                
                 //_recuperarSenha();
               },
             ),
@@ -314,7 +314,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
         ),
       );
     } else {
-      Navigator.pushNamed(context, '/RegistrarUsuario');
+      Navigator.pushNamed(context, '/RegistrarUsuario',
+          arguments: emailController.text.trim());
     }
   }
 }

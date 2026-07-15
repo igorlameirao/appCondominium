@@ -1,13 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../../data/view_models/usuario.dart';
 import 'package:sagaz_condominium/common/mensagem_atencao_box.dart';
 import 'package:sagaz_condominium/common/mensagem_exclamacao_linha.dart';
 import '../../../common/fundo_arredondado.dart';
 import '../../../enums/perfil.dart';
 
 class EscolherPerfil extends StatefulWidget {
-  const EscolherPerfil({Key? key}) : super(key: key);
+  final String email;
+  final Perfil? perfilInicial;
+  final ValueChanged<Perfil?>? onPerfilChanged;
+  const EscolherPerfil(
+      {Key? key, required this.email, this.perfilInicial, this.onPerfilChanged})
+      : super(key: key);
   @override
   // ignore: library_private_types_in_public_api
   _EscolherPerfilState createState() => _EscolherPerfilState();
@@ -29,14 +33,13 @@ class _EscolherPerfilState extends State<EscolherPerfil> {
     super.initState();
     _perfis = perfis();
     _opcoes.addAll(_perfis.map((value) => value?.nome ?? '').toList());
-    _currentOption = Usuario.perfil;
+    _currentOption = widget.perfilInicial;
     //_isFormOk = false;
   }
 
   @override
   Widget build(BuildContext context) {
-    //final email = ModalRoute.of(context)!.settings.arguments as String;
-    final email = Usuario.email;
+    final email = widget.email;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -82,7 +85,7 @@ class _EscolherPerfilState extends State<EscolherPerfil> {
                       setState(() {
                         _currentOption = opcao;
                       });
-                      Usuario.perfil = opcao;
+                      widget.onPerfilChanged?.call(opcao);
                     }
                   },
                   children: List<Widget>.generate(_opcoes.length, (int index) {

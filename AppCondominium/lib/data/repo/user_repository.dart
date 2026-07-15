@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../mappers/loggedIn_user_mapper.dart';
+import '../mappers/logged_in_user_mapper.dart';
 import '../mappers/user_mapper.dart';
 import '../api_models/logged_in_user.dart';
 import '../repo/api_client.dart';
@@ -7,11 +7,11 @@ import '../../services/token_service.dart';
 import '../api_models/api_user.dart';
 
 class UsuarioRepositorio {
-  static const BASE_URL = "api/User";
-  ApiClient _apiClient = ApiClient();
+  static const baseUrl = "api/User";
+  final ApiClient _apiClient = ApiClient();
 
   Future<void> registrationRequest(String email) async {
-    String targetUrl = "$BASE_URL/registrationRequest/$email";
+    String targetUrl = "$baseUrl/registrationRequest/$email";
 
     await _apiClient.get(
       targetUrl,
@@ -27,7 +27,7 @@ class UsuarioRepositorio {
     String lastName,
   ) async {
     try {
-      String targetUrl = "$BASE_URL/Register";
+      String targetUrl = "$baseUrl/Register";
       Map params = {
         "email": email,
         "password": password,
@@ -51,7 +51,7 @@ class UsuarioRepositorio {
   Future<LoggedInUser> logIn(
       String email, String password, bool rememberMe) async {
     try {
-      String targetUrl = "$BASE_URL/Login";
+      String targetUrl = "$baseUrl/Login";
 
       Map params = {
         "email": email,
@@ -74,7 +74,7 @@ class UsuarioRepositorio {
 
   Future<ApiUser> getUser() async {
     try {
-      String targetUrl = "$BASE_URL";
+      String targetUrl = baseUrl;
 
       var body = await _apiClient.get(targetUrl, TokenService().getUserToken());
       final user = ApiUser().fromJson(body);
@@ -86,7 +86,7 @@ class UsuarioRepositorio {
   }
 
   Future<void> updateUser(ApiUser user) async {
-    String targetUrl = "$BASE_URL/update";
+    String targetUrl = "$baseUrl/update";
 
     final body = user.toUpdateUserParameter();
 
@@ -98,7 +98,7 @@ class UsuarioRepositorio {
   }
 
   Future<void> forgotPassword(String email) async {
-    String targetUrl = "$BASE_URL/forgotPassword";
+    String targetUrl = "$baseUrl/forgotPassword";
 
     Map params = {"email": email};
 
@@ -111,7 +111,7 @@ class UsuarioRepositorio {
 
   Future<void> resetPassword(
       String email, String token, String password) async {
-    String targetUrl = "$BASE_URL/resetPassword";
+    String targetUrl = "$baseUrl/resetPassword";
 
     Map params = {
       "email": email,
@@ -128,7 +128,7 @@ class UsuarioRepositorio {
 
   Future<void> deleteAccount(
       String userId, String email, String password) async {
-    String targetUrl = "$BASE_URL";
+    String targetUrl = baseUrl;
 
     Map params = {
       "email": email,
@@ -145,7 +145,7 @@ class UsuarioRepositorio {
 
   Future<void> changePassword(
       String userId, String oldPassword, String newPassword) async {
-    String targetUrl = "$BASE_URL/ChangePassword";
+    String targetUrl = "$baseUrl/ChangePassword";
 
     Map params = {
       "userId": userId,

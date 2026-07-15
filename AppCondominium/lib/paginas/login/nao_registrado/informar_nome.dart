@@ -1,14 +1,21 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sagaz_condominium/common/linha_campo.dart';
-import '../../../data/view_models/usuario.dart';
 import '../../../common/custom_text_field.dart';
 import '../../../common/fundo_arredondado.dart';
 
 class InformarNome extends StatefulWidget {
   final int passos;
   final int passo;
-  const InformarNome(this.passo, this.passos, {Key? key}) : super(key: key);
+  final String email;
+  final DateTime? dataNascimentoInicial;
+  final ValueChanged<DateTime>? onDataNascimentoChanged;
+  const InformarNome(this.passo, this.passos,
+      {Key? key,
+      required this.email,
+      this.dataNascimentoInicial,
+      this.onDataNascimentoChanged})
+      : super(key: key);
   @override
   // ignore: library_private_types_in_public_api
   _InformarNomeState createState() => _InformarNomeState();
@@ -21,7 +28,7 @@ class _InformarNomeState extends State<InformarNome> {
   final TextEditingController nomesMeioController = TextEditingController();
   final TextEditingController nomeFinalController = TextEditingController();
   String _genero = "Masculino";
-  DateTime? _dataNascimento = Usuario.dataNascimento;
+  DateTime? _dataNascimento;
 
   final margemPadrao =
       const EdgeInsets.only(left: 30, right: 30, top: 10, bottom: 10);
@@ -29,6 +36,7 @@ class _InformarNomeState extends State<InformarNome> {
   @override
   void initState() {
     super.initState();
+    _dataNascimento = widget.dataNascimentoInicial;
   }
 
   @override
@@ -54,7 +62,7 @@ class _InformarNomeState extends State<InformarNome> {
                 Divider(color: Theme.of(context).dividerColor),
                 linhaCampo(
                     "e-mail: ",
-                    Text(Usuario.email,
+                    Text(widget.email,
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 16.0)))
               ],
@@ -140,7 +148,9 @@ class _InformarNomeState extends State<InformarNome> {
       margin: const EdgeInsets.only(left: 5, right: 5, top: 20),
       padding: const EdgeInsets.only(left: 10, top: 5, bottom: 5, right: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).dialogBackgroundColor.withAlpha(128),
+        color: (Theme.of(context).dialogTheme.backgroundColor ??
+                Theme.of(context).colorScheme.surface)
+            .withAlpha(128),
         borderRadius: const BorderRadius.all(Radius.circular(10)),
       ),
       child: Column(
@@ -163,10 +173,10 @@ class _InformarNomeState extends State<InformarNome> {
                 color: Colors.pink,
               ),
               CupertinoSwitch(
-                activeColor: _genero == "Masculino"
+                activeTrackColor: _genero == "Masculino"
                     ? Colors.blue.withAlpha(128)
                     : Colors.pink,
-                trackColor: _genero == "Masculino"
+                inactiveTrackColor: _genero == "Masculino"
                     ? Colors.blue.withAlpha(128)
                     : Colors.pink.withAlpha(128),
                 value: _genero == "Masculino" ? true : false,
@@ -193,7 +203,9 @@ class _InformarNomeState extends State<InformarNome> {
       margin: const EdgeInsets.only(left: 5, right: 5, top: 20),
       padding: const EdgeInsets.only(left: 10, top: 5, bottom: 5, right: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).dialogBackgroundColor.withAlpha(128),
+        color: (Theme.of(context).dialogTheme.backgroundColor ??
+                Theme.of(context).colorScheme.surface)
+            .withAlpha(128),
         borderRadius: const BorderRadius.all(Radius.circular(10)),
       ),
       child: Column(
@@ -216,6 +228,7 @@ class _InformarNomeState extends State<InformarNome> {
                 setState(() {
                   _dataNascimento = value;
                 });
+                widget.onDataNascimentoChanged?.call(value);
               },
             ),
           ),

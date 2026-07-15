@@ -57,8 +57,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 !isEyesOpen,
             decoration: InputDecoration(
                 filled: true,
-                fillColor:
-                    Theme.of(context).dialogBackgroundColor.withAlpha(128),
+                fillColor: (Theme.of(context).dialogTheme.backgroundColor ??
+                        Theme.of(context).colorScheme.surface)
+                    .withAlpha(128),
                 counterText: "",
                 prefix:
                     widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
@@ -109,7 +110,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
     //Testando e-mail
     if (keyboardType == TextInputType.emailAddress &&
         !RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-            .hasMatch(value)) return false;
+            .hasMatch(value)) {
+      return false;
+    }
     //Caso não haja testes a serem feitos a validação retorna true (válida)
     return true;
   }

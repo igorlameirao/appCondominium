@@ -44,13 +44,13 @@ void devLog(String msg, {String origin = ''}) {
 \x1B[37m: White
  */
 
-  if (logMessage.toLowerCase().indexOf('barrier') != -1) {
+  if (logMessage.toLowerCase().contains('barrier')) {
     logMessage = '\x1B[36m$logMessage\x1B[0m'; //prints in cyan
-  } else if (logMessage.toLowerCase().indexOf('disconnected') != -1) {
+  } else if (logMessage.toLowerCase().contains('disconnected')) {
     logMessage = '\x1B[31m$logMessage\x1B[0m'; //prints in red
-  } else if (logMessage.toLowerCase().indexOf('connected') != -1) {
+  } else if (logMessage.toLowerCase().contains('connected')) {
     logMessage = '\x1B[32m$logMessage\x1B[0m'; //prints in green
-  } else if (logMessage.toLowerCase().indexOf('exception') != -1) {
+  } else if (logMessage.toLowerCase().contains('exception')) {
     logMessage = '\x1B[31m$logMessage\x1B[0m'; //prints in red
   }
 

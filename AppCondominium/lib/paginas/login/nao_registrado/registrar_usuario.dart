@@ -3,6 +3,7 @@ import 'package:sagaz_condominium/common/custom_button.dart';
 import 'package:sagaz_condominium/paginas/login/nao_registrado/escolher_perfil.dart';
 import 'package:sagaz_condominium/paginas/login/nao_registrado/informar_nome.dart';
 import '../../../../common/scaffold_bar.dart';
+import '../../../enums/perfil.dart';
 
 class RegistrarUsuario extends StatefulWidget {
   static const routName = '/RegistrarUsuario';
@@ -19,6 +20,9 @@ class _RegistrarUsuarioState extends State<RegistrarUsuario> {
   late List<Widget> pages = [];
   int pageIndex = 0;
   final controllerPage = PageController(initialPage: 0);
+  String _email = '';
+  Perfil? _perfilEscolhido;
+  DateTime? _dataNascimento;
   @override
   void initState() {
     super.initState();
@@ -26,6 +30,10 @@ class _RegistrarUsuarioState extends State<RegistrarUsuario> {
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is String) {
+      _email = args;
+    }
     pages = _montarCaminho();
 
     return scaffoldBar(
@@ -98,8 +106,18 @@ class _RegistrarUsuarioState extends State<RegistrarUsuario> {
 
   List<Widget> _montarCaminho() {
     return [
-      const InformarNome(2, 3),
-      const EscolherPerfil(),
+      InformarNome(
+        2,
+        3,
+        email: _email,
+        dataNascimentoInicial: _dataNascimento,
+        onDataNascimentoChanged: (value) => _dataNascimento = value,
+      ),
+      EscolherPerfil(
+        email: _email,
+        perfilInicial: _perfilEscolhido,
+        onPerfilChanged: (value) => _perfilEscolhido = value,
+      ),
       Container(color: Colors.blue)
     ];
   }

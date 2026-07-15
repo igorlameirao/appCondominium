@@ -69,9 +69,9 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
   }
 
   Color _enfraquecerCor(Color cor, {int fatorEnfraquecimento = 50}) {
-    int r = min(cor.red + fatorEnfraquecimento, 255);
-    int g = min(cor.green + fatorEnfraquecimento, 255);
-    int b = min(cor.blue + fatorEnfraquecimento, 255);
+    int r = min((cor.r * 255.0).round().clamp(0, 255) + fatorEnfraquecimento, 255);
+    int g = min((cor.g * 255.0).round().clamp(0, 255) + fatorEnfraquecimento, 255);
+    int b = min((cor.b * 255.0).round().clamp(0, 255) + fatorEnfraquecimento, 255);
     return Color.fromARGB(255, r, g, b);
   }
 
@@ -108,7 +108,7 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
                     ? null
                     : [
                         BoxShadow(
-                          color: corBolaSombra.withOpacity(0.3),
+                          color: corBolaSombra.withValues(alpha: 0.3),
                           spreadRadius: 1,
                           blurRadius: 1,
                           offset:

@@ -185,8 +185,8 @@ List<Widget> _montarListaMenu(
 Widget _quadroAvisos(BuildContext context) {
   return fundoArredondado(
       context,
-      Column(
-        children: const [
+      const Column(
+        children: [
           Text(
             "Quadro de Avisos",
             style: TextStyle(fontWeight: FontWeight.bold),

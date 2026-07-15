@@ -14,8 +14,8 @@ Widget customButton(BuildContext context, String texto,
   return ElevatedButton(
     onPressed: onPressed != null ? () => onPressed.call() : null,
     style: ButtonStyle(
-      fixedSize: MaterialStateProperty.resolveWith<Size?>(
-        (Set<MaterialState> states) {
+      fixedSize: WidgetStateProperty.resolveWith<Size?>(
+        (Set<WidgetState> states) {
           return size;
         },
       ),

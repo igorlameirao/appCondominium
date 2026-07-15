@@ -1,9 +1,8 @@
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'user_service.dart';
 
 class TokenService {
-  static late TokenService _singleton;
+  static TokenService? _singleton;
   late SharedPreferences _pref;
 
   //default constructor
@@ -12,9 +11,9 @@ class TokenService {
   static Future<TokenService> create() async {
     if (_singleton == null) {
       _singleton = TokenService._internal();
-      _singleton = await _singleton._initialize();
+      _singleton = await _singleton!._initialize();
     }
-    return _singleton;
+    return _singleton!;
   }
 
   Future<TokenService> _initialize() async {
@@ -23,7 +22,7 @@ class TokenService {
   }
 
   factory TokenService() {
-    return _singleton;
+    return _singleton!;
   }
 
   Future<void> setApplicationToken(String token) async {
@@ -53,17 +52,11 @@ class TokenService {
       return false;
     }
 
-    final user = await UserService().getLoggedInUser();
-    if (user == null) {
-      await setUserToken('');
-      return false;
-    }
-
     return true;
   }
 
   Future<void> setUserRefreshToken(String refreshToken) async {
-    await _pref.setString("UserRefreshToken", refreshToken ?? '');
+    await _pref.setString("UserRefreshToken", refreshToken);
   }
 
   String getUserRefreshToken() {

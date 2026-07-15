@@ -1,9 +1,9 @@
 import '../api_models/api_user.dart';
-import '../view_models/usuario.dart' as viewModel;
+import '../view_models/usuario.dart' as view_model;
 
 extension OnModelUser on ApiUser {
-  viewModel.Usuario? toViewModel() {
-    return viewModel.Usuario(id, emailAddress, firstName, middleNames, lastName,
+  view_model.Usuario? toViewModel() {
+    return view_model.Usuario(id, emailAddress, firstName, middleNames, lastName,
         password, isBetaTester, []);
   }
 
@@ -24,7 +24,7 @@ extension OnModelUser on ApiUser {
     return json;
   }
 
-  ApiUser fromViewModel(viewModel.Usuario user) {
+  ApiUser fromViewModel(view_model.Usuario user) {
     id = user.id;
     emailAddress = user.email;
     firstName = user.primeiroNome;
@@ -35,8 +35,8 @@ extension OnModelUser on ApiUser {
 }
 
 extension OnEntityUserList on List<ApiUser> {
-  List<viewModel.Usuario> toViewModelList() {
-    List<viewModel.Usuario> userList = [];
+  List<view_model.Usuario> toViewModelList() {
+    List<view_model.Usuario> userList = [];
     forEach((element) {
       var newElement = element.toViewModel();
       if (newElement != null) {

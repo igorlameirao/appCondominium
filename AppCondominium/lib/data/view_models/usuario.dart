@@ -1,4 +1,3 @@
-import 'package:flutter_guid/flutter_guid.dart';
 import 'package:sagaz_condominium/enums/perfil.dart';
 
 class Usuario {
