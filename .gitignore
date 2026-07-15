@@ -1,0 +1,41 @@
+# This is the root .gitignore, covering files not already handled by
+# nested .gitignore files (frontend/, AppCondominium/).
+
+# =========================
+# .NET (WebApi)
+# =========================
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+.vs/
+*.userosscache
+*.sln.docstates
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDEs and editors
+# =========================
+.vscode/
+.idea/
+*.iml
+
+# =========================
+# Python (tools/)
+# =========================
+__pycache__/
+*.pyc
+
+# =========================
+# Sensitive files / secrets
+# =========================
+DocumentosOutros/certificado.pem
+DocumentosOutros/Client ID - Bradesco - Homologacao.txt
+*.pem
+*.pfx
+*.key
