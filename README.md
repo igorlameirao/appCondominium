@@ -45,6 +45,29 @@ dotnet user-secrets set "Jwt:Key" "GERE_UMA_CHAVE_ALEATORIA_COM_NO_MINIMO_32_CHA
 
 Produção: variáveis `ConnectionStrings__DefaultConnection` e `Jwt__Key`.
 
+Arquivos (fotos, imagens do condomínio, documento de oferta e procuração) ficam no **S3**, não em colunas BLOB. A chave segue `{ambiente}/app-condominium/condominios/{id}/funcionalidades/...` ou, para a foto da pessoa física, `{ambiente}/app-condominium/plataforma/funcionalidades/pessoas-fisicas/{idPessoa}/foto-perfil/`. `FotoEmbedding` permanece no banco para o reconhecimento facial.
+
+```powershell
+cd WebApi\AppCondominium.API
+dotnet user-secrets set "Storage:S3:Bucket" "NOME_DO_BUCKET"
+dotnet user-secrets set "Storage:S3:Region" "us-east-1"
+dotnet user-secrets set "Storage:S3:EnvironmentPrefix" "dev"
+# MinIO local (opcional):
+dotnet user-secrets set "Storage:S3:ServiceUrl" "http://localhost:9000"
+dotnet user-secrets set "Storage:S3:AccessKey" "minioadmin"
+dotnet user-secrets set "Storage:S3:SecretKey" "minioadmin"
+```
+
+O bucket permanece privado. A API entrega os bytes. Para copiar BLOBs já gravados e depois apagar as colunas:
+
+```powershell
+cd WebApi
+dotnet run --project AppCondominium.Tools -- migrate-blobs-to-s3
+dotnet run --project AppCondominium.Tools -- migrate-blobs-to-s3 --drop-columns
+```
+
+O script equivalente está em `database/migrations/20261111_drop_blob_columns.sql`. Instalações novas usam `database/schema.sql` já sem essas colunas.
+
 ```powershell
 cd WebApi
 dotnet run --project AppCondominium.API
@@ -101,5 +124,5 @@ python tools\generate_from_spec.py
 ## Observações
 
 - Formulários **customizados** (não sobrescritos pelo gerador): `uf-form`, `municipio-form`, `configuracaocondominio-form`.
-- Demais regras específicas (FotoEmbedding, cálculos de área no Condomínio) podem exigir ajustes manuais nos `*-form.component.ts` gerados.
+- Demais regras específicas (FotoEmbedding no S3 + InsightFace, cálculos de área no Condomínio) podem exigir ajustes manuais nos `*-form.component.ts` gerados.
 - O layout web replica o shell premium do projeto SCO (`styles-premium-shell.css`, listas paginadas RT-Gerais 02–11).

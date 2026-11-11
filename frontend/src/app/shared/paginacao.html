@@ -1,0 +1,52 @@
+@if (modo === 'sge') {
+  <div class="lst-paginacao">
+    <p class="lst-paginacao__resumo">
+      @if (semRegistros) {
+        Mostrando 0 {{ rotulo }}
+      } @else {
+        Mostrando {{ inicioRegistro }} a {{ fimRegistro }} de {{ total }} {{ rotulo }}
+      }
+    </p>
+    <div class="lst-paginacao__controles">
+      <button type="button" class="lst-pagina lst-pagina--icone" title="Primeira página" aria-label="Primeira página" [disabled]="primeira" (click)="ir(1)">
+        <app-icone nome="chevrons-left" [tamanho]="16" />
+      </button>
+      <button type="button" class="lst-pagina lst-pagina--icone" title="Página anterior" aria-label="Página anterior" [disabled]="primeira" (click)="ir(pagina - 1)">
+        <app-icone nome="chevron-left" [tamanho]="16" />
+      </button>
+      @for (n of paginasVisiveis; track n) {
+        <button type="button" class="lst-pagina" [class.lst-pagina--ativa]="n === pagina" [attr.aria-current]="n === pagina ? 'page' : null" [attr.aria-label]="'Página ' + n" (click)="ir(n)">{{ n }}</button>
+      }
+      <button type="button" class="lst-pagina lst-pagina--icone" title="Próxima página" aria-label="Próxima página" [disabled]="ultima" (click)="ir(pagina + 1)">
+        <app-icone nome="chevron-right" [tamanho]="16" />
+      </button>
+      <button type="button" class="lst-pagina lst-pagina--icone" title="Última página" aria-label="Última página" [disabled]="ultima" (click)="ir(totalPaginas)">
+        <app-icone nome="chevrons-right" [tamanho]="16" />
+      </button>
+    </div>
+  </div>
+} @else {
+  <div class="pagination-row align-right">
+    <span class="page-info">Página: {{ semRegistros ? 0 : pagina }}/{{ semRegistros ? 0 : totalPaginas }}</span>
+    <div class="pagination-container">
+      <div class="pagination">
+        <button type="button" title="Primeira Página" [disabled]="primeira" (click)="ir(1)">
+          <img src="first_page.svg" alt="Primeira Página" width="24" height="24" />
+        </button>
+        <button type="button" title="Página Anterior" [disabled]="primeira" (click)="ir(pagina - 1)">
+          <img src="backward_page.svg" alt="Página Anterior" width="24" height="24" />
+        </button>
+        <input type="number" class="page-input" [min]="1" [max]="totalPaginas" [disabled]="semRegistros" [(ngModel)]="rascunho" (change)="confirmar()" />
+        <button type="button" title="Próxima Página" [disabled]="ultima" (click)="ir(pagina + 1)">
+          <img src="forward_page.svg" alt="Próxima Página" width="24" height="24" />
+        </button>
+        <button type="button" title="Última Página" [disabled]="ultima" (click)="ir(totalPaginas)">
+          <img src="last_page.svg" alt="Última Página" width="24" height="24" />
+        </button>
+      </div>
+      @if (mostrarNovo) {
+        <button type="button" class="btn-novo" (click)="novo.emit()">Novo</button>
+      }
+    </div>
+  </div>
+}

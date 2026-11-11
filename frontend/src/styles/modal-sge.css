@@ -1,0 +1,180 @@
+/* Modais SGE — overlay, confirmação compacta, aguarde e captura de foto.
+   Base confirm-overlay / confirm-modal / confirm-actions: form-acoes.css */
+
+/* --- Aguarde (listas e formulários) --- */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.loading-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-width: 240px;
+  max-width: 360px;
+  padding: 24px 32px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--radius-lg, 14px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--app-accent, #0e7490);
+  border-radius: 50%;
+  animation: modal-sge-spin 0.75s linear infinite;
+}
+
+.loading-text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  text-align: center;
+}
+
+@keyframes modal-sge-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Texto principal em diálogos compactos sem .confirm-text */
+.confirm-modal > p:first-child:not(.confirm-text) {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* --- Captura de foto (webcam) --- */
+.confirm-modal.captura-modal {
+  width: min(440px, 94vw);
+  min-width: min(280px, 100%);
+  max-width: min(440px, 94vw);
+  padding: 0;
+  overflow: hidden;
+}
+
+.captura-modal__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 12px 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.captura-modal__topo h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.captura-modal__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.modal-sge-texto-ajuda {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--cad-muted, #64748b);
+}
+
+.captura-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.captura-campo select {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.captura-quadro {
+  position: relative;
+  width: min(100%, 280px);
+  margin: 0 auto;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #0f172a;
+}
+
+.captura-quadro video,
+.captura-quadro img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.captura-quadro img {
+  z-index: 1;
+}
+
+.captura-quadro__vazio {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: #cbd5e1;
+  font-size: 13px;
+  text-align: center;
+}
+
+.captura-quadro__status {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.captura-modal .captura-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border, #e2e8f0);
+}

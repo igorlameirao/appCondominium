@@ -6,15 +6,30 @@
   display: flex;
   flex-direction: column;
   background: #e6f2fa;
-  padding: 0 max(20px, env(safe-area-inset-right, 0px)) 0 0;
+  padding: 0;
   box-sizing: border-box;
   z-index: 20;
   overflow: auto;
 }
 
+.login-brand-logo {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  width: min(118px, 22.4vw);
+  max-height: min(84px, 12.6vh);
+  height: auto;
+  object-fit: contain;
+  object-position: right bottom;
+  pointer-events: none;
+  user-select: none;
+}
+
 .login-layout {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   grid-template-rows: minmax(100dvh, auto);
   align-items: stretch;
   flex: 1 1 auto;
@@ -23,8 +38,27 @@
   gap: 0;
 }
 
+.login-layout::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: calc(100% / 3 - 12px);
+  z-index: 0;
+  background-image: url('/assets/login/Fundo_Azul_Ciano.jpg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .login-art {
+  grid-column: 1;
+  grid-row: 1;
   position: relative;
+  z-index: 2;
   min-height: 100dvh;
   height: 100%;
   overflow: hidden;
@@ -42,15 +76,32 @@
 }
 
 .login-main {
-  grid-column: span 2;
+  position: relative;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 100dvh;
   padding: max(20px, env(safe-area-inset-top, 0px))
-    0
+    max(20px, env(safe-area-inset-right, 0px))
     max(20px, env(safe-area-inset-bottom, 0px))
-    16px;
+    0;
   box-sizing: border-box;
+  background-color: transparent;
+  overflow: visible;
+}
+
+.login-main::before {
+  display: none;
+}
+
+.login-main > .login-container {
+  position: relative;
+  z-index: 1;
 }
 
 .login-container {
@@ -59,6 +110,8 @@
   align-items: center;
   width: 100%;
   max-width: 720px;
+  padding-left: 16px;
+  box-sizing: border-box;
 }
 
 .login-card {
@@ -134,7 +187,7 @@
 
 .login-card-form .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   font-size: 11px;
   font-weight: 600;
   color: #444;
@@ -155,7 +208,9 @@
 .login-screen .login-card-form .form-group select[required].ng-invalid,
 .login-screen .login-card-form .form-group select[required].ng-valid,
 .login-screen .login-card-form .form-group select[required]:invalid,
-.login-screen .login-card-form .form-group select[required]:valid {
+.login-screen .login-card-form .form-group select[required]:valid,
+.login-screen .login-card-form .form-group .combo-input,
+.login-screen .login-card-form .form-group app-combobox-customizada .combo-input {
   width: 100%;
   padding: 10px 0 8px;
   border: none !important;
@@ -168,10 +223,17 @@
   min-height: 0;
 }
 
+.login-screen .login-card-form .form-group app-combobox-customizada {
+  display: block;
+  width: 100%;
+}
+
 .login-screen .login-card-form .form-group input:focus,
 .login-screen .login-card-form .form-group input[required]:focus,
 .login-screen .login-card-form .form-group select:focus,
-.login-screen .login-card-form .form-group select[required]:focus {
+.login-screen .login-card-form .form-group select[required]:focus,
+.login-screen .login-card-form .form-group .combo-input:focus,
+.login-screen .login-card-form .form-group app-combobox-customizada .combo-input:focus {
   outline: none !important;
   border: none !important;
   border-bottom: 1px solid #0891b2 !important;
@@ -224,19 +286,49 @@
       max(20px, env(safe-area-inset-left, 0px));
   }
 
+  .login-brand-logo {
+    width: min(98px, 25.2vw);
+    max-height: min(67px, 9.8vh);
+  }
+
   .login-layout {
     grid-template-columns: 1fr;
     min-height: auto;
   }
 
+  .login-layout::after {
+    display: none;
+  }
+
   .login-art {
+    grid-column: 1;
+    grid-row: auto;
     min-height: min(44vh, 400px);
     height: auto;
   }
 
   .login-main {
-    grid-column: span 1;
-    padding: max(16px, env(safe-area-inset-top, 0px)) 0 0;
+    grid-column: 1;
+    grid-row: auto;
+    background-color: #e6f2fa;
+    padding: max(16px, env(safe-area-inset-top, 0px))
+      max(20px, env(safe-area-inset-right, 0px))
+      0
+      max(20px, env(safe-area-inset-left, 0px));
+  }
+
+  .login-main::before {
+    display: block;
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: url('/assets/login/Fundo_Azul_Ciano.jpg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+    opacity: 0.4;
+    pointer-events: none;
   }
 }
 

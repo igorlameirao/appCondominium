@@ -1,14 +1,16 @@
 import { Component, Input, OnChanges, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AnexarAoBodyDirective } from '../foto-perfil/anexar-ao-body.directive';
 
 /** Modal de aguarde — só aparece se a operação demorar além do limiar (evita flash em respostas rápidas). */
 @Component({
   selector: 'app-list-loading-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AnexarAoBodyDirective],
   template: `
     <div
       class="loading-overlay"
+      appAnexarAoBody
       *ngIf="showOverlay"
       role="status"
       aria-live="polite"
@@ -33,10 +35,15 @@ export class ListLoadingModalComponent implements OnChanges, OnDestroy {
     if (this.visible) {
       if (this.showOverlay) return;
       this.clearTimer();
+      const delay = Math.max(0, this.delayMs);
+      if (delay === 0) {
+        this.showOverlay = true;
+        return;
+      }
       this.timer = setTimeout(() => {
         this.showOverlay = true;
         this.timer = null;
-      }, Math.max(0, this.delayMs));
+      }, delay);
       return;
     }
     this.clearTimer();

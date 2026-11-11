@@ -1,6 +1,10 @@
+using Amazon;
+using Amazon.S3;
 using AppCondominium.Application.Interfaces;
+using AppCondominium.Application.Storage;
 using AppCondominium.Infrastructure.Persistence;
 using AppCondominium.Infrastructure.Services;
+using AppCondominium.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +23,9 @@ public static partial class DependencyInjection
         services.AddScoped<IPermissionResolver, PermissionResolver>();
         services.AddSingleton<IPasswordHasher, PasswordHasherService>();
         services.AddSingleton<PessoafisicaSenhaInterceptor>();
+        services.AddScoped<ArquivoCleanupInterceptor>();
+        services.AddScoped<IFaceEmbeddingSync, FaceEmbeddingSync>();
+        RegistrarArmazenamento(services, config);
 
         var connectionString = config.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
@@ -45,7 +52,9 @@ public static partial class DependencyInjection
 
         services.AddDbContext<AppDbContext>((sp, options) =>
         {
-            options.AddInterceptors(sp.GetRequiredService<PessoafisicaSenhaInterceptor>());
+            options.AddInterceptors(
+                sp.GetRequiredService<PessoafisicaSenhaInterceptor>(),
+                sp.GetRequiredService<ArquivoCleanupInterceptor>());
             options.UseMySql(connectionString, serverVersion, mySql =>
             {
                 mySql.EnableRetryOnFailure(
@@ -57,6 +66,41 @@ public static partial class DependencyInjection
 
         RegisterGeneratedRepositories(services);
         return services;
+    }
+
+    private static void RegistrarArmazenamento(IServiceCollection services, IConfiguration config)
+    {
+        var options = new StorageOptions();
+        config.GetSection(StorageOptions.SectionName).Bind(options);
+        if (string.IsNullOrWhiteSpace(options.EnvironmentPrefix))
+            options.EnvironmentPrefix = "dev";
+        if (string.IsNullOrWhiteSpace(options.Sistema))
+            options.Sistema = "app-condominium";
+        if (string.IsNullOrWhiteSpace(options.Region))
+            options.Region = "us-east-1";
+
+        services.AddSingleton(options);
+        services.AddSingleton<StorageObjectKeyBuilder>();
+        services.AddSingleton<IAmazonS3>(_ =>
+        {
+            var s3 = new AmazonS3Config();
+            if (!string.IsNullOrWhiteSpace(options.ServiceUrl))
+            {
+                s3.ServiceURL = options.ServiceUrl;
+                s3.ForcePathStyle = true;
+                s3.AuthenticationRegion = options.Region;
+            }
+            else
+            {
+                s3.RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region);
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.AccessKey) && !string.IsNullOrWhiteSpace(options.SecretKey))
+                return new AmazonS3Client(options.AccessKey, options.SecretKey, s3);
+            return new AmazonS3Client(s3);
+        });
+        services.AddSingleton<IObjectStorage, S3ObjectStorage>();
+        services.AddSingleton<IArquivoStorage, ArquivoStorage>();
     }
 
     static partial void RegisterGeneratedRepositories(IServiceCollection services);

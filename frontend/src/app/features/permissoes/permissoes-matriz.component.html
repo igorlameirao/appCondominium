@@ -1,0 +1,84 @@
+<p *ngIf="modo === 'pessoa'" class="lib-acesso-legenda-compacta" aria-label="Legenda">
+  <span class="lib-acesso-legenda-compacta__item">Valores iguais ao perfil não geram exceção.</span>
+  <span class="lib-acesso-legenda-compacta__sep" aria-hidden="true">·</span>
+  <span class="lib-acesso-legenda-compacta__dica">Células destacadas diferem do perfil.</span>
+</p>
+
+<div class="lib-acesso-matriz__viewport">
+  <div class="lib-acesso-matriz__scroll lib-acesso-matriz__scroll--perfil">
+    <div class="lib-acesso-matriz__conteudo">
+      <section
+        *ngFor="let grupo of modulos"
+        class="lib-acesso-modulo-bloco"
+        [attr.aria-label]="'Módulo ' + grupo.modulo">
+        <div class="lib-acesso-modulo__cabecalho">
+          <button
+            type="button"
+            (click)="alternarModuloExpandido(grupo.modulo)"
+            [attr.aria-expanded]="moduloExpandido(grupo.modulo)">
+            <app-icone [nome]="moduloExpandido(grupo.modulo) ? 'chevron-down' : 'chevron-right'" [tamanho]="16" />
+            {{ grupo.modulo }}
+          </button>
+          <label
+            *ngIf="podeAlterar"
+            class="lib-acesso-modulo__selecao"
+            [class.lib-acesso-modulo__selecao--excecao]="modo === 'pessoa'"
+            title="Seleciona todas as permissões do módulo"
+            (click)="$event.stopPropagation()">
+            <input
+              type="checkbox"
+              [checked]="moduloMarcado(grupo)"
+              [indeterminate]="moduloIndeterminado(grupo)"
+              [attr.aria-label]="'Selecionar módulo ' + grupo.modulo"
+              (change)="alternarModulo(grupo, $any($event.target).checked)"
+            />
+            Selecionar módulo
+          </label>
+        </div>
+
+        <div *ngIf="moduloExpandido(grupo.modulo)" class="lib-acesso-modulo-tabela__scroll">
+          <table class="lib-acesso-grade lib-acesso-grade--perfil" [class.lib-acesso-grade--usuario]="modo === 'pessoa'">
+            <thead>
+              <tr>
+                <th class="lib-acesso-col-func" scope="col">Funcionalidade</th>
+                <th class="lib-acesso-col-todos" scope="col" title="Marcar ou desmarcar todas as ações da linha">Todos</th>
+                <th *ngFor="let col of colunas" class="lib-acesso-col-acao" scope="col">{{ col }}</th>
+                <th class="lib-acesso-col-respiro" scope="col" aria-hidden="true"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let linha of grupo.linhas">
+                <th class="lib-acesso-col-func" scope="row">
+                  <span class="lib-acesso-col-func__nome">{{ linha.displayName }}</span>
+                </th>
+                <td class="lib-acesso-col-todos">
+                  <label *ngIf="podeAlterar" class="lib-acesso-todos-celula" [class.lib-acesso-todos-celula--excecao]="modo === 'pessoa'">
+                    <input
+                      type="checkbox"
+                      [checked]="linhaMarcada(linha)"
+                      [indeterminate]="linhaIndeterminada(linha)"
+                      [attr.aria-label]="'Todos — ' + linha.displayName"
+                      (change)="alternarLinha(linha, $any($event.target).checked)"
+                    />
+                  </label>
+                  <span *ngIf="!podeAlterar" class="lib-acesso-celula-vazia" aria-hidden="true">—</span>
+                </td>
+                <td *ngFor="let campo of campos" class="lib-acesso-celula-permissao">
+                  <input
+                    type="checkbox"
+                    [checked]="valorAcao(linha, campo)"
+                    [disabled]="!podeAlterar"
+                    [class.lib-acesso-checkbox--excecao]="modo === 'pessoa' && difereDoPerfil(linha, campo)"
+                    [attr.aria-label]="linha.displayName + ' — ' + rotuloAcao(campo)"
+                    (change)="definirAcao(linha, campo, $any($event.target).checked)"
+                  />
+                </td>
+                <td class="lib-acesso-col-respiro" aria-hidden="true"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,60 @@
+---
+description: Estilo SGE no AppCondominium — cadastro (cad-*) e listagem (lst-*). Aplicar ao criar ou modernizar telas CRUD.
+globs: frontend/src/app/**/*-list.component.ts,frontend/src/app/**/*-form.component.ts,frontend/src/styles/cadastro.css,frontend/src/styles/lista-sge.css,frontend/src/styles/form-acoes.css,frontend/src/app/shared/paginacao.ts,frontend/src/app/shared/icone.ts
+alwaysApply: false
+---
+
+# Estilo SGE — AppCondominium
+
+Padrão visual copiado do **SGE** (`C:\MDA_sistemas\SGE\.cursor\rules\estilo-sge.mdc` e `estilo-modal-sge.mdc`), adaptado para este projeto.
+
+## Referências no repositório
+
+| Camada | Arquivos |
+|--------|----------|
+| Cadastro | `frontend/src/styles/cadastro.css` (classes `cad-*`, tokens `--cad-*`) |
+| Listagem | `frontend/src/styles/lista-sge.css` (classes `lst-*`) |
+| Ações / rodapé | `frontend/src/styles/form-acoes.css` |
+| Botões | `frontend/src/styles-buttons.css` |
+| Modais | `frontend/src/styles/form-acoes.css` + `frontend/src/styles/modal-sge.css` |
+| Shell | `app-premium-main` + `content-wrapper` **dentro** de cada tela (`cad-wrapper` / `lst-wrapper`) |
+| Ícones | `frontend/src/app/shared/icone.ts` (`app-icone`) |
+| Paginação SGE | `frontend/src/app/shared/paginacao.ts`, `modo="sge"`, atributo `rotulo="..."` (string, não binding) |
+| Viewport lista | `frontend/src/app/shared/lista-sge/lista-sge-viewport.directive.ts`, `TAMANHO_PAGINA_LISTA_PADRAO` |
+| Aguarde edição | `FormInitialLoad` + `app-list-loading-modal` nos formulários |
+
+Tokens SGE usam `--app-accent` do AppCondominium (`frontend/src/styles-sco.css`).
+
+## Listagem (`lst-*`)
+
+- Wrapper: `content-wrapper lst-wrapper` + `lstSgeViewport`.
+- Cabeçalho fora do card: breadcrumb, `lst-titulo`, `lst-subtitulo`, `btn-novo` (“Novo …”).
+- Card único `lst-card lst-painel`: filtros recolhíveis, `lst-tabela__scroll`, `lst-rodape` com `app-paginacao`.
+- Abrir registro: **duplo clique** na linha ou ícone lápis (`lst-acao--editar`); clique simples na linha não navega.
+- `pageSize = TAMANHO_PAGINA_LISTA_PADRAO`; `aplicarTamanhoPagina()` com `ajustarTamanhoPaginaLista`.
+
+Modelo: qualquer `*-list.component.ts` já migrado (ex.: `banco-list.component.ts`).
+
+## Cadastro (`cad-*`)
+
+- Wrapper: `content-wrapper cad-wrapper` > `cad-page` > `cad-cabecalho` (breadcrumb, título, subtítulo).
+- Card `cad-card form-page`: `cad-abas`, `cad-conteudo`, `cad-secao`, campos em `form-grid` (grade existente do app), `actions form-actions cad-acoes`.
+- Breadcrumb: Início → rota plural da entidade → Novo/Editar.
+- Botão principal: **Salvar** (`.btn-gravar`); **Voltar** (`.btn-cancelar`).
+- Carga inicial: `FormInitialLoad` + modal “Aguarde, carregando...”.
+
+Modelo: `banco-form.component.ts`, `municipio-form.component.ts`.
+
+## Modais
+
+Overlays (`confirm-overlay`, `loading-overlay`) e diálogos compactos (`confirm-modal`, `confirm-actions`) seguem `form-acoes.css` + `modal-sge.css` (captura de foto, aguarde). Modais largos “Estilo Modal SGE” usam as mesmas classes `cad-*` em `cadastro.css` (ver regra original no SGE).
+
+## O que não fazer
+
+- Não reativar o card `content-card-entity-list/form` no `app.component.html` (telas trazem o próprio shell SGE).
+- Não usar `[rotulo]="texto com espaços"` na paginação — usar `rotulo="texto com espaços"`.
+- Não redefinir `cad-*` / `lst-*` no `styles:` do componente.
+
+## Legado hug Escalas
+
+Regras `lista-card-hug-escalas.mdc` e `hug-estilo-sco.mdc` continuam válidas para **controles** (`form-grid`, combos, botões SCO). O **layout de página** das entidades CRUD é o SGE (`cad-*` / `lst-*`).

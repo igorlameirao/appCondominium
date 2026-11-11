@@ -80,8 +80,6 @@ CREATE TABLE IF NOT EXISTS `ConfiguracaoCondominio` (
   `IdConfiguracao` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `IdCondominio` INT UNSIGNED NOT NULL,
   `CorPadrao` CHAR(7) NULL,
-  `ImagemLogin` MEDIUMBLOB NULL,
-  `ImagemIcone` BLOB NULL,
   PRIMARY KEY (`IdConfiguracao`),
   CONSTRAINT `fk_ConfiguracaoCondominio_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -134,7 +132,6 @@ CREATE TABLE IF NOT EXISTS `pessoafisica` (
   `DataNascimento` DATE NOT NULL,
   `email` VARCHAR(255) NULL,
   `Senha` VARCHAR(60) NULL,
-  `Foto` MEDIUMBLOB NULL,
   `FotoEmbedding` JSON NULL,
   PRIMARY KEY (`IdPessoa`),
   UNIQUE KEY `uq_pessoafisica_email` (`email`),
@@ -260,7 +257,6 @@ CREATE TABLE IF NOT EXISTS `OfertaConcorrencia` (
   `IdCondominio` INT UNSIGNED NOT NULL,
   `IdConcorrencia` INT UNSIGNED NOT NULL,
   `Descricao` VARCHAR(255) NULL,
-  `DocumentoComprobatorio` BLOB NULL,
   `Preco` DECIMAL(10,2) UNSIGNED NOT NULL,
   `DataOferta` DATE NOT NULL,
   `DataValidade` DATE NOT NULL,
@@ -505,7 +501,6 @@ CREATE TABLE IF NOT EXISTS `PessoaUnidade` (
   `DataFim` DATE NULL,
   `TipoVinculo` TINYINT UNSIGNED NOT NULL,
   `Resposavel` TINYINT(1) NOT NULL,
-  `Procuracao` BLOB NULL,
   PRIMARY KEY (`IdPessoa`, `IdUnidade`),
   CONSTRAINT `fk_PessoaUnidade_IdPessoa` FOREIGN KEY (`IdPessoa`) REFERENCES `Pessoa` (`IdPessoa`) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_PessoaUnidade_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT

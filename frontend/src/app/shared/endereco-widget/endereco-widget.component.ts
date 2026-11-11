@@ -41,6 +41,7 @@ interface ViaCep {
   standalone: true,
   imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent, ListLoadingModalComponent],
   template: `
+    <app-list-loading-modal [visible]="carregando" message="Aguarde, carregando..." [delayMs]="0" />
     <app-list-loading-modal [visible]="cepLoading" message="Aguarde, consultando o CEP..." />
     <div class="form-grid">
       <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
@@ -128,6 +129,8 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
   cepMatches: Endereco[] = [];
   viaCepOpcoes: ViaCep[] = [];
   cepLoading = false;
+  /** Edição: cobre a tela até UF, município e bairro do registro estarem visíveis. */
+  carregando = false;
 
   ufOptions: ComboboxOption[] = [];
   municipioOptions: ComboboxOption[] = [];
@@ -141,6 +144,9 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
   private cepDigitosNoFocus = '';
   private ultimaSiglaUf: string | null = null;
   private ultimoCodigoIbgeMunicipio: number | null = null;
+  private idEnderecoResolvido: number | null = null;
+  private listasPendentes = 3;
+  private filaInicial = 0;
   private readonly toast = inject(ToastService);
   private readonly zone = inject(NgZone);
 
@@ -156,10 +162,11 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
     this.logradouro = this.logradouroVinculo ?? '';
     this.bairroSelecionado = this.idBairro ?? null;
     this.loadLookups();
-    if (this.modo === 'vinculo' && this.idEndereco) this.loadEndereco(this.idEndereco);
+    this.resolverEnderecoVinculo(this.idEndereco);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['idEndereco']) this.resolverEnderecoVinculo(this.idEndereco);
     if (this.modo !== 'cadastro') return;
     if (changes['cep'] && !this.cepFocused && somenteDigitos(this.cep ?? '') !== this.ultimoCepEmitido) {
       const digits = somenteDigitos(this.cep ?? '');
@@ -169,7 +176,7 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
     if (changes['logradouroVinculo'] && (this.logradouroVinculo ?? '') !== this.logradouro) {
       this.logradouro = this.logradouroVinculo ?? '';
     }
-    if (changes['idBairro']) this.aplicarBairro(this.idBairro ?? null);
+    if (changes['idBairro']) this.resolverBairroInicial(this.idBairro ?? null);
   }
 
   cepDigitos(): string {
@@ -225,19 +232,71 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
   }
 
   private loadLookups(): void {
-    this.ufSvc.getPaged(1, 100).subscribe(r => {
-      this.ufs = r.items ?? [];
-      this.ufOptions = this.ufs.map(u => ({ value: u.siglaUF!, label: `${u.siglaUF} — ${u.estado}` }));
-      this.aplicarBairro(this.idBairro ?? null);
+    this.ufSvc.getPaged(1, 100).subscribe({
+      next: r => {
+        this.ufs = r.items ?? [];
+        this.ufOptions = this.ufs.map(u => ({ value: u.siglaUF!, label: `${u.siglaUF} — ${u.estado}` }));
+        this.aplicarBairro(this.idBairro ?? null);
+        this.marcarListaPronta();
+      },
+      error: () => this.marcarListaPronta()
     });
-    this.municipioSvc.getPaged(1, 500).subscribe(r => {
-      this.municipios = r.items ?? [];
-      this.aplicarBairro(this.idBairro ?? null);
+    this.municipioSvc.getPaged(1, 500).subscribe({
+      next: r => {
+        this.municipios = r.items ?? [];
+        this.aplicarBairro(this.idBairro ?? null);
+        this.marcarListaPronta();
+      },
+      error: () => this.marcarListaPronta()
     });
-    this.bairroSvc.getPaged(1, 500).subscribe(r => {
-      this.bairros = r.items ?? [];
-      this.aplicarBairro(this.idBairro ?? null);
+    this.bairroSvc.getPaged(1, 500).subscribe({
+      next: r => {
+        this.bairros = r.items ?? [];
+        this.aplicarBairro(this.idBairro ?? null);
+        this.marcarListaPronta();
+      },
+      error: () => this.marcarListaPronta()
     });
+  }
+
+  /** Vínculo: busca o endereço quando o id chega na edição. */
+  private resolverEnderecoVinculo(id: number | null | undefined): void {
+    if (this.modo !== 'vinculo' || id == null || id === this.idEnderecoResolvido) return;
+    this.idEnderecoResolvido = id;
+    this.ocuparInicial();
+    this.enderecoSvc.getById(id).subscribe({
+      next: e => this.applyEndereco(e, () => this.liberarInicial()),
+      error: () => this.liberarInicial()
+    });
+  }
+
+  /** Cadastro: espera o bairro (e a UF/município derivados) antes de liberar a tela. */
+  private resolverBairroInicial(id: number | null): void {
+    if (id == null) {
+      this.aplicarBairro(null);
+      return;
+    }
+    this.ocuparInicial();
+    this.aplicarBairro(id, () => this.liberarInicial());
+  }
+
+  private ocuparInicial(): void {
+    this.filaInicial++;
+    this.carregando = true;
+  }
+
+  private liberarInicial(): void {
+    this.filaInicial = Math.max(0, this.filaInicial - 1);
+    this.atualizarCarregando();
+  }
+
+  private marcarListaPronta(): void {
+    this.listasPendentes = Math.max(0, this.listasPendentes - 1);
+    this.atualizarCarregando();
+  }
+
+  private atualizarCarregando(): void {
+    if (this.filaInicial === 0 && this.listasPendentes === 0) this.carregando = false;
   }
 
   private buscarViaCep(cep: string): void {
@@ -341,11 +400,11 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
     });
   }
 
-  applyEndereco(e: Endereco): void {
+  applyEndereco(e: Endereco, done: () => void = () => {}): void {
     if (this.modo === 'vinculo') this.idEndereco = e.idEndereco ?? null;
     this.cepDisplay = mascaraCep(e.cep ?? '');
     this.logradouro = e.logradouro ?? '';
-    this.aplicarBairro(e.idBairro ?? null);
+    this.aplicarBairro(e.idBairro ?? null, done);
     this.cepMatches = [];
     this.manualEdit = true;
     this.emitChange();
@@ -364,10 +423,6 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
       },
       error: () => this.toast.showError('Não foi possível gravar o endereço localizado pelo CEP.')
     });
-  }
-
-  private loadEndereco(id: number): void {
-    this.enderecoSvc.getById(id).subscribe(e => this.applyEndereco(e));
   }
 
   onUfChange(): void {
@@ -449,18 +504,19 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
     this.emitChange();
   }
 
-  private aplicarBairro(id: number | null): void {
+  private aplicarBairro(id: number | null, done: () => void = () => {}): void {
     if (id == null) {
       this.sincronizando = true;
       this.idBairro = null;
       this.bairroSelecionado = null;
       this.filterBairros();
       this.sincronizando = false;
+      done();
       return;
     }
     const local = this.bairros.find(x => x.idBairro === id);
     if (local) {
-      this.aplicarBairroRegistro(local);
+      this.aplicarBairroRegistro(local, done);
       return;
     }
     this.bairroSvc.getById(id).subscribe({
@@ -468,7 +524,7 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
         if (b.idBairro != null && !this.bairros.some(x => x.idBairro === b.idBairro)) {
           this.bairros.push(b);
         }
-        this.aplicarBairroRegistro(b);
+        this.aplicarBairroRegistro(b, done);
       },
       error: () => {
         this.sincronizando = true;
@@ -476,11 +532,12 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
         this.bairroSelecionado = id;
         this.filterBairros();
         this.sincronizando = false;
+        done();
       }
     });
   }
 
-  private aplicarBairroRegistro(bairro: Bairro): void {
+  private aplicarBairroRegistro(bairro: Bairro, done: () => void = () => {}): void {
     this.sincronizando = true;
     this.idBairro = bairro.idBairro ?? null;
     this.bairroSelecionado = this.idBairro;
@@ -488,6 +545,7 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
     if (codigoMunicipio == null) {
       this.filterBairros();
       this.sincronizando = false;
+      done();
       return;
     }
     this.ensureMunicipioCarregado(codigoMunicipio, () => {
@@ -499,6 +557,7 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
       this.ultimaSiglaUf = this.siglaUf;
       this.ultimoCodigoIbgeMunicipio = codigoMunicipio;
       this.sincronizando = false;
+      done();
     });
   }
 

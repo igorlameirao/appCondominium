@@ -1,8 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Icone } from '../../shared/icone';
+import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
+import { FormInitialLoad } from '../../shared/form-initial-load';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CampoDataHoraComponent } from '../../shared/campo-data-hora/campo-data-hora.component';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { CondominioService } from './condominio.service';
 import { Condominio } from './condominio.model';
@@ -15,13 +18,38 @@ import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-w
 @Component({
   selector: 'app-condominio-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent, EnderecoWidgetComponent],
-  host: { class: 'form-page form-page--wide' },
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent, EnderecoWidgetComponent],
   template: `
-    <div class="form-layout">
-      <h2>{{ isEdit ? 'Editar' : 'Novo' }} Condomínio</h2>
-      <div class="form-scroll">
-        <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+    <div class="content-wrapper cad-wrapper">
+      <div class="cad-page">
+        <header class="cad-cabecalho">
+          <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
+            <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <a [routerLink]="'/condominio'">Condomínio</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
+          </nav>
+          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Condomínio</h1>
+          <p class="cad-subtitulo">Cadastre e mantenha as informações de condomínio</p>
+        </header>
+
+        <section class="cad-card form-page">
+          <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
+            <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
+              <app-icone nome="building" [tamanho]="16" />
+              <span>Dados de Condomínio</span>
+            </button>
+          </div>
+          <div class="cad-conteudo" role="tabpanel">
+            <div class="cad-secao">
+              <app-icone class="cad-secao__icone" nome="building" [tamanho]="26" />
+              <div>
+                <h2 class="cad-secao__titulo">Dados de Condomínio</h2>
+                <p class="cad-secao__texto">Informe as informações principais</p>
+              </div>
+            </div>
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
           
           <div class="form-grid">
             <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
@@ -70,12 +98,15 @@ import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-w
               <input type="text" [(ngModel)]="model.dominio" name="dominio" maxlength="255" [readonly]="fieldDisabled('dominio')" required />
             </div>
           </div>
-        </form>
-      </div>
-      <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
+        </form></div>
+          </div>
+          <div class="actions form-actions cad-acoes">
+        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
+      </div>
+        </section>
       </div>
     </div>
     <div class="confirm-overlay" *ngIf="showDeleteConfirm">
@@ -87,12 +118,14 @@ import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-w
         </div>
       </div>
     </div>
-  `
+    <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
+  `,
 })
 export class CondominioFormComponent implements OnInit {
   model: Condominio = {} as Condominio;
   isEdit = false;
   saving = false;
+  readonly pageLoad = new FormInitialLoad();
   private readonly toast = inject(ToastService);
   private readonly entityTitle = 'Condomínio';
   showDeleteConfirm = false;
@@ -126,6 +159,8 @@ export class CondominioFormComponent implements OnInit {
   get pkDisplay(): string { return String(this.model.idCondominio); }
 
   ngOnInit(): void {
+    if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();
+
     
     const idCondominio = this.route.snapshot.paramMap.get('idCondominio');
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
@@ -138,11 +173,9 @@ export class CondominioFormComponent implements OnInit {
     if (idCondominio) {
       this.isEdit = true;
       this.refreshPermissions();
-      this.service.getById(idCondominio).subscribe({
-        next: (r) => this.model = r,
-        error: () => this.toast.showError('Registro não encontrado.')
-      });
+      this.pageLoad.run(this.service.getById(idCondominio), (r) => this.model = r, () => this.toast.showError('Registro não encontrado.'));
     }
+    this.pageLoad.seal();
   }
 
   fieldDisabled(field: string): boolean {

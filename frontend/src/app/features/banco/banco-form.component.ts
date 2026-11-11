@@ -1,7 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Icone } from '../../shared/icone';
+import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
+import { FormInitialLoad } from '../../shared/form-initial-load';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { BancoService } from './banco.service';
 import { Banco } from './banco.model';
@@ -14,13 +17,38 @@ import { CondominioContextService } from '../../core/services/condominio-context
 @Component({
   selector: 'app-banco-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent],
-  host: { class: 'form-page' },
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent],
   template: `
-    <div class="form-layout">
-      <h2>{{ isEdit ? 'Editar' : 'Novo' }} Banco</h2>
-      <div class="form-scroll">
-        <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+    <div class="content-wrapper cad-wrapper">
+      <div class="cad-page">
+        <header class="cad-cabecalho">
+          <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
+            <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <a [routerLink]="'/banco'">Banco</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
+          </nav>
+          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Banco</h1>
+          <p class="cad-subtitulo">Cadastre e mantenha as informações de banco</p>
+        </header>
+
+        <section class="cad-card form-page">
+          <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
+            <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
+              <app-icone nome="landmark" [tamanho]="16" />
+              <span>Dados de Banco</span>
+            </button>
+          </div>
+          <div class="cad-conteudo" role="tabpanel">
+            <div class="cad-secao">
+              <app-icone class="cad-secao__icone" nome="landmark" [tamanho]="26" />
+              <div>
+                <h2 class="cad-secao__titulo">Dados de Banco</h2>
+                <p class="cad-secao__texto">Informe as informações principais</p>
+              </div>
+            </div>
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
           
           <div class="form-grid">
             <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
@@ -36,12 +64,15 @@ import { CondominioContextService } from '../../core/services/condominio-context
               <input type="text" [(ngModel)]="model.nome" name="nome" maxlength="255" [readonly]="fieldDisabled('nome')" required />
             </div>
           </div>
-        </form>
-      </div>
-      <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
+        </form></div>
+          </div>
+          <div class="actions form-actions cad-acoes">
+        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
+      </div>
+        </section>
       </div>
     </div>
     <div class="confirm-overlay" *ngIf="showDeleteConfirm">
@@ -53,12 +84,14 @@ import { CondominioContextService } from '../../core/services/condominio-context
         </div>
       </div>
     </div>
-  `
+    <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
+  `,
 })
 export class BancoFormComponent implements OnInit {
   model: Banco = {} as Banco;
   isEdit = false;
   saving = false;
+  readonly pageLoad = new FormInitialLoad();
   private readonly toast = inject(ToastService);
   private readonly entityTitle = 'Banco';
   showDeleteConfirm = false;
@@ -92,6 +125,8 @@ export class BancoFormComponent implements OnInit {
   get pkDisplay(): string { return String(this.model.codigoBanco); }
 
   ngOnInit(): void {
+    if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();
+
     
     const codigoBanco = this.route.snapshot.paramMap.get('codigoBanco');
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
@@ -104,11 +139,9 @@ export class BancoFormComponent implements OnInit {
     if (codigoBanco) {
       this.isEdit = true;
       this.refreshPermissions();
-      this.service.getById(codigoBanco).subscribe({
-        next: (r) => this.model = r,
-        error: () => this.toast.showError('Registro não encontrado.')
-      });
+      this.pageLoad.run(this.service.getById(codigoBanco), (r) => this.model = r, () => this.toast.showError('Registro não encontrado.'));
     }
+    this.pageLoad.seal();
   }
 
   fieldDisabled(field: string): boolean {

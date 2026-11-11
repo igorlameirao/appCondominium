@@ -80,6 +80,6 @@ export class AuthService {
     sessionStorage.removeItem('nome');
     this.permissions.clear();
     this.condominioContext.clear();
-    this.router.navigate(['/login']);
+    void this.router.navigate(['/login']);
   }
 }

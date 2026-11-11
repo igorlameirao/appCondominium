@@ -1,7 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Icone } from '../../shared/icone';
+import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
+import { FormInitialLoad } from '../../shared/form-initial-load';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { UFService } from './uf.service';
 import { UF } from './uf.model';
@@ -11,13 +14,38 @@ import { LookupService, MunicipioResumo } from '../../core/services/lookup.servi
 @Component({
   selector: 'app-uf-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  host: { class: 'form-page' },
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule],
   template: `
-    <div class="form-layout">
-      <h2>{{ isEdit ? 'Editar' : 'Novo' }} UF</h2>
-      <div class="form-scroll">
-        <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+    <div class="content-wrapper cad-wrapper">
+      <div class="cad-page">
+        <header class="cad-cabecalho">
+          <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
+            <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <a [routerLink]="'/uf'">UF</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
+          </nav>
+          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} UF</h1>
+          <p class="cad-subtitulo">Cadastre e mantenha as informações de uf</p>
+        </header>
+
+        <section class="cad-card form-page">
+          <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
+            <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
+              <app-icone nome="map-pin" [tamanho]="16" />
+              <span>Dados de UF</span>
+            </button>
+          </div>
+          <div class="cad-conteudo" role="tabpanel">
+            <div class="cad-secao">
+              <app-icone class="cad-secao__icone" nome="map-pin" [tamanho]="26" />
+              <div>
+                <h2 class="cad-secao__titulo">Dados de UF</h2>
+                <p class="cad-secao__texto">Informe as informações principais</p>
+              </div>
+            </div>
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
           <div class="form-grid">
             <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
               <label>Sigla UF *</label>
@@ -47,12 +75,15 @@ import { LookupService, MunicipioResumo } from '../../core/services/lookup.servi
               <p class="child-list__empty">Nenhum município cadastrado para esta UF.</p>
             </ng-template>
           </section>
-        </form>
-      </div>
-      <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
+        </form></div>
+          </div>
+          <div class="actions form-actions cad-acoes">
+        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
+      </div>
+        </section>
       </div>
     </div>
     <div class="confirm-overlay" *ngIf="showDeleteConfirm">
@@ -64,6 +95,7 @@ import { LookupService, MunicipioResumo } from '../../core/services/lookup.servi
         </div>
       </div>
     </div>
+    <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
   styles: [`
     .child-list { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
@@ -79,6 +111,7 @@ export class UFFormComponent implements OnInit {
   model: UF = {} as UF;
   isEdit = false;
   saving = false;
+  readonly pageLoad = new FormInitialLoad();
   private readonly toast = inject(ToastService);
   private readonly entityTitle = 'UF';
   showDeleteConfirm = false;
@@ -109,6 +142,8 @@ export class UFFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();
+
     const siglaUF = this.route.snapshot.paramMap.get('siglaUF');
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
     if (isNovo) {
@@ -119,22 +154,21 @@ export class UFFormComponent implements OnInit {
     if (siglaUF) {
       this.isEdit = true;
       this.refreshPermissions();
-      this.service.getById(siglaUF).subscribe({
-        next: (r) => {
+      this.pageLoad.run(this.service.getById(siglaUF), (r) => {
           this.model = r;
           this.carregarMunicipios();
-        },
-        error: () => this.toast.showError('Registro não encontrado.')
-      });
+        }, () => this.toast.showError('Registro não encontrado.'));
     }
+    this.pageLoad.seal();
   }
 
   private carregarMunicipios(): void {
     if (!this.model.siglaUF) return;
-    this.lookup.municipiosPorUf(this.model.siglaUF).subscribe({
-      next: list => this.municipios = list,
-      error: () => this.municipios = []
-    });
+    this.pageLoad.run(
+      this.lookup.municipiosPorUf(this.model.siglaUF),
+      list => this.municipios = list,
+      () => { this.municipios = []; }
+    );
   }
 
   fieldDisabled(field: string): boolean {

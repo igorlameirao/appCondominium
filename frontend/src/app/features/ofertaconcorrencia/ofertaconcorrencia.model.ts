@@ -4,7 +4,6 @@ export interface OfertaConcorrencia {
   idCondominio?: number;
   idConcorrencia?: number;
   descricao?: string;
-  documentoComprobatorio?: string;
   preco?: number;
   dataOferta?: string;
   dataValidade?: string;

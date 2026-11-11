@@ -6,6 +6,5 @@ public class Pessoafisica
     public DateOnly? DataNascimento { get; set; }
     public string? Email { get; set; }
     public string? Senha { get; set; }
-    public byte[]? Foto { get; set; }
     public string? FotoEmbedding { get; set; }
 }

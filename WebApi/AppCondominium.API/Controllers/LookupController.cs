@@ -1,3 +1,4 @@
+using AppCondominium.Application.Storage;
 using AppCondominium.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,8 +12,15 @@ namespace AppCondominium.API.Controllers;
 public class LookupController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IArquivoStorage _arquivos;
+    private readonly StorageObjectKeyBuilder _chaves;
 
-    public LookupController(AppDbContext db) => _db = db;
+    public LookupController(AppDbContext db, IArquivoStorage arquivos, StorageObjectKeyBuilder chaves)
+    {
+        _db = db;
+        _arquivos = arquivos;
+        _chaves = chaves;
+    }
 
     /// <summary>RN-UF-01 — municípios da UF.</summary>
     [HttpGet("municipios-por-uf/{siglaUF}")]
@@ -39,15 +47,43 @@ public class LookupController : ControllerBase
         return Ok(items);
     }
 
-    /// <summary>Configuração do condomínio (RT-Gerais 12/13) — público para tela de login.</summary>
+    /// <summary>Configuração do condomínio (RT-Gerais 12/13) — público para tela de login. Imagens saem em rotas próprias.</summary>
     [AllowAnonymous]
     [HttpGet("configuracao-por-condominio/{idCondominio:int}")]
-    public async Task<ActionResult<Domain.Entities.ConfiguracaoCondominio>> ConfiguracaoPorCondominio(uint idCondominio, CancellationToken ct)
+    public async Task<ActionResult<ConfiguracaoPublicaDto>> ConfiguracaoPorCondominio(uint idCondominio, CancellationToken ct)
     {
-        var item = await _db.ConfiguracaoCondominio.AsNoTracking()
+        var item = await _db.ConfiguracaoCondominio.IgnoreQueryFilters().AsNoTracking()
             .FirstOrDefaultAsync(c => c.IdCondominio == idCondominio, ct);
-        return item == null ? NotFound() : Ok(item);
+        if (item == null)
+            return NotFound();
+
+        var temLogin = await _arquivos.ExisteAsync(_chaves.ImagemLogin(idCondominio), ct);
+        var temIcone = await _arquivos.ExisteAsync(_chaves.ImagemIcone(idCondominio), ct);
+        return Ok(new ConfiguracaoPublicaDto(item.IdConfiguracao, item.IdCondominio, item.CorPadrao, temLogin, temIcone));
     }
+
+    [AllowAnonymous]
+    [HttpGet("condominios/{idCondominio:int}/imagem-login")]
+    public async Task<IActionResult> ImagemLogin(uint idCondominio, CancellationToken ct)
+    {
+        var objeto = await _arquivos.AbrirAsync(_chaves.ImagemLogin(idCondominio), ct);
+        return objeto == null ? NotFound() : File(objeto.Conteudo, objeto.ContentType);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("condominios/{idCondominio:int}/imagem-icone")]
+    public async Task<IActionResult> ImagemIcone(uint idCondominio, CancellationToken ct)
+    {
+        var objeto = await _arquivos.AbrirAsync(_chaves.ImagemIcone(idCondominio), ct);
+        return objeto == null ? NotFound() : File(objeto.Conteudo, objeto.ContentType);
+    }
+
+    public record ConfiguracaoPublicaDto(
+        uint? IdConfiguracao,
+        uint? IdCondominio,
+        string? CorPadrao,
+        bool TemImagemLogin,
+        bool TemImagemIcone);
 
     [AllowAnonymous]
     [HttpGet("condominio-resumo/{idCondominio:int}")]
