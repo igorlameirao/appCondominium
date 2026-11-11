@@ -1,8 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Icone } from '../../shared/icone';
+import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
+import { FormInitialLoad } from '../../shared/form-initial-load';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CampoDataHoraComponent } from '../../shared/campo-data-hora/campo-data-hora.component';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { AlocacaoMaterialService } from './alocacaomaterial.service';
 import { AlocacaoMaterial } from './alocacaomaterial.model';
@@ -17,13 +20,38 @@ import { LocalService } from '../local/local.service';
 @Component({
   selector: 'app-alocacaomaterial-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
-  host: { class: 'form-page form-page--wide' },
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
   template: `
-    <div class="form-layout">
-      <h2>{{ isEdit ? 'Editar' : 'Novo' }} Alocação de Material</h2>
-      <div class="form-scroll">
-        <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+    <div class="content-wrapper cad-wrapper">
+      <div class="cad-page">
+        <header class="cad-cabecalho">
+          <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
+            <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <a [routerLink]="'/alocacaomaterial'">Alocação de Material</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
+          </nav>
+          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Alocação de Material</h1>
+          <p class="cad-subtitulo">Cadastre e mantenha as informações de alocação de material</p>
+        </header>
+
+        <section class="cad-card form-page">
+          <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
+            <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
+              <app-icone nome="layers" [tamanho]="16" />
+              <span>Dados de Alocação de Material</span>
+            </button>
+          </div>
+          <div class="cad-conteudo" role="tabpanel">
+            <div class="cad-secao">
+              <app-icone class="cad-secao__icone" nome="layers" [tamanho]="26" />
+              <div>
+                <h2 class="cad-secao__titulo">Dados de Alocação de Material</h2>
+                <p class="cad-secao__texto">Informe as informações principais</p>
+              </div>
+            </div>
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
           
           <div class="form-grid">
             <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
@@ -60,12 +88,15 @@ import { LocalService } from '../local/local.service';
               <app-campo-data-hora [(ngModel)]="model.dataHoraFim" name="dataHoraFim" [disabled]="fieldDisabled('dataHoraFim')" />
             </div>
           </div>
-        </form>
-      </div>
-      <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
+        </form></div>
+          </div>
+          <div class="actions form-actions cad-acoes">
+        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
+      </div>
+        </section>
       </div>
     </div>
     <div class="confirm-overlay" *ngIf="showDeleteConfirm">
@@ -77,12 +108,14 @@ import { LocalService } from '../local/local.service';
         </div>
       </div>
     </div>
-  `
+    <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
+  `,
 })
 export class AlocacaoMaterialFormComponent implements OnInit {
   model: AlocacaoMaterial = {} as AlocacaoMaterial;
   isEdit = false;
   saving = false;
+  readonly pageLoad = new FormInitialLoad();
   private readonly toast = inject(ToastService);
   private readonly entityTitle = 'Alocação de Material';
   showDeleteConfirm = false;
@@ -120,22 +153,24 @@ export class AlocacaoMaterialFormComponent implements OnInit {
   get pkDisplay(): string { return String(this.model.idAlocacaoMaterial); }
 
   ngOnInit(): void {
+    if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();
+
     
-    this.materialService.getPaged(1, 200).subscribe(r => {
+    this.pageLoad.run(this.materialService.getPaged(1, 200), r => {
       this.fk_idMaterial = r.items.map((x: any) => ({
         value: x.idMaterial,
         label: this.fkLabel_idMaterial(x)
       }));
     });
 
-    this.pessoaCondominioService.getPaged(1, 200).subscribe(r => {
+    this.pageLoad.run(this.pessoaCondominioService.getPaged(1, 200), r => {
       this.fk_idPessoa = r.items.map((x: any) => ({
         value: x.idPessoa,
         label: this.fkLabel_idPessoa(x)
       }));
     });
 
-    this.localService.getPaged(1, 200).subscribe(r => {
+    this.pageLoad.run(this.localService.getPaged(1, 200), r => {
       this.fk_idLocal = r.items.map((x: any) => ({
         value: x.idLocal,
         label: this.fkLabel_idLocal(x)
@@ -152,11 +187,9 @@ export class AlocacaoMaterialFormComponent implements OnInit {
     if (idAlocacaoMaterial) {
       this.isEdit = true;
       this.refreshPermissions();
-      this.service.getById(idAlocacaoMaterial).subscribe({
-        next: (r) => this.model = r,
-        error: () => this.toast.showError('Registro não encontrado.')
-      });
+      this.pageLoad.run(this.service.getById(idAlocacaoMaterial), (r) => this.model = r, () => this.toast.showError('Registro não encontrado.'));
     }
+    this.pageLoad.seal();
   }
 
   fieldDisabled(field: string): boolean {

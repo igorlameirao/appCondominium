@@ -39,6 +39,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<AppCondominium.API.Storage.ArquivoAplicacao>();
 builder.Services.AddHostedService<PermissionCatalogSync>();
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 10 * 1024 * 1024);
 

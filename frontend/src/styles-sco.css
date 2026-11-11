@@ -2,9 +2,43 @@
 
 @import 'leaflet/dist/leaflet.css';
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import './styles/tokens.css';
 @import './styles-premium-shell.css';
 @import './styles-buttons.css';
 @import './styles-login.css';
+@import './styles/form-acoes.css';
+@import './styles/modal-sge.css';
+@import './styles/cadastro.css';
+@import './styles/lista-sge.css';
+@import './styles/combobox-sge.css';
+@import './styles/liberacao-acesso.css';
+@import './styles/inicio-dashboard.css';
+@import './styles/foto-perfil.css';
+
+/* Tokens SGE alinhados ao AppCondominium (--app-accent). */
+:root {
+  --cad-primary: var(--app-accent, #0e7490);
+  --cad-primary-hover: var(--color-primary-hover, #0e7490);
+  --cad-primary-active: #0c6178;
+  --cad-primary-soft: #e0f2fe;
+  --cad-focus-ring: 0 0 0 3px rgba(14, 116, 144, 0.18);
+  --cad-muted: #64748b;
+}
+
+.cad-form-scroll { overflow: visible; min-height: 0; }
+.cad-form-scroll .form-grid { margin-top: 8px; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* Leaflet/OpenStreetMap: `img` com max-width e ancestrais com scroll quebram o encaixe dos tiles */
 .leaflet-container img.leaflet-tile,
@@ -1434,7 +1468,7 @@ app-ocorrencia-list .checkin-filtros-panel .filtro-periodo .periodo-inputs input
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 16px 12px;
-  align-items: stretch;
+  align-items: start;
   grid-auto-flow: row;
 }
 .form-grid > .fg-col-2 { grid-column: span 2; }
@@ -1447,19 +1481,17 @@ app-ocorrencia-list .checkin-filtros-panel .filtro-periodo .periodo-inputs input
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 100%;
+  align-self: start;
 }
 .form-grid > .form-group > label {
-  min-height: 2.5em;
+  min-height: 0;
   line-height: 1.25;
+  margin-bottom: 4px;
 }
 .form-grid > .form-group.fg-label-nowrap > label {
   white-space: nowrap;
-  min-height: 1.25em;
 }
-.form-grid > .form-group > :not(label) {
-  margin-top: auto;
-}
+.form-group .combo .combo-input,
 .form-group select:not([multiple]),
 .form-group input:not([type]),
 .form-group input[type="text"],
@@ -1594,68 +1626,3 @@ app-ocorrencia-list .checkin-filtros-panel .filtro-periodo .periodo-inputs input
   box-sizing: border-box;
   min-height: 2.125rem;
 }
-
-.loading-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.35);
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-.loading-modal {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 12px;
-  padding: 24px 32px;
-  min-width: 240px;
-  max-width: 360px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-}
-.loading-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid #e2e8f0;
-  border-top-color: var(--app-accent, #0e7490);
-  border-radius: 50%;
-  animation: loading-spin 0.75s linear infinite;
-}
-.loading-text {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #334155;
-  text-align: center;
-}
-@keyframes loading-spin {
-  to { transform: rotate(360deg); }
-}
-
-.confirm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-.confirm-modal {
-  background: #fff;
-  border-radius: 8px;
-  padding: 18px 22px;
-  min-width: 260px;
-  max-width: 420px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-}
-.confirm-modal p { margin: 0 0 16px; font-size: 14px; color: #0f172a; }
-

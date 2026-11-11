@@ -3,6 +3,5 @@ export interface Pessoafisica {
   dataNascimento?: string;
   email?: string;
   senha?: string;
-  foto?: string;
   fotoEmbedding?: string;
 }

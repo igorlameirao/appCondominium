@@ -1,69 +1,139 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Icone } from '../../shared/icone';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { PaginationComponent } from '../../shared/pagination/pagination.component';
-import { LIST_CARD_HUG_LAYOUT_STYLES } from '../../shared/list-card-hug-layout.styles';
-import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
+import { Router, RouterLink } from '@angular/router';
+import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';
+import { Paginacao } from '../../shared/paginacao';
+import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
 import { PagedResult } from '../../core/models/paged-result';
 import { OfertaConcorrenciaService } from './ofertaconcorrencia.service';
 import { OfertaConcorrencia } from './ofertaconcorrencia.model';
+import { PermissionService } from '../../core/services/permission.service';
+import { ToastService } from '../../core/services/toast.service';
+import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/confirmar-exclusao.component';
 
 @Component({
   selector: 'app-ofertaconcorrencia-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent, ListLoadingModalComponent],
-  styles: [LIST_CARD_HUG_LAYOUT_STYLES],
-  template: `
-    <div class="list-page">
-      <div class="list-header">
-        <h2>Oferta Concorrência</h2>
-        <div class="filter-row">
-          <label>Filtro:</label>
-          <input type="text" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" />
-          <button type="button" class="btn-filtrar" (click)="applyFilter()">Filtrar</button>
-          <button type="button" class="btn-limpar" (click)="clearFilter()">Limpar</button>
-        </div>
-        <div class="top-actions">
-          <app-pagination
-            [page]="page" [totalPages]="totalPages" [totalCount]="totalCount"
-            [hasPreviousPage]="paged?.hasPreviousPage ?? false" [hasNextPage]="paged?.hasNextPage ?? false"
-            (novo)="goNovo()" [showPagination]="false" [showNovo]="true" [alignRight]="true" />
-        </div>
+  imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent],
+    template: `
+    <div class="content-wrapper lst-wrapper" lstSgeViewport [tamanhoPagina]="pageSize" (tamanhoPaginaChange)="aplicarTamanhoPagina($event)" [totalItens]="totalCount" [itensNaPagina]="paged?.items?.length ?? 0" [filtrosRecolhidos]="filtrosRecolhidos">
+      <div class="lst-page">
+        <header class="lst-cabecalho">
+          <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
+            <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <span aria-current="page">Oferta Concorrência</span>
+          </nav>
+          <div class="lst-cabecalho__linha">
+            <div>
+              <h1 class="lst-titulo">Oferta Concorrência</h1>
+              <p class="lst-subtitulo">Visualize e gerencie os oferta concorrências cadastrados no AppCondominium</p>
+            </div>
+            <button type="button" class="btn-novo" (click)="goNovo()">Novo Oferta Concorrência</button>
+          </div>
+        </header>
+
+        <section class="lst-card lst-painel" [attr.aria-busy]="loading">
+          <div class="lst-filtros">
+            <button type="button" class="lst-filtros__topo" (click)="filtrosRecolhidos = !filtrosRecolhidos" [attr.aria-expanded]="!filtrosRecolhidos" aria-controls="lst-filtros-painel">
+              <span class="lst-filtros__titulo"><app-icone nome="filter" [tamanho]="18" /> Filtros</span>
+              <app-icone class="lst-filtros__seta" [nome]="filtrosRecolhidos ? 'chevron-down' : 'chevron-up'" [tamanho]="18" />
+            </button>
+            
+            <div class="lst-filtros__corpo" id="lst-filtros-painel" *ngIf="!filtrosRecolhidos">
+              <div class="lst-filtros__grade">
+                <div class="form-group">
+                <input type="search" aria-label="Filtro" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" minlength="3" placeholder="Digite pelo menos 3 caracteres" />
+              </div>
+              </div>
+              <div class="lst-filtros__acoes">
+                <button type="button" class="btn-filtrar" (click)="applyFilter()">Filtrar</button>
+                <button type="button" class="btn-limpar" (click)="clearFilter()">Limpar</button>
+              </div>
+            </div>
+          </div>
+          <div class="lst-tabela__scroll" [class.is-loading]="loading">
+            <table class="lst-grade" *ngIf="paged?.items?.length; else lstEmpty">
+              <thead><tr><th scope="col">Id Fornecedor</th><th scope="col" class="lst-col--conteudo">Id Concorrência</th><th scope="col" class="lst-col--conteudo">Descrição</th><th scope="col">Preco</th><th scope="col">Data da Oferta</th><th scope="col">Data Validade</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
+                  <td>{{ item.idFornecedor }}</td><td class="lst-col--conteudo">{{ item.idConcorrencia }}</td><td class="lst-col--conteudo">{{ item.descricao }}</td><td>{{ item.preco }}</td><td>{{ item.dataOferta }}</td><td>{{ item.dataValidade }}</td>
+                  <td class="lst-grade__acoes">
+                    <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
+                      <app-icone nome="trash" [tamanho]="16" />
+                    </button>
+                    <button type="button" class="lst-acao lst-acao--editar" title="Editar" aria-label="Editar" (click)="goEdit(item)" (dblclick)="$event.stopPropagation()">
+                      <app-icone nome="pencil" [tamanho]="16" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <ng-template #lstEmpty>
+              <p class="lst-vazio" *ngIf="loading">Carregando...</p>
+              <p class="lst-vazio" *ngIf="!loading">Nenhum registro encontrado.</p>
+            </ng-template>
+          </div>
+          <div class="lst-rodape">
+            <app-paginacao modo="sge" rotulo="oferta concorrências" [pagina]="page" [total]="totalCount" [tamanho]="pageSize" (paginaChange)="loadPage($event)" />
+          </div>
+        </section>
       </div>
-      <div class="table-scroll-wrapper">
-        <div class="table-container">
-          <table *ngIf="paged?.items?.length; else empty">
-            <thead><tr><th>Id Fornecedor</th><th>Id Concorrência</th><th>Descrição</th><th>Preco</th><th>Data da Oferta</th><th>Data Validade</th></tr></thead>
-            <tbody>
-              <tr *ngFor="let item of paged?.items" (click)="goEdit(item)" class="row-click">
-                <td>{{ item.idFornecedor }}</td><td>{{ item.idConcorrencia }}</td><td>{{ item.descricao }}</td><td>{{ item.preco }}</td><td>{{ item.dataOferta }}</td><td>{{ item.dataValidade }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <ng-template #empty><p *ngIf="!loading" class="empty">Nenhum registro encontrado.</p></ng-template>
-        </div>
-      </div>
-      <div class="list-footer">
-        <app-pagination
-          [page]="page" [totalPages]="totalPages" [totalCount]="totalCount"
-          [hasPreviousPage]="paged?.hasPreviousPage ?? false" [hasNextPage]="paged?.hasNextPage ?? false"
-          (pageChange)="loadPage($event)" [showPagination]="true" [showNovo]="false" [alignRight]="true" />
-      </div>
+    <app-confirmar-exclusao [aberto]="confirmarExclusao" [excluindo]="excluindo" (cancelar)="cancelarExclusao()" (confirmar)="confirmarExclusaoMetodo()" />
+  
     </div>
-    <app-list-loading-modal [visible]="loading" />
-  `
-})
+  `,})
 export class OfertaConcorrenciaListComponent implements OnInit {
   paged: PagedResult<OfertaConcorrencia> | null = null;
   loading = false;
   page = 1;
-  pageSize = 20;
+  pageSize = TAMANHO_PAGINA_LISTA_PADRAO;
+  filtrosRecolhidos = false;
   filterText = '';
   get totalCount(): number { return this.paged?.totalCount ?? 0; }
   get totalPages(): number { return this.paged?.totalPages ?? 0; }
 
-  constructor(private service: OfertaConcorrenciaService, private router: Router) {}
+  readonly permissionKey = 'OFERTACONCORRENCIA';
+  confirmarExclusao = false;
+  excluindo = false;
+  itemExcluir: OfertaConcorrencia | null = null;
+
+  get podeExcluir(): boolean {
+    return this.permissions.can(this.permissionKey, 'Excluir');
+  }
+
+  solicitarExclusao(item: OfertaConcorrencia): void {
+    this.itemExcluir = item;
+    this.confirmarExclusao = true;
+  }
+
+  cancelarExclusao(): void {
+    if (this.excluindo) return;
+    this.confirmarExclusao = false;
+    this.itemExcluir = null;
+  }
+
+  confirmarExclusaoMetodo(): void {
+    const item = this.itemExcluir;
+    if (this.excluindo || !item) return;
+    this.excluindo = true;
+    this.service.delete(item.idOfertaConcorrencia!).subscribe({
+      next: () => {
+        this.excluindo = false;
+        this.confirmarExclusao = false;
+        this.itemExcluir = null;
+        this.loadPage(this.page);
+      },
+      error: () => {
+        this.excluindo = false;
+        this.toast.showError('Não foi possível excluir. Tente novamente.');
+      },
+    });
+  }
+
+  constructor(private service: OfertaConcorrenciaService, private router: Router, private permissions: PermissionService, private toast: ToastService) {}
 
   ngOnInit(): void { this.loadPage(1); }
 
@@ -82,6 +152,19 @@ export class OfertaConcorrenciaListComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  aplicarTamanhoPagina(novo: number): void {
+    const ctx = {
+      pagina: this.page,
+      total: this.totalCount,
+      tamanhoPagina: this.pageSize,
+      itens: this.paged?.items ?? [],
+      carregar: () => this.loadPage(this.page),
+    };
+    ajustarTamanhoPaginaLista(ctx, novo);
+    this.page = ctx.pagina;
+    this.pageSize = ctx.tamanhoPagina;
   }
 
   goNovo(): void { this.router.navigate(['/ofertaconcorrencia', 'novo']); }

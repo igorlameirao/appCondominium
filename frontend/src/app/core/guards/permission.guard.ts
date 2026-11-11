@@ -13,7 +13,7 @@ export const entityPermissionGuard: CanActivateChildFn = (child) => {
       ? 'PERMISSOES_GERENCIAR'
       : segment.toUpperCase();
 
-  if (key === 'HOME') return true;
+  if (key === 'HOME' || segment === 'minha-conta') return true;
   const permissions = inject(PermissionService);
   if (permissions.can(key, 'Visualizar')) return true;
   return inject(Router).createUrlTree(['/inicio']);

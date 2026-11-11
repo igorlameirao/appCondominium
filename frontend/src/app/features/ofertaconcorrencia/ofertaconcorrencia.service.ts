@@ -32,4 +32,26 @@ export class OfertaConcorrenciaService {
   delete(idOfertaConcorrencia: number | string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${idOfertaConcorrencia}`);
   }
+
+  private documentoUrl(id: number | string): string {
+    return `${this.base}/${id}/documento-comprobatorio`;
+  }
+
+  temDocumento(id: number | string): Observable<void> {
+    return this.http.head<void>(this.documentoUrl(id));
+  }
+
+  baixarDocumento(id: number | string): Observable<Blob> {
+    return this.http.get(this.documentoUrl(id), { responseType: 'blob' });
+  }
+
+  enviarDocumento(id: number | string, arquivo: File): Observable<void> {
+    const dados = new FormData();
+    dados.append('arquivo', arquivo, arquivo.name);
+    return this.http.put<void>(this.documentoUrl(id), dados);
+  }
+
+  removerDocumento(id: number | string): Observable<void> {
+    return this.http.delete<void>(this.documentoUrl(id));
+  }
 }

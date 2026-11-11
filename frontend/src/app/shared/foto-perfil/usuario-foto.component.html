@@ -1,0 +1,134 @@
+<input #arquivo type="file" accept="image/jpeg,image/png" hidden (change)="aoSelecionarArquivo($event)" />
+
+<div class="foto-perfil-wrap" [class.foto-perfil-wrap--sidebar]="layout === 'sidebar'">
+  <button
+    type="button"
+    class="foto-perfil"
+    [class.foto-perfil--vazia]="!fotoUrl"
+    [attr.aria-label]="'Abrir minha conta — ' + nome"
+    (click)="aoClicarAvatar($event)">
+    @if (fotoUrl) {
+      <img [src]="fotoUrl" [alt]="'Foto de ' + nome" />
+    } @else if (iniciais) {
+      <span class="foto-perfil__iniciais">{{ iniciais }}</span>
+    } @else {
+      <app-icone nome="user" [tamanho]="layout === 'sidebar' ? 28 : 40" />
+    }
+  </button>
+
+  @if (!somenteLeitura) {
+    <button
+      #gatilhoFoto
+      type="button"
+      class="foto-perfil__acao"
+      title="Alterar foto"
+      aria-label="Alterar foto"
+      aria-haspopup="menu"
+      [attr.aria-controls]="menuId"
+      [attr.aria-expanded]="menuFotoAberto"
+      (click)="alternarMenuFoto($event)"
+      (keydown.arrowdown)="abrirMenuFoto($event)"
+      (focusout)="aoSairGatilho($event)">
+      <app-icone nome="camera" [tamanho]="14" />
+    </button>
+
+    @if (menuFotoAberto) {
+      <div
+        #menuFoto
+        [id]="menuId"
+        class="foto-perfil-menu__painel"
+        role="menu"
+        aria-label="Ações da foto"
+        (click)="$event.stopPropagation()"
+        (keydown)="aoTeclaMenu($event)"
+        (focusout)="aoSairMenu($event)">
+        <button type="button" role="menuitem" class="foto-perfil-menu__item" tabindex="-1" (click)="escolherArquivo()">
+          <app-icone nome="image" [tamanho]="14" />
+          <span>Selecionar arquivo</span>
+        </button>
+        <button type="button" role="menuitem" class="foto-perfil-menu__item" tabindex="-1" (click)="iniciarCaptura()">
+          <app-icone nome="camera" [tamanho]="14" />
+          <span>Capturar da webcam</span>
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          class="foto-perfil-menu__item foto-perfil-menu__item--perigo"
+          tabindex="-1"
+          [disabled]="!fotoUrl"
+          (click)="pedirRemocao()">
+          <app-icone nome="trash" [tamanho]="14" />
+          <span>Remover foto</span>
+        </button>
+      </div>
+    }
+  }
+</div>
+
+@if (erro) {
+  <p class="foto-perfil-erro">{{ erro }}</p>
+}
+
+@if (confirmarRemocao) {
+  <div class="confirm-overlay" appAnexarAoBody (click)="cancelarRemocao()" (keydown.escape)="$event.stopPropagation(); cancelarRemocao()">
+    <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="remover-foto-titulo" (click)="$event.stopPropagation()">
+      <p id="remover-foto-titulo" class="confirm-text">Confirma a remoção da foto?</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn-cancelar-modal" (click)="cancelarRemocao()">Cancelar</button>
+        <button type="button" class="btn-confirm-danger" (click)="confirmarRemocaoFoto()">Remover</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (capturaAberta) {
+  <div class="confirm-overlay" appAnexarAoBody role="presentation" (click)="fecharCaptura()" (keydown.escape)="fecharCaptura()">
+    <div class="confirm-modal captura-modal" role="dialog" aria-modal="true" aria-labelledby="captura-titulo" (click)="$event.stopPropagation()">
+      <header class="captura-modal__topo">
+        <h3 id="captura-titulo">Capturar foto</h3>
+        <button type="button" class="btn-ghost btn-icon btn-icon--sm" aria-label="Fechar" (click)="fecharCaptura()">
+          <app-icone nome="x" [tamanho]="16" />
+        </button>
+      </header>
+      <div class="captura-modal__corpo">
+        <label class="captura-campo">
+          Periférico
+          <select [value]="dispositivoId" (change)="trocarDispositivo($event)" [disabled]="!dispositivos.length">
+            @if (!dispositivos.length) {
+              <option value="">Nenhuma câmera encontrada</option>
+            }
+            @for (item of dispositivos; track item.deviceId; let indice = $index) {
+              <option [value]="item.deviceId">{{ item.label || ('Câmera ' + (indice + 1)) }}</option>
+            }
+          </select>
+        </label>
+        <div class="captura-quadro">
+          <video #preview autoplay playsinline muted></video>
+          @if (fotoCapturada) {
+            <img [src]="fotoCapturada" alt="Foto capturada" />
+          }
+          @if (!cameraPronta && !fotoCapturada && !erroCaptura) {
+            <span class="captura-quadro__vazio">Aguardando a imagem da câmera…</span>
+          }
+          @if (cameraPronta || fotoCapturada) {
+            <span class="captura-quadro__status">{{ fotoCapturada ? 'Capturada' : 'Ao vivo' }}</span>
+          }
+        </div>
+        <p class="modal-sge-texto-ajuda">
+          @if (fotoCapturada) { Confira a foto e confirme, ou capture novamente. }
+          @else { Posicione-se no quadro e clique em Capturar. }
+        </p>
+        @if (erroCaptura) {
+          <p class="msg-erro">{{ erroCaptura }}</p>
+        }
+        <div class="captura-acoes">
+          <button type="button" class="btn-cancelar" (click)="fecharCaptura()">Cancelar</button>
+          <button type="button" class="btn-filtrar" [disabled]="!cameraPronta" (click)="capturar()">
+            <app-icone nome="camera" [tamanho]="14" /> Capturar
+          </button>
+          <button type="button" class="btn-gravar" [disabled]="!fotoCapturada" (click)="confirmarCaptura()">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

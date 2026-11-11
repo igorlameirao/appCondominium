@@ -1,0 +1,297 @@
+/* Menu lateral — padrão Clean Premium (referência aprovada). */
+
+/* Ícones azul-acinzentado; ativo em destaque */
+app-icone.sidebar-icon,
+app-icone.sidebar-link__icon {
+  color: var(--app-sidebar-icon);
+  transition: color 0.18s ease;
+}
+
+.sidebar-group__trigger:hover app-icone.sidebar-icon {
+  color: #4a6b7c;
+}
+
+.sidebar-group__trigger--open app-icone.sidebar-icon {
+  color: var(--app-sidebar-icon);
+}
+
+.sidebar-link.sidebar-link--active:not(.sidebar-link--nested) app-icone.sidebar-link__icon {
+  color: var(--app-sidebar-icon-active);
+}
+
+app-icone.sidebar-chevron {
+  margin-left: auto;
+  color: #94a3b8;
+}
+
+.sidebar-group__trigger--open app-icone.sidebar-chevron {
+  color: #64748b;
+}
+
+/* Grupo expandido ≠ item ativo: bloco suave, título escuro */
+.sidebar-group:has(.sidebar-group__panel--open) {
+  padding: 6px 8px 8px;
+  margin-bottom: 8px;
+  border-radius: var(--app-sidebar-radius);
+  background: var(--app-sidebar-group-open-bg);
+}
+
+.sidebar-group:has(.sidebar-group__panel--open) .sidebar-group__trigger--open {
+  background: transparent;
+}
+
+.sidebar-group:has(.sidebar-group__panel--open) .sidebar-group__trigger--open .sidebar-group__title {
+  color: var(--app-text);
+  font-weight: 700;
+}
+
+.sidebar-group:has(.sidebar-link--active) .sidebar-group__trigger--open .sidebar-group__title {
+  color: var(--app-text);
+}
+
+.sidebar-group__panel-inner {
+  margin-top: 4px;
+  padding: 0;
+}
+
+/*
+ * Árvore dos subitens — todas as coordenadas X são relativas a .sidebar-block__items,
+ * que começa alinhado à borda esquerda do trigger do grupo.
+ *   outer-x: linha que desce do ícone do grupo e faz a curva no último subitem
+ *   dot-x:   coluna das bolinhas; a segunda linha sobe por ela do último ao primeiro
+ *   text-x:  início dos links (texto nunca cruza a árvore)
+ */
+.sidebar-group:has(.sidebar-group__panel--open) .sidebar-group__trigger {
+  position: relative;
+}
+
+/* Trecho logo abaixo do ícone do grupo até o bloco dos subitens */
+.sidebar-group:has(.sidebar-group__panel--open) .sidebar-group__trigger::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--app-sidebar-tree-outer-x) - 0.5px);
+  top: calc(50% + 14px);
+  bottom: -12px;
+  width: 1px;
+  background: var(--app-sidebar-tree-line);
+  pointer-events: none;
+}
+
+.sidebar-block__items {
+  position: relative;
+  margin: 4px 0 2px;
+  padding: var(--app-sidebar-tree-pad-y) 0 var(--app-sidebar-tree-pad-y) var(--app-sidebar-tree-text-x);
+  border-left: none;
+  gap: var(--app-sidebar-item-gap);
+  background: transparent;
+}
+
+/* Linha externa: desce do topo até o centro do último subitem e curva até a bolinha */
+.sidebar-block__items::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--app-sidebar-tree-outer-x) - 0.5px);
+  top: 0;
+  bottom: calc(var(--app-sidebar-tree-pad-y) + var(--app-sidebar-nested-row) / 2 - 0.5px);
+  width: calc(var(--app-sidebar-tree-dot-x) - var(--app-sidebar-tree-outer-x));
+  border-left: 1px solid var(--app-sidebar-tree-line);
+  border-bottom: 1px solid var(--app-sidebar-tree-line);
+  border-bottom-left-radius: var(--app-sidebar-tree-radius);
+  pointer-events: none;
+}
+
+/* Linha interna: sobe pela coluna das bolinhas, do último ao primeiro subitem */
+.sidebar-block__items::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--app-sidebar-tree-dot-x) - 0.5px);
+  top: calc(var(--app-sidebar-tree-pad-y) + var(--app-sidebar-nested-row) / 2);
+  bottom: calc(var(--app-sidebar-tree-pad-y) + var(--app-sidebar-nested-row) / 2);
+  width: 1px;
+  background: var(--app-sidebar-tree-line);
+  pointer-events: none;
+}
+
+.sidebar-link.sidebar-link--nested,
+.sidebar-busy-btn.sidebar-link--nested,
+.sidebar-disabled.sidebar-link--nested {
+  padding-left: 8px;
+  height: var(--app-sidebar-nested-row);
+  min-height: var(--app-sidebar-nested-row);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--app-text-muted);
+}
+
+.sidebar-link.sidebar-link--nested::before {
+  content: none;
+}
+
+/* Bolinha sobre a coluna dot-x (fora da área do texto) */
+.sidebar-link.sidebar-link--nested::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--app-sidebar-tree-dot-x) - var(--app-sidebar-tree-text-x));
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--app-sidebar-tree-dot);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sidebar-link.sidebar-link--nested.sidebar-link--active {
+  color: var(--app-sidebar-icon-active);
+  font-weight: 600;
+  background: var(--app-sidebar-active-bg);
+  border-radius: 8px;
+}
+
+.sidebar-link.sidebar-link--nested.sidebar-link--active::after {
+  background: var(--app-sidebar-icon-active);
+}
+
+/* Item folha ativo */
+.sidebar-link.sidebar-link--active:not(.sidebar-link--nested) {
+  background: var(--app-sidebar-active-bg);
+  color: var(--app-sidebar-icon-active);
+  font-weight: 700;
+  border-radius: var(--app-sidebar-radius);
+}
+
+.sidebar-link.sidebar-link--active:not(.sidebar-link--nested)::before {
+  top: 10px;
+  bottom: 10px;
+  width: var(--app-sidebar-active-bar);
+  border-radius: 0 3px 3px 0;
+  background: var(--app-sidebar-icon-active);
+}
+
+.sidebar-link.sidebar-link--standalone {
+  min-height: var(--app-sidebar-row);
+  padding: 10px 12px 10px 14px;
+  gap: 12px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--app-text);
+  border-radius: var(--app-sidebar-radius);
+}
+
+.sidebar-link.sidebar-link--standalone.sidebar-link--active {
+  background: var(--app-sidebar-active-bg);
+}
+
+.sidebar-group__trigger {
+  min-height: var(--app-sidebar-row);
+  padding: 10px 10px 10px 12px;
+  gap: 12px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--app-text);
+  border-radius: var(--app-sidebar-radius);
+}
+
+.sidebar-group__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+/* Rodapé */
+.app-premium-sidebar__foot .sidebar-user-block {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 0 4px;
+  text-align: left;
+}
+
+/* Arco azul no topo-direito do avatar, continuando na linha que corre para a direita */
+.app-premium-sidebar__foot .foto-perfil-wrap--sidebar::before,
+.app-premium-sidebar__foot .foto-perfil-wrap--sidebar::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.app-premium-sidebar__foot .foto-perfil-wrap--sidebar::before {
+  border-top-color: var(--app-sidebar-user-stroke);
+}
+
+.app-premium-sidebar__foot .foto-perfil-wrap--sidebar::after {
+  border-bottom-color: var(--app-sidebar-user-stroke);
+  opacity: 0.35;
+}
+
+.app-premium-sidebar__foot .sidebar-user-block::before {
+  content: '';
+  position: absolute;
+  top: calc(6px - 5px);
+  left: 21px;
+  right: 48px;
+  height: 1.5px;
+  background: var(--app-sidebar-user-stroke);
+  -webkit-mask-image: linear-gradient(to right, #000 35%, transparent);
+  mask-image: linear-gradient(to right, #000 35%, transparent);
+  pointer-events: none;
+}
+
+.app-premium-sidebar__foot .sidebar-user-block__texto {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-premium-sidebar__foot .sidebar-user-block__nome {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.app-premium-sidebar__foot .sidebar-user-block__perfil {
+  margin-top: 2px;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+}
+
+.sidebar-user-block__settings {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--app-text-muted);
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.04),
+    0 2px 8px rgba(15, 23, 42, 0.1);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebar-user-block__settings:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+}
+
+.sidebar-user-block__settings:hover {
+  background: #fff;
+  color: var(--app-accent);
+  box-shadow:
+    0 0 0 1px rgba(14, 116, 144, 0.12),
+    0 4px 12px rgba(15, 23, 42, 0.14);
+}
+
+.app-premium-sidebar__foot .foto-perfil__acao {
+  display: none;
+}

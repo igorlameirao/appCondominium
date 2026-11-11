@@ -1,0 +1,98 @@
+---
+description: Menu lateral Clean Premium — sidebar, navegação, rodapé de usuário e tokens visuais.
+globs: frontend/src/styles-premium-shell.css,frontend/src/styles/sidebar-sge.css,frontend/src/styles/sidebar-clean-premium.css,frontend/src/styles/foto-perfil.css,frontend/src/app/app.component.html,frontend/src/app/shared/sidebar-usuario/**
+alwaysApply: false
+---
+
+# Sidebar Clean Premium
+
+Referência visual aprovada («Clean Premium»): largura ~300px, fundo branco, itens maiores, item **ativo** com faixa azul intensa, grupo **apenas expandido** com fundo mais suave (sem confundir com ativo), submenus com árvore (linha + círculos + término em L), rodapé compacto.
+
+## Onde ajustar
+
+| Camada | Arquivo |
+|--------|---------|
+| Tokens (`--app-sidebar-*`) | `frontend/src/styles-premium-shell.css` (`:root`) |
+| Cabeçalho / largura / logout | `frontend/src/styles-premium-shell.css` |
+| Estrutura HTML do menu | `frontend/src/app/app.component.html` |
+| Estados base (links, grupos) | `frontend/src/styles/sidebar-sge.css` |
+| **Visual Clean Premium** | `frontend/src/styles/sidebar-clean-premium.css` |
+| Avatar rodapé | `frontend/src/styles/foto-perfil.css` + `sidebar-usuario.component.ts` |
+
+Import: `sidebar-sge.css` → `sidebar-clean-premium.css` em `styles-premium-shell.css`.
+
+## Tokens (referência)
+
+| Token | Uso típico |
+|-------|------------|
+| `--app-sidebar-width` | `300px` expandido |
+| `--app-sidebar-row` | Altura itens principais (`44px`) |
+| `--app-sidebar-nested-row` | Altura subitens (`38px`) |
+| `--app-sidebar-active-bg` | Fundo item rota ativa (`#e8f6fc`) |
+| `--app-sidebar-group-open-bg` | Fundo grupo aberto (`#f0f8fc`) — mais suave que ativo |
+| `--app-sidebar-active-bar` | Faixa esquerda ativa (`4px`, cor `--app-sidebar-icon-active`) |
+| `--app-sidebar-icon` | Ícones inativos (`#5f7d8f`) |
+| `--app-sidebar-icon-active` | Texto/ícone ativo (`#0e7490`) |
+| `--app-sidebar-tree-line` / `--app-sidebar-tree-dot` | Hierarquia dos submenus |
+| `--app-sidebar-tree-x` | Eixo horizontal da linha (`6px`) |
+
+## Estados visuais
+
+1. **Item folha ativo** (`sidebar-link--standalone` + `sidebar-link--active`): `--app-sidebar-active-bg` + barra `--app-sidebar-active-bar`; ícone `--app-sidebar-icon-active`.
+2. **Grupo expandido** (`:has(.sidebar-group__panel--open)`): bloco `--app-sidebar-group-open-bg`; título **escuro** (`--app-text`), não cor de ativo; chevron à direita (`margin-left: auto`).
+3. **Subitem ativo** (`sidebar-link--nested` + active): fundo ativo dentro do bloco do grupo; árvore preservada.
+
+## Árvore de submenus (CSS)
+
+Desenho em "J": a linha **desce** do ícone do grupo, faz a **curva** no último subitem e **sobe** pela coluna das bolinhas até o primeiro.
+
+Todas as coordenadas X são relativas a `.sidebar-block__items`, que começa alinhado à borda do trigger (sem margem lateral):
+
+| Token | Valor | Papel |
+|-------|-------|-------|
+| `--app-sidebar-tree-outer-x` | `22px` | Centro do ícone do grupo (linha que desce) |
+| `--app-sidebar-tree-dot-x` | `40px` | Coluna das bolinhas (linha que sobe) |
+| `--app-sidebar-tree-text-x` | `50px` | Início dos links — o texto nunca cruza a árvore |
+| `--app-sidebar-tree-pad-y` | `2px` | Padding vertical do bloco (entra no cálculo dos centros) |
+| `--app-sidebar-tree-radius` | `10px` | Raio da curva |
+| `--app-sidebar-nested-row` | `38px` | Altura **fixa** de cada subitem |
+
+Peças:
+
+1. **`.sidebar-group__trigger::after`** — trecho abaixo do ícone do grupo até o bloco de subitens.
+2. **`.sidebar-block__items::before`** — linha externa: desce até o centro do último subitem e curva (`border-left` + `border-bottom` + `border-bottom-left-radius`) até `dot-x`.
+3. **`.sidebar-block__items::after`** — linha interna em `dot-x`, do centro do último ao centro do primeiro (com 1 subitem a altura é zero; sem caso especial).
+4. **`.sidebar-link--nested::after`** — bolinha, posicionada com `left: calc(dot-x - text-x)` (negativo, fora do link).
+5. **`.sidebar-link--nested::before`** — `content: none` (sem raminhos horizontais).
+
+Regras para não quebrar:
+
+- Subitem com **altura fixa** (`height: var(--app-sidebar-nested-row)`) e label com `ellipsis`; texto em duas linhas desalinha a árvore.
+- Ao mudar padding do trigger ou tamanho do ícone do grupo, recalcular `--app-sidebar-tree-outer-x`.
+- Não posicionar pseudo-elementos do link com coordenadas do bloco sem subtrair `--app-sidebar-tree-text-x`.
+
+## Cabeçalho e rodapé
+
+- Logo: `LogoAppCondominium_trans.png`, 44×44, alinhado ao título/subtítulo.
+- Recolher: `.app-premium-sidebar-collapse` — fundo `#f1f5f9`, `border-radius: 10px`.
+- Perfil: linha horizontal; avatar 40px; engrenagem → `/minha-conta`; câmera oculta no sidebar.
+- Sair: `.app-premium-btn-logout` — cinza `#f1f5f9`, sem vermelho no estado normal.
+
+## Ícones no HTML
+
+- Folha: `sidebar-link__icon` tamanho **20**.
+- Grupo: `sidebar-icon` **20**; chevron **18**.
+
+## Não fazer
+
+- Confundir estilo de grupo aberto com item ativo (sem barra no trigger do grupo).
+- `border-left` contínuo nos subitens que ultrapasse o último círculo.
+- Refatorar rotas, permissões ou estrutura de `menuGroups`.
+
+## Checklist
+
+1. Largura ~300px; mobile `min(width, 88vw)`.
+2. Item ativo vs grupo aberto distinguíveis.
+3. Árvore com L no último subitem (1 ou N itens).
+4. Rodapé e logout clean.
+5. Comportamento (expandir, rotas, recolhido) intacto.

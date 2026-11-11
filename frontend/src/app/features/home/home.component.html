@@ -1,0 +1,83 @@
+<div class="content-wrapper cad-wrapper home-dashboard-wrapper content-wrapper--map-shell">
+  <div class="home-dashboard">
+    <header class="cad-cabecalho home-dashboard__cabecalho">
+      <div>
+        <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
+          <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
+        </nav>
+        <h1 class="cad-titulo">Painel do condomínio</h1>
+        <p class="cad-subtitulo">Visão geral operacional e financeira. Os valores abaixo são demonstrativos até a integração com os dados reais.</p>
+      </div>
+      <p class="home-dashboard__aviso" role="status">
+        <app-icone nome="info" [tamanho]="14" />
+        Dados demonstrativos
+      </p>
+    </header>
+
+    <div class="home-dashboard__kpis" aria-label="Indicadores principais">
+      <article *ngFor="let kpi of kpis" class="home-kpi">
+        <div class="home-kpi__topo">
+          <span class="home-kpi__icone"><app-icone [nome]="kpi.icone" [tamanho]="18" /></span>
+          <span class="home-kpi__variacao" [ngClass]="classeVariacao(kpi.tendencia)">{{ kpi.variacao }}</span>
+        </div>
+        <p class="home-kpi__valor">{{ kpi.valor }}</p>
+        <p class="home-kpi__rotulo">{{ kpi.rotulo }}</p>
+      </article>
+    </div>
+
+    <div class="home-dashboard__grade">
+      <section class="home-painel home-painel--largo" aria-label="Despesas mensais">
+        <h2 class="home-painel__titulo">Despesas mensais</h2>
+        <p class="home-painel__sub">Últimos 8 meses (R$ mil)</p>
+        <div class="home-barras" role="img" [attr.aria-label]="descricaoBarras">
+          <div *ngFor="let item of despesasMensais" class="home-barra">
+            <div class="home-barra__coluna" [style.height.%]="alturaBarra(item.valor)"></div>
+            <span class="home-barra__rotulo">{{ item.mes }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="home-painel home-painel--estreito" aria-label="Despesas por categoria">
+        <h2 class="home-painel__titulo">Despesas por categoria</h2>
+        <p class="home-painel__sub">Mês corrente</p>
+        <div class="home-donut">
+          <div class="home-donut__grafico" [style.background]="gradienteDonut"></div>
+          <ul class="home-donut__legenda">
+            <li *ngFor="let cat of categoriasDespesa">
+              <span class="home-donut__swatch" [style.background]="cat.cor"></span>
+              {{ cat.nome }} · {{ cat.pct }}%
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="home-painel home-painel--largo" aria-label="Consumo de água">
+        <h2 class="home-painel__titulo">Consumo de água</h2>
+        <p class="home-painel__sub">m³ por dia — últimos 14 dias</p>
+        <svg class="home-linha-svg" viewBox="0 0 400 140" preserveAspectRatio="none" role="img" [attr.aria-label]="descricaoLinha">
+          <g class="home-linha-svg__grid">
+            <line x1="0" y1="35" x2="400" y2="35" />
+            <line x1="0" y1="70" x2="400" y2="70" />
+            <line x1="0" y1="105" x2="400" y2="105" />
+          </g>
+          <polygon class="home-linha-svg__area" [attr.points]="pontosAreaAgua" />
+          <polyline class="home-linha-svg__line" [attr.points]="pontosLinhaAgua" />
+        </svg>
+      </section>
+
+      <section class="home-painel home-painel--estreito" aria-label="Ocupação por bloco">
+        <h2 class="home-painel__titulo">Ocupação por bloco</h2>
+        <p class="home-painel__sub">Unidades ocupadas</p>
+        <ol class="home-ranking">
+          <li *ngFor="let bloco of ocupacaoBlocos" class="home-ranking__item">
+            <span class="home-ranking__nome">{{ bloco.nome }}</span>
+            <span class="home-ranking__valor">{{ bloco.pct }}%</span>
+            <div class="home-ranking__trilha">
+              <div class="home-ranking__preenchimento" [style.width.%]="bloco.pct"></div>
+            </div>
+          </li>
+        </ol>
+      </section>
+    </div>
+  </div>
+</div>

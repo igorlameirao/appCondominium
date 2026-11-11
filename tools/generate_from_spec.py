@@ -93,6 +93,12 @@ def hide_id_condominio_ui(entity):
     return has_id_condominio(entity) and entity["Entidade"] != "Condominio"
 
 
+def is_binary_storage_field(campo):
+    """Arquivos ficam no S3 (endpoints dedicados). O gerador não cria coluna nem propriedade."""
+    td = (campo.get("TipoDado") or "").upper()
+    return "BLOB" in td or "BINARY" in td
+
+
 def csharp_type(campo):
     td = (campo.get("TipoDado") or "").upper()
     if "BLOB" in td or "BINARY" in td:
@@ -348,7 +354,7 @@ def gen_entity(entity):
     seen = set()
     for c in entity["Campos"]:
         cn = pascal(c["Campo"])
-        if cn in seen:
+        if cn in seen or is_binary_storage_field(c):
             continue
         seen.add(cn)
         ct = csharp_type(c)
@@ -678,6 +684,8 @@ def gen_angular_model(entity):
         cn = camel(c["Campo"])
         if cn in seen:
             continue
+        if is_binary_storage_field(c):
+            continue
         seen.add(cn)
         ct = "string"
         td = (c.get("TipoDado") or "").upper()
@@ -917,6 +925,8 @@ def gen_sql(entities):
         fks = []
 
         for c in cols:
+            if is_binary_storage_field(c):
+                continue
             col_defs.append(
                 f"  `{c['Campo']}` {mysql_col_type_for_table(c, pk_names, entities_by_name)}"
             )

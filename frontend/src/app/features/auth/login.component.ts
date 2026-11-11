@@ -4,13 +4,21 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent],
   template: `
     <div class="login-screen">
+      <img
+        class="login-brand-logo"
+        src="/assets/login/3l7-tecnologia.png"
+        alt="3L7 Tecnologia"
+        width="512"
+        height="512"
+        decoding="async" />
       <div class="login-layout">
         <aside class="login-art" aria-hidden="true">
           <img
@@ -40,10 +48,12 @@ import { ToastService } from '../../core/services/toast.service';
                   </div>
                   <div class="form-group" *ngIf="condominios.length">
                     <label for="idCondominio">Selecione o condomínio</label>
-                    <select id="idCondominio" name="idCondominio" [(ngModel)]="idCondominio" required>
-                      <option [ngValue]="null">Selecione</option>
-                      <option *ngFor="let c of condominios" [ngValue]="c.idCondominio">{{ c.nome }}</option>
-                    </select>
+                    <app-combobox-customizada
+                      id="idCondominio"
+                      [options]="condominioOptions"
+                      [(value)]="idCondominio"
+                      placeholder="Digite para filtrar..."
+                      [required]="true" />
                   </div>
                   <div class="form-group">
                     <label for="senha">Senha</label>
@@ -72,6 +82,10 @@ export class LoginComponent implements OnInit {
   idCondominio: number | null = null;
   condominioBusca = '';
   condominios: { idCondominio: number; nome: string }[] = [];
+
+  get condominioOptions(): ComboboxOption[] {
+    return this.condominios.map(c => ({ value: c.idCondominio, label: c.nome }));
+  }
 
   constructor(private auth: AuthService, private router: Router, private toast: ToastService) {}
 

@@ -1,0 +1,1006 @@
+/* Padrão visual de listagem (Estilo SGE). Primeiro uso: Municípios.
+   A tela define campos, colunas, ações e regras. Este arquivo define só UX/UI. */
+
+.app-premium-main .content-wrapper.lst-wrapper {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: stretch;
+  /* safe center: centraliza o conjunto na área útil quando cabe; se passar do teto, alinha ao início para não cortar o topo. */
+  justify-content: safe center;
+  width: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+  padding-top: 20px;
+  padding-bottom: 12px;
+}
+
+/* Altura natural do conteúdo, com teto na área útil. Não cresce para ocupar a tela.
+   min-height: 0 só permite encolher quando o conteúdo passa do teto; não cria piso. */
+.lst-page {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  align-self: auto;
+  width: fit-content;
+  max-width: 100%;
+  max-height: 100%;
+  min-height: 0;
+  margin-inline: auto;
+  padding: 20px 22px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #f8fbff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: var(--app-radius-xl, 16px);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+/* O cabeçalho entra na largura pelo próprio conteúdo e estica quando o card é mais largo.
+   Não usa a largura da viewport: o conjunto continua fit-content. */
+.lst-cabecalho {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
+  padding: 0 2px 16px;
+}
+
+.lst-cabecalho__linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.lst-cabecalho__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.lst-titulo {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text, #0f172a);
+}
+
+.lst-subtitulo {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--cad-muted, #64748b);
+}
+
+.lst-page .btn-novo {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 8px;
+  background-color: var(--cad-primary, #0d6efd);
+  border-color: var(--cad-primary, #0d6efd);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(13, 110, 253, 0.25);
+  white-space: nowrap;
+}
+
+.lst-page .btn-novo:hover:not(:disabled),
+.lst-page .btn-novo:focus-visible {
+  background-color: var(--cad-primary-hover, #0b5ed7);
+  border-color: var(--cad-primary-hover, #0b5ed7);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(13, 110, 253, 0.3);
+}
+
+.lst-page .btn-novo:active:not(:disabled) {
+  background-color: var(--cad-primary-active, #0a58ca);
+  border-color: var(--cad-primary-active, #0a58ca);
+  color: #fff;
+}
+
+/* Cards */
+.lst-card {
+  box-sizing: border-box;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+/* Card único: filtros, tabela e paginação na altura do conteúdo.
+   A largura acompanha o conteúdo e só chega a 100% quando as colunas pedem.
+   Sem flex-grow: o card não abre espaço vazio entre a tabela e a paginação. */
+.lst-painel {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  width: fit-content;
+  max-width: 100%;
+  min-width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lst-filtros {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+}
+
+.lst-filtros__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text, #0f172a);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.lst-filtros__topo:focus { outline: none; }
+.lst-filtros__topo:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: -2px;
+}
+
+.lst-filtros__titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lst-filtros__titulo app-icone { color: var(--cad-primary, #0d6efd); }
+.lst-filtros__seta { color: #94a3b8; }
+
+/* nowrap + shrink 0: a linha entra na largura intrínseca do fit-content.
+   Com wrap e shrink, lista vazia ou erro de API encolhe o card e os botões caem para a linha de baixo. */
+.lst-filtros__corpo {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 0 18px 18px;
+}
+
+/* Uma única faixa: os campos dividem a linha e encolhem juntos.
+   auto-fit/minmax quebrava a fila quando havia vários filtros. */
+.lst-filtros__grade {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 16px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Um único filtro não precisa ocupar a linha inteira; vários filtros continuam na mesma faixa. */
+.lst-filtros__grade:has(> :only-child) {
+  flex: 1 0 280px;
+  max-width: 520px;
+}
+
+.lst-filtros__grade > .form-group {
+  flex: 1 1 11rem;
+  width: 11rem;
+  min-width: 0;
+  max-width: 18rem;
+  margin-bottom: 0;
+}
+
+.lst-filtros__grade:has(> :only-child) > .form-group {
+  flex: 1 1 auto;
+  width: auto;
+  max-width: none;
+}
+
+/* Aulas: mais espaço para busca textual; datas compactas; conjunto um pouco mais largo. */
+.lst-page--aulas {
+  min-width: min(100%, 54rem);
+}
+
+.lst-page--alunos {
+  min-width: min(100%, 76rem);
+}
+
+.lst-page--alunos .lst-grade .lst-col--financeiro {
+  min-width: 7.5rem;
+  white-space: nowrap;
+}
+
+.lst-page--financeiro {
+  min-width: min(100%, 56rem);
+}
+
+/* Presenças: card mais largo; turma com nome longo nos filtros e na grade. */
+.lst-page--presencas {
+  width: min(100%, 80rem);
+  min-width: min(100%, 62rem);
+}
+
+.lst-page--cobrancas {
+  width: min(100%, 88rem);
+  min-width: min(100%, 64rem);
+}
+
+.lst-page--cobrancas .lst-grade thead .lst-grade__acoes,
+.lst-page--cobrancas .lst-grade th.lst-grade__acoes,
+.lst-page--cobrancas .lst-grade td.lst-grade__acoes {
+  text-align: center;
+}
+
+.lst-page--cobrancas .lst-grade td.lst-grade__acoes .lst-acoes {
+  justify-content: center;
+  width: 100%;
+}
+
+.lst-page--cobrancas .lst-acoes--fixa-dupla {
+  display: grid;
+  grid-template-columns: 28px 28px;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.lst-page--cobrancas .lst-acao--reservada {
+  width: 28px;
+  height: 28px;
+}
+
+.lst-page--cobrancas .lst-grade__acoes {
+  min-width: 4.75rem;
+}
+
+.lst-filtros__grade--cobrancas {
+  flex-wrap: wrap;
+}
+
+.lst-filtros__grade--cobrancas > .lst-filtro--texto {
+  flex: 2.5 1 20rem;
+  width: auto;
+  max-width: 42rem;
+}
+
+.lst-filtros__grade--cobrancas > .lst-filtro--situacao,
+.lst-filtros__grade--cobrancas > .lst-filtro--origem {
+  flex: 0 1 11rem;
+  width: 11rem;
+  max-width: 14rem;
+}
+
+.lst-filtros__grade--cobrancas > .lst-filtro--competencia {
+  flex: 0 1 13.5rem;
+  width: 13.5rem;
+  max-width: 16rem;
+}
+
+.lst-filtros__grade--cobrancas > .lst-filtro--data {
+  flex: 0 1 9.25rem;
+  width: 9.25rem;
+  max-width: 10rem;
+}
+
+.lst-filtro-competencia__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-label, #334155);
+}
+
+.lst-filtro-competencia {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lst-filtro-competencia select {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Alunos da turma: mais largura útil para 3 colunas; permanece centralizado e responsivo. */
+.lst-page--composicao {
+  width: min(100%, 65.625rem);
+  min-width: min(100%, 56.25rem);
+}
+
+.lst-page--composicao .lst-filtros__grade:has(> :only-child) {
+  flex: 1 1 auto;
+  max-width: none;
+}
+
+.lst-page--composicao .lst-filtros__grade:has(> :only-child) > .form-group {
+  flex: 1 1 20rem;
+  width: auto;
+  max-width: 36rem;
+}
+
+.lst-page--composicao .lst-grade .lst-col--matricula {
+  min-width: 7.5rem;
+}
+
+.lst-page--composicao .lst-grade .lst-col--situacao {
+  min-width: 11.5rem;
+}
+
+.lst-page--composicao .lst-grade th,
+.lst-page--composicao .lst-grade td {
+  padding-inline: 18px;
+}
+
+.lst-filtros__grade--presencas > .lst-filtro--data {
+  flex: 0 1 9.25rem;
+  width: 9.25rem;
+  max-width: 10rem;
+}
+
+.lst-filtros__grade--presencas > .lst-filtro--turma {
+  flex: 4 1 26rem;
+  width: auto;
+  min-width: 18rem;
+  max-width: none;
+}
+
+.lst-filtros__grade--presencas > .lst-filtro--disciplina {
+  flex: 2 1 16rem;
+  width: auto;
+  min-width: 12rem;
+  max-width: 22rem;
+}
+
+.lst-page--presencas .lst-grade .lst-col--turma {
+  width: 30%;
+  min-width: 16rem;
+}
+
+.lst-page--presencas .lst-grade .lst-col--disciplina {
+  width: 20%;
+  min-width: 9rem;
+}
+
+.lst-page--presencas .lst-grade .lst-col--professor {
+  width: 22%;
+  min-width: 10rem;
+}
+
+.lst-filtros__grade--alunos > .lst-filtro--texto {
+  flex: 2.5 1 20rem;
+  width: auto;
+  max-width: 42rem;
+}
+
+.lst-filtros__grade--alunos > .lst-filtro--situacao {
+  flex: 0 1 15rem;
+  width: 15rem;
+  max-width: 18rem;
+}
+
+.lst-filtros__grade--aulas > .lst-filtro--texto {
+  flex: 2.5 1 16rem;
+  width: auto;
+  max-width: 34rem;
+}
+
+.lst-filtros__grade--aulas > .lst-filtro--data {
+  flex: 0 1 9.25rem;
+  width: 9.25rem;
+  max-width: 10rem;
+}
+
+.lst-filtros__grade--config-financeira > .lst-filtro--texto {
+  flex: 2.5 1 20rem;
+  width: auto;
+  max-width: 42rem;
+}
+
+.lst-filtros__grade--config-financeira > .lst-filtro--periodo {
+  flex: 0 1 16rem;
+  width: 16rem;
+  max-width: 20rem;
+}
+
+.lst-filtros__grade--config-financeira > .lst-filtro--situacao {
+  flex: 0 1 12rem;
+  width: 12rem;
+  max-width: 15rem;
+}
+
+.lst-page--financeiro .lst-grade .lst-col--turma {
+  width: 42%;
+  min-width: 16rem;
+  white-space: normal;
+}
+
+.lst-page--financeiro .lst-grade .lst-col--valores {
+  width: 34%;
+  min-width: 13rem;
+  white-space: normal;
+}
+
+.lst-page--financeiro .cfg-ft-lista-valores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lst-page--financeiro .cfg-ft-lista-valores__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.lst-page--financeiro .cfg-ft-lista-valores__rotulo {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.lst-page--financeiro .cfg-ft-lista-valores__valor {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text, #0f172a);
+  font-variant-numeric: tabular-nums;
+}
+
+.lst-filtros .form-group > label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-label, #334155);
+}
+
+.lst-filtros .form-group input[type="search"],
+.lst-filtros .form-group input[type="text"],
+.lst-filtros .form-group input[type="number"],
+.lst-filtros .form-group input[type="date"],
+.lst-filtros .form-group select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.lst-filtros .form-group input:focus,
+.lst-filtros .form-group select:focus {
+  outline: none;
+  border-color: var(--cad-primary, #0d6efd);
+  box-shadow: var(--cad-focus-ring, 0 0 0 3px rgba(13, 110, 253, 0.15));
+}
+
+.lst-filtros__acoes {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.lst-page .btn-filtrar,
+.lst-page .btn-limpar,
+.lst-page .btn-listar {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.lst-page .btn-listar,
+.lst-page .btn-listar:focus-visible {
+  color: #0f766e;
+  border-color: #5eead4;
+  background: #fff;
+}
+
+.lst-page .btn-listar:hover:not(:disabled) {
+  color: #0d9488;
+  border-color: #14b8a6;
+  background: #f0fdfa;
+  box-shadow: none;
+}
+
+.lst-page .btn-filtrar,
+.lst-page .btn-filtrar:focus-visible {
+  color: var(--cad-primary, #0d6efd);
+  border-color: #93c5fd;
+  background: #fff;
+}
+
+.lst-page .btn-filtrar:hover:not(:disabled) {
+  color: var(--cad-primary, #0d6efd);
+  border-color: var(--cad-primary, #0d6efd);
+  background: var(--cad-primary-soft, #eaf2ff);
+  box-shadow: none;
+}
+
+.lst-page .btn-limpar,
+.lst-page .btn-limpar:focus-visible {
+  color: #64748b;
+  border-color: #cbd5e1;
+  background: #fff;
+}
+
+.lst-page .btn-limpar:hover:not(:disabled) {
+  color: #334155;
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+/* Tabela na altura das linhas. Só encolhe — e ganha scroll — quando o conjunto
+   atinge o teto da área útil. Sem flex-grow, para não esticar com poucos registros. */
+.lst-tabela__scroll {
+  flex: 0 1 auto;
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  max-height: var(--lst-scroll-max-altura, var(--lst-scroll-max-altura-estimada, none));
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lst-tabela__scroll.is-loading { opacity: 0.6; }
+
+.lst-vazio {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  color: var(--cad-muted, #64748b);
+  font-size: 14px;
+}
+
+.lst-grade {
+  width: 100%;
+  min-width: min-content;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+
+.lst-grade th,
+.lst-grade td {
+  padding: 6px 16px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Colunas compactas ficam no conteúdo. O excedente vai para lst-col--conteudo. */
+.lst-grade th:not(.lst-col--conteudo),
+.lst-grade td:not(.lst-col--conteudo) {
+  width: 1px;
+}
+
+.lst-grade .lst-col--conteudo {
+  width: 100%;
+}
+
+.lst-grade th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 0 #e2e8f0;
+  white-space: nowrap;
+}
+
+.lst-grade td {
+  color: var(--color-text, #0f172a);
+  border-bottom: 1px solid #eef2f7;
+}
+
+.lst-grade tbody tr:nth-child(even) { background: #f7faff; }
+.lst-grade tbody tr:last-child td { border-bottom: 0; }
+
+.lst-grade tbody tr.row-click { user-select: none; }
+.lst-grade tbody tr.row-click:hover { background: #eaf2ff; }
+
+.lst-grade__acoes {
+  width: 1px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lst-grade thead .lst-grade__acoes { text-align: right; }
+
+.lst-grade td.lst-grade__acoes,
+.lst-grade th.lst-grade__acoes {
+  position: sticky;
+  right: 0;
+}
+
+.lst-grade th.lst-grade__acoes {
+  z-index: 3;
+  background: #f8fafc;
+}
+.lst-grade td.lst-grade__acoes { background: #fff; }
+.lst-grade__acoes > .lst-acao:not(:last-child) { margin-inline-end: 8px; }
+.lst-grade tbody tr:nth-child(even) td.lst-grade__acoes { background: #f7faff; }
+.lst-grade tbody tr.row-click:hover td.lst-grade__acoes { background: #eaf2ff; }
+
+.lst-acoes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.lst-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.lst-acao:focus { outline: none; }
+.lst-acao:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+
+.lst-acao--editar {
+  color: var(--cad-primary, #0d6efd);
+  background: #eaf2ff;
+  border-color: #dbeafe;
+}
+
+.lst-acao--editar:hover { background: #dbeafe; }
+
+.lst-acao--visualizar {
+  color: #1d4ed8;
+  background: transparent;
+}
+
+.lst-acao--visualizar:hover { background: #dbeafe; }
+
+.lst-acao--excluir {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+  margin-inline-end: 8px;
+}
+
+.lst-acao--excluir:hover { background: #fee2e2; }
+
+.lst-acao--confirmar {
+  color: #15803d;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+}
+
+.lst-acao--confirmar:hover { background: #d1fae5; }
+
+.lst-acao--cancelar-linha {
+  color: #64748b;
+  background: #fff;
+  border-color: #e2e8f0;
+}
+
+.lst-acao--cancelar-linha:hover { background: #f8fafc; }
+
+/* Paginação */
+.lst-rodape {
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 16px;
+}
+
+.lst-paginacao {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.lst-paginacao__resumo {
+  flex-shrink: 0;
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.lst-paginacao__controles {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.lst-pagina {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lst-pagina:hover:not(:disabled) { background: #f8fafc; }
+.lst-pagina:focus { outline: none; }
+.lst-pagina:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+
+.lst-pagina:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.lst-pagina--ativa,
+.lst-pagina--ativa:hover:not(:disabled) {
+  background: var(--cad-primary, #0d6efd);
+  border-color: var(--cad-primary, #0d6efd);
+  color: #fff;
+}
+
+.lst-pagina--icone { color: #64748b; }
+.lst-pagina--icone:disabled { color: #94a3b8; }
+
+.lst-painel > .erro-form {
+  flex: 0 0 auto;
+  margin: 8px 16px;
+}
+
+.lst-rodape { flex: 0 0 auto; }
+
+@media (max-width: 720px) {
+  .app-premium-main .content-wrapper.lst-wrapper {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .lst-page {
+    padding: 14px 14px 12px;
+    border-radius: 12px;
+  }
+
+  .lst-titulo { font-size: 22px; }
+
+  .lst-cabecalho__linha {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lst-page .btn-novo { width: 100%; }
+
+  .lst-cabecalho__acoes {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .lst-cabecalho__acoes .btn-filtrar,
+  .lst-cabecalho__acoes .btn-novo {
+    flex: 1 1 calc(50% - 5px);
+    min-width: min(100%, 160px);
+  }
+
+  .lst-cabecalho { width: 100%; }
+
+  .lst-filtros__corpo {
+    flex-wrap: wrap;
+    padding: 0 14px 14px;
+  }
+  .lst-filtros__topo { padding: 12px 14px; }
+
+  .lst-filtros__grade,
+  .lst-filtros__grade:has(> :only-child) {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    max-width: none;
+    width: 100%;
+  }
+
+  .lst-filtros__grade > .form-group,
+  .lst-filtros__grade:has(> :only-child) > .form-group {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: none;
+  }
+
+  .lst-filtros__acoes {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .lst-filtros__acoes > button { flex: 1 1 auto; }
+
+  .lst-paginacao { flex-wrap: wrap; }
+
+  .lst-paginacao__resumo,
+  .lst-paginacao__controles { flex-shrink: 1; }
+
+  .lst-paginacao__controles {
+    flex-wrap: wrap;
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+/* Indicadores e textos longos usados na fila de e-mails; classes opt-in. */
+.lst-atualizacao { display: inline-flex; align-items: center; gap: 6px; color: var(--cad-muted); font-size: 12.5px; white-space: nowrap; }
+.lst-atualizacao strong { font-variant-numeric: tabular-nums; }
+.lst-grade .lst-col--resumo { max-width: 22rem; overflow: hidden; text-overflow: ellipsis; }
+.lst-status { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.lst-status.pendente { color: #475569; background: #f1f5f9; }
+.lst-status.enviando { color: #92400e; background: #fffbeb; }
+.lst-status.enviado { color: #166534; background: #f0fdf4; }
+.lst-status.erro { color: #b91c1c; background: #fef2f2; }
+.lst-status.atencao { color: #9a3412; background: #ffedd5; }
+
+/* Presença — badges de situação na listagem */
+.presenca-situacao-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.presenca-situacao-badge--presente { color: #047857; background: #ecfdf5; }
+.presenca-situacao-badge--ausente { color: #b91c1c; background: #fef2f2; }
+.presenca-situacao-badge--atrasado { color: #b45309; background: #fffbeb; }
+.presenca-situacao-badge--justificado { color: #1d4ed8; background: #eff6ff; }
+
+/* Teto na área útil: a tabela cresce com os registros até o limite medido (--lst-scroll-max-altura). */
+.app-premium-main .content-wrapper.lst-wrapper .lst-page {
+  max-height: 100%;
+}
+
+.app-premium-main .content-wrapper.lst-wrapper .lst-page > .lst-painel {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Alias legado (mesmo comportamento do padrão acima). */
+.lst-wrapper--altura-util .lst-page {
+  flex: 0 1 auto;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lst-wrapper--altura-util .lst-page > .lst-painel {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lst-page > .lst-contexto {
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+.lst-contexto__titulo {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-text, #0f172a);
+}
+
+.lst-contexto__meta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--cad-muted, #64748b);
+}
+
+.lst-painel > .actions.form-actions.cad-acoes,
+.lst-painel > * > .actions.form-actions.cad-acoes {
+  flex: 0 0 auto;
+  padding: 12px 16px 16px;
+  margin: 0;
+  gap: 12px;
+}
+
+.lst-painel > .actions.form-actions.cad-acoes .btn-cancelar,
+.lst-painel > * > .actions.form-actions.cad-acoes .btn-cancelar {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 6px;
+}
+
+.lst-celula--atencao {
+  color: #9a3412;
+}
+
+.lst-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.lst-badge--com-icone {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: middle;
+}
+
+.lst-badge--info {
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.lst-badge--sucesso {
+  color: #15803d;
+  background: #ecfdf5;
+}
+
+.lst-badge--perigo {
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.lst-badge--vencida {
+  margin-left: 6px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #9a3412;
+  background: #fff7ed;
+  vertical-align: middle;
+}
+
+.lst-cobranca-vencimento__data {
+  font-variant-numeric: tabular-nums;
+}
+
+.lst-cobranca-vencimento__data--atraso {
+  color: #9a3412;
+  font-weight: 600;
+}
+
+.lst-badge--neutro {
+  color: #475569;
+  background: #f1f5f9;
+  font-weight: 500;
+}

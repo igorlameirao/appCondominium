@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -13,7 +13,7 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="login-page" [style.background]="corFundo">
+    <div class="login-page" [style.background]="estiloFundo">
       <div class="login-card">
         <img *ngIf="logoSrc" [src]="logoSrc" alt="Logo" class="logo" />
         <h1 [style.color]="corPadrao">{{ nomeCondominio || 'Condomínio' }}</h1>
@@ -42,7 +42,7 @@ import { environment } from '../../../environments/environment';
     .link-admin { font-size: 12px; margin-top: 12px; text-align: center; color: #64748b; }
   `]
 })
-export class LoginCondominioComponent implements OnInit {
+export class LoginCondominioComponent implements OnInit, OnDestroy {
   idCondominio: number | null = null;
   usuario = '';
   senha = '';
@@ -70,13 +70,24 @@ export class LoginCondominioComponent implements OnInit {
     this.carregarTema();
   }
 
+  get estiloFundo(): string {
+    if (this.loginBgSrc)
+      return `center / cover no-repeat url("${this.loginBgSrc}")`;
+    return this.corFundo;
+  }
+
+  ngOnDestroy(): void {
+    this.revogar(this.logoSrc);
+    this.revogar(this.loginBgSrc);
+  }
+
   carregarTema(): void {
     const base = `${environment.apiUrl}/lookup`;
     this.http.get<{ nome: string }>(`${base}/condominio-resumo/${this.idCondominio}`).subscribe({
       next: c => this.nomeCondominio = c.nome ?? '',
       error: () => {}
     });
-    this.http.get<{ corPadrao?: string; imagemLogin?: string; imagemIcone?: string }>(
+    this.http.get<{ corPadrao?: string; temImagemLogin?: boolean; temImagemIcone?: boolean }>(
       `${base}/configuracao-por-condominio/${this.idCondominio}`
     ).subscribe({
       next: cfg => {
@@ -84,19 +95,31 @@ export class LoginCondominioComponent implements OnInit {
           this.corPadrao = cfg.corPadrao.startsWith('#') ? cfg.corPadrao : `#${cfg.corPadrao}`;
           this.corFundo = this.corPadrao + '18';
         }
-        if (cfg.imagemIcone) {
-          this.logoSrc = cfg.imagemIcone.startsWith('data:')
-            ? cfg.imagemIcone
-            : `data:image/png;base64,${cfg.imagemIcone}`;
-        }
-        if (cfg.imagemLogin) {
-          this.loginBgSrc = cfg.imagemLogin.startsWith('data:')
-            ? cfg.imagemLogin
-            : `data:image/jpeg;base64,${cfg.imagemLogin}`;
+        if (cfg.temImagemIcone) this.carregarImagem('imagem-icone');
+        if (cfg.temImagemLogin) this.carregarImagem('imagem-login');
+      },
+      error: () => {}
+    });
+  }
+
+  private carregarImagem(tipo: 'imagem-login' | 'imagem-icone'): void {
+    this.http.get(`${environment.apiUrl}/lookup/condominios/${this.idCondominio}/${tipo}`, { responseType: 'blob' }).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        if (tipo === 'imagem-icone') {
+          this.revogar(this.logoSrc);
+          this.logoSrc = url;
+        } else {
+          this.revogar(this.loginBgSrc);
+          this.loginBgSrc = url;
         }
       },
       error: () => {}
     });
+  }
+
+  private revogar(url: string | null): void {
+    if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
   }
 
   entrar(): void {

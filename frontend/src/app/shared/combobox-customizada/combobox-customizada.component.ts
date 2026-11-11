@@ -1,5 +1,18 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  Output,
+  SimpleChanges,
+  ViewChild,
+  inject,
+} from '@angular/core';
+import { CommonModule, NgStyle } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 export interface ComboboxOption {
@@ -7,66 +20,97 @@ export interface ComboboxOption {
   label: string;
 }
 
-/** RT-Gerais 07 — combobox digitável com filtro e paginação (>15 itens). */
+const MARGEM = 4;
+const ALTURA_MAX_PAINEL = 320;
+const MIN_ESPACO_ABAIXO = 180;
+
+/** RT-Gerais 07 — combobox digitável com filtro e paginação (layout SGE). */
 @Component({
   selector: 'app-combobox-customizada',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgStyle],
+  host: { style: 'display:block;width:100%;max-width:100%' },
   template: `
-    <div class="cb-wrap" [class.cb-wrap--disabled]="disabled">
-      <input
-        type="text"
-        class="cb-input"
-        [(ngModel)]="search"
-        (focus)="open = true; onSearch()"
-        (blur)="onInputBlur()"
-        (input)="onSearch()"
-        [placeholder]="placeholder"
-        [disabled]="disabled"
-        [required]="required"
-        autocomplete="off" />
-      <button type="button" class="cb-clear" *ngIf="value != null && !disabled" (click)="clear()" tabindex="-1">×</button>
-      <div class="cb-panel" *ngIf="open && !disabled">
-        <div class="cb-option" *ngFor="let o of visibleOptions" (mousedown)="select(o)">{{ o.label }}</div>
-        <div class="cb-empty" *ngIf="!visibleOptions.length">Nenhum registro</div>
-        <div class="cb-pager" *ngIf="totalPages > 1">
-          <button type="button" (mousedown)="$event.preventDefault(); prev()" [disabled]="page <= 1">‹</button>
-          <span>{{ page }}/{{ totalPages }}</span>
-          <button type="button" (mousedown)="$event.preventDefault(); next()" [disabled]="page >= totalPages">›</button>
-        </div>
+    <div
+      class="combo"
+      [class.aberto]="open"
+      [class.desabilitado]="disabled"
+      [class.combo--invalido]="invalido"
+      [class.combo--acima]="abreAcima">
+      <div class="combo-display" #display>
+        <input
+          type="text"
+          class="combo-input"
+          [(ngModel)]="search"
+          (focus)="abrir()"
+          (blur)="onInputBlur()"
+          (input)="onSearch()"
+          [placeholder]="placeholder"
+          [disabled]="disabled"
+          [required]="required"
+          autocomplete="off" />
+        <button
+          type="button"
+          class="combo-clear"
+          *ngIf="value != null && value !== '' && !disabled"
+          (mousedown)="$event.preventDefault()"
+          (click)="clear()"
+          tabindex="-1"
+          aria-label="Limpar">×</button>
+        <span class="combo-seta" aria-hidden="true">▼</span>
       </div>
+      @if (open && !disabled) {
+        <div class="combo-panel" #painel [ngStyle]="painelEstilo">
+          <div class="combo-lista">
+            @for (o of visibleOptions; track o.value) {
+              <button
+                type="button"
+                class="combo-item"
+                [class.selecionado]="selecionado(o)"
+                (mousedown)="$event.preventDefault(); select(o)">{{ o.label }}</button>
+            }
+            @if (!visibleOptions.length) {
+              <div class="combo-vazio">Nenhum registro</div>
+            }
+          </div>
+          @if (totalPages > 1) {
+            <div class="combo-page">
+              <button type="button" [disabled]="page <= 1" (mousedown)="$event.preventDefault()" (click)="prev()">« Anterior</button>
+              <span>Página {{ page }} de {{ totalPages }}</span>
+              <button type="button" [disabled]="page >= totalPages" (mousedown)="$event.preventDefault()" (click)="next()">Próxima »</button>
+            </div>
+          }
+        </div>
+      }
     </div>
   `,
-  styles: [`
-    .cb-wrap { position: relative; width: 100%; }
-    .cb-input { width: 100%; padding: 5px 10px; min-height: 2.125rem; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-    .cb-clear { position: absolute; right: 8px; top: 8px; border: none; background: transparent; cursor: pointer; font-size: 18px; }
-    .cb-panel {
-      position: absolute; z-index: 50; left: 0; right: 0; max-height: 220px; overflow: auto;
-      background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 8px 24px rgba(15,23,42,.12);
-    }
-    .cb-option { padding: 8px 12px; cursor: pointer; }
-    .cb-option:hover { background: #e0f2fe; }
-    .cb-empty { padding: 12px; color: #64748b; }
-    .cb-pager { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 6px; border-top: 1px solid #e2e8f0; }
-    .cb-wrap--disabled .cb-input { background: #f1f5f9; }
-  `]
 })
-export class ComboboxCustomizadaComponent implements OnChanges {
+export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly cd = inject(ChangeDetectorRef);
+
   @Input() options: ComboboxOption[] = [];
   @Input() value: number | string | null | undefined = null;
   @Input() disabled = false;
   @Input() required = false;
-  @Input() placeholder = 'Digite para filtrar...';
+  @Input() placeholder = 'Selecione...';
   @Input() pageSize = 15;
   @Output() valueChange = new EventEmitter<number | string | null>();
-  /** Disparado ao sair do campo, após tentar reconhecer o texto digitado. */
   @Output() blurCommit = new EventEmitter<number | string | null>();
+
+  @ViewChild('display') display?: ElementRef<HTMLElement>;
+  @ViewChild('painel') painel?: ElementRef<HTMLElement>;
 
   search = '';
   open = false;
+  abreAcima = false;
+  painelEstilo: Record<string, string> = {};
   page = 1;
   filtered: ComboboxOption[] = [];
+
+  private readonly aoReposicionar = () => {
+    if (this.open) this.posicionarPainel();
+  };
 
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.filtered.length / this.pageSize));
@@ -77,9 +121,47 @@ export class ComboboxCustomizadaComponent implements OnChanges {
     return this.filtered.slice(start, start + this.pageSize);
   }
 
+  get invalido(): boolean {
+    if (this.disabled) return false;
+    const vazio = this.value == null || this.value === '';
+    return this.required && vazio;
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['options'] || changes['value']) this.syncSearchFromValue();
     if (changes['options']) this.onSearch();
+  }
+
+  ngOnDestroy(): void {
+    this.desligarReposicaoViewport();
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  aoClicarFora(event: MouseEvent): void {
+    if (this.open && !this.host.nativeElement.contains(event.target as Node)) {
+      this.fechar();
+    }
+  }
+
+  @HostListener('keydown.escape')
+  aoEsc(): void {
+    if (this.open) this.fechar();
+  }
+
+  abrir(): void {
+    if (this.disabled) return;
+    this.open = true;
+    this.ligarReposicaoViewport();
+    this.cd.detectChanges();
+    this.posicionarPainel();
+    setTimeout(() => this.posicionarPainel());
+  }
+
+  fechar(): void {
+    this.open = false;
+    this.abreAcima = false;
+    this.painelEstilo = {};
+    this.desligarReposicaoViewport();
   }
 
   onSearch(): void {
@@ -88,18 +170,26 @@ export class ComboboxCustomizadaComponent implements OnChanges {
       ? [...this.options]
       : this.options.filter(o => o.label.toLowerCase().includes(q));
     this.page = 1;
+    if (this.open) {
+      this.cd.detectChanges();
+      this.posicionarPainel();
+    }
+  }
+
+  selecionado(o: ComboboxOption): boolean {
+    return this.value != null && this.value == o.value;
   }
 
   select(o: ComboboxOption): void {
     this.value = o.value;
     this.search = o.label;
     this.valueChange.emit(o.value);
-    this.open = false;
+    this.fechar();
   }
 
   onInputBlur(): void {
     setTimeout(() => {
-      this.open = false;
+      this.fechar();
       this.commitSearchToValue();
       this.blurCommit.emit(this.value ?? null);
     }, 0);
@@ -109,13 +199,59 @@ export class ComboboxCustomizadaComponent implements OnChanges {
     this.value = null;
     this.search = '';
     this.valueChange.emit(null);
+    this.onSearch();
   }
 
-  prev(): void { if (this.page > 1) this.page--; }
-  next(): void { if (this.page < this.totalPages) this.page++; }
+  prev(): void {
+    if (this.page > 1) this.page--;
+  }
+
+  next(): void {
+    if (this.page < this.totalPages) this.page++;
+  }
+
+  private posicionarPainel(): void {
+    const trigger = this.display?.nativeElement;
+    if (!trigger || !this.open) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const espacoAbaixo = window.innerHeight - rect.bottom - MARGEM;
+    const espacoAcima = rect.top - MARGEM;
+    this.abreAcima = espacoAbaixo < MIN_ESPACO_ABAIXO && espacoAcima > espacoAbaixo;
+
+    const disponivel = Math.max(120, this.abreAcima ? espacoAcima : espacoAbaixo);
+    const maxAltura = Math.min(ALTURA_MAX_PAINEL, disponivel);
+    const largura = Math.max(rect.width, 220);
+
+    this.painelEstilo = {
+      position: 'fixed',
+      left: `${Math.min(rect.left, window.innerWidth - largura - MARGEM)}px`,
+      right: 'auto',
+      width: `${largura}px`,
+      maxHeight: `${maxAltura}px`,
+      zIndex: '2000',
+      ...(this.abreAcima
+        ? { top: 'auto', bottom: `${window.innerHeight - rect.top + MARGEM}px` }
+        : { top: `${rect.bottom + MARGEM}px`, bottom: 'auto' }),
+    };
+    this.cd.detectChanges();
+  }
+
+  private ligarReposicaoViewport(): void {
+    window.addEventListener('resize', this.aoReposicionar);
+    window.addEventListener('scroll', this.aoReposicionar, true);
+  }
+
+  private desligarReposicaoViewport(): void {
+    window.removeEventListener('resize', this.aoReposicionar);
+    window.removeEventListener('scroll', this.aoReposicionar, true);
+  }
 
   private syncSearchFromValue(): void {
-    if (this.value == null) { this.search = ''; return; }
+    if (this.value == null || this.value === '') {
+      this.search = '';
+      return;
+    }
     const found = this.options.find(o => o.value == this.value);
     this.search = found?.label ?? String(this.value ?? '');
   }
