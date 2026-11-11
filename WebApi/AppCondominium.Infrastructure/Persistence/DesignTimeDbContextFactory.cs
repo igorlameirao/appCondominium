@@ -11,6 +11,7 @@ namespace AppCondominium.Infrastructure.Persistence;
 public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     private const string UserSecretsId = "app-condominium-api-2026";
+    private static SshMySqlTunnel? _designTimeTunnel;
 
     public AppDbContext CreateDbContext(string[] args)
     {
@@ -28,12 +29,18 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        if (!string.IsNullOrWhiteSpace(connectionString))
+        try
         {
+            var (connectionString, tunnel) = MySqlConnectionSetup.Resolve(configuration);
+            _designTimeTunnel ??= tunnel;
+
             var versionString = configuration["Database:MySqlServerVersion"] ?? "8.0.36-mysql";
             optionsBuilder.UseMySql(connectionString, ServerVersion.Parse(versionString));
             return new AppDbContext(optionsBuilder.Options, new DesignTimeTenant());
+        }
+        catch (InvalidOperationException)
+        {
+            // Sem connection string configurada — fallback abaixo.
         }
 
         const string designTimeConnectionString = "Server=127.0.0.1;Port=3306;Database=_ef_design;User=_;Password=_;";

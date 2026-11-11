@@ -4,7 +4,6 @@ using AppCondominium.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MySqlConnector;
 
 using PasswordHasherService = AppCondominium.Infrastructure.Services.PasswordHasher;
 
@@ -20,18 +19,9 @@ public static partial class DependencyInjection
         services.AddSingleton<IPasswordHasher, PasswordHasherService>();
         services.AddSingleton<PessoafisicaSenhaInterceptor>();
 
-        var connectionString = config.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
-
-        var csb = new MySqlConnectionStringBuilder(connectionString);
-        var tunnel = SshMySqlTunnel.StartIfConfigured(config, csb.Server, csb.Port);
-        if (tunnel != null)
-        {
+        var (connectionString, tunnel) = MySqlConnectionSetup.Resolve(config);
+        if (tunnel is not null)
             services.AddSingleton(tunnel);
-            csb.Server = "127.0.0.1";
-            csb.Port = tunnel.LocalPort;
-            connectionString = csb.ConnectionString;
-        }
 
         // Evita ServerVersion.AutoDetect: abre uma conexão extra em cada arranque e agravava "Too many connections" no MySQL/RDS.
         var versionString = config["Database:MySqlServerVersion"] ?? "8.0.36-mysql";

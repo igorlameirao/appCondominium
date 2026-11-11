@@ -39,9 +39,16 @@ Connection string e JWT **não** ficam no Git (mesmo modelo do SCO). Copie `WebA
 
 ```powershell
 cd WebApi\AppCondominium.API
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=...;Port=3306;Database=condominium;User=...;Password=...;AllowLoadLocalInfile=true;"
+# Host na connection string = endpoint RDS na VPC (ex.: sco-mysql....amazonaws.com), não 127.0.0.1 — o túnel SSH encaminha até lá.
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=sco-mysql....rds.amazonaws.com;Port=3306;Database=condominium;User=...;Password=...;SslMode=Preferred;AllowLoadLocalInfile=true;"
+dotnet user-secrets set "Database:Ssh:Host" "3.139.102.21"
+dotnet user-secrets set "Database:Ssh:Port" "22"
+dotnet user-secrets set "Database:Ssh:Username" "ec2-user"
+dotnet user-secrets set "Database:Ssh:KeyFile" "C:\caminho\SCO-Backend-Nova-Conta.pem"
 dotnet user-secrets set "Jwt:Key" "GERE_UMA_CHAVE_ALEATORIA_COM_NO_MINIMO_32_CHARS"
 ```
+
+Fora da VPC AWS (máquina local), o RDS não responde na porta 3306; o túnel SSH (chave `.pem` no EC2 do backend) é obrigatório — igual ao MySQL Workbench com SSH.
 
 Produção: variáveis `ConnectionStrings__DefaultConnection` e `Jwt__Key`.
 
