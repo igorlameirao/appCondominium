@@ -7,7 +7,7 @@
     "BancoDados": "MySQL (localhost, usuário: root e senha:mysql)",
     "VersaoMobile": "Flutter 3.44 + Dart",
     "Arquitetura": "clean architeture e clean code",
-    "Observacao": "",
+    "Observacao": "Multi-tenant: o tenant é a entidade Condominio (IdCondominio). Cada entidade declara EscopoTenant Global, Condominio ou Indireto. No escopo Indireto, VinculoTenant indica a entidade usada no isolamento. RBAC: o catálogo PermissionKey e a matriz PerfilPermissao são globais; o perfil da pessoa (PessoaCondominio.IdPerfil) e as exceções PessoaPermissaoExcecao pertencem ao condomínio ativo. A autorização não amplia o isolamento de tenant.",
     "RegrasGerais": [
       {
         "Regra": "RN-Gerais 01",
@@ -52,12 +52,12 @@
       {
         "Regra": "RT-Gerais 09",
         "Tipo": "Regra de Tela",
-        "Descricao": "A tela de edição do registro deve ter os campos editáveis (exceto o(s) campo(s) chave-primária, e caso o usuário tenha permissão para editá-los, caso contrário os campos deverão ser exibidos como somente leitura."
+        "Descricao": "A tela de edição do registro deve ter os campos editáveis (exceto o(s) campo(s) chave-primária) quando o usuário puder gravar. Gravar um registro novo exige a ação Incluir da permissionKey da entidade; gravar uma edição exige Alterar. Sem essa ação os campos ficam somente leitura. A permissionKey do CRUD é o nome da entidade em maiúsculas (ex.: BLOCO)."
       },
       {
         "Regra": "RT-Gerais 10",
         "Tipo": "Regra de Tela",
-        "Descricao": "Na tela de edição do registro deve ter, também, o botão 'Excluir' para que o registro seja excluído do banco de dados. Esse deverá ser exibido caso o usuário tenha permissão de exclusão, caso contrário o botão deverá ser suprimido."
+        "Descricao": "Na tela de edição do registro deve ter, também, o botão 'Excluir' para que o registro seja excluído do banco de dados. Esse botão só é exibido quando a permissionKey da entidade concede a ação Excluir. Sem essa ação o botão é suprimido."
       },
       {
         "Regra": "RT-Gerais 11",
@@ -67,12 +67,12 @@
       {
         "Regra": "RT-Gerais 12 (Regra de Ouro)",
         "Tipo": "Regra de Tela",
-        "Descricao": "Deverá haver uma variável global que armazenará o IdCondominio. Essa variável servirá de filtro para que toda a informação e telas em que o usuário logado fique restrita ao condomínio que ele escolheu e que ele tenha acesso. Esse filtro garantirá que a informação de um condomínio NÃO possa ser vista por usuários de outro condomínio."
+        "Descricao": "Multi-tenant: o tenant é a entidade Condomínio e a chave é IdCondominio. Deverá haver uma variável global (ICondominioContext / sessão do cliente) que armazenará o IdCondominio ativo. Essa variável filtra consultas, inclusões e alterações das entidades com EscopoTenant=Condominio, gravando IdCondominio a partir do contexto e ocultando o campo na tela. Entidades com EscopoTenant=Global são catálogos compartilhados e não recebem esse filtro. Entidades com EscopoTenant=Indireto não possuem IdCondominio próprio e são isoladas pelo vínculo indicado em VinculoTenant (PessoaCondominio, Unidade ou Fornecedor), inclusive Pessoa, pessoafisica, PessoaJuridica e PessoaUnidade. O usuário autenticado opera sempre em um único tenant ativo. A informação de um condomínio não pode ser vista por usuário de outro condomínio."
       },
       {
         "Regra": "RT-Gerais 13",
         "Tipo": "Regra de Tela",
-        "Descricao": "Deverá haver dua telas de login: na primeira o sistema deverá exibir os campos usuário, senha e o Id do condomínio (Combobox_customizada) ao qual o usuário está se logando; o layout de Tela será o padrão/fixo. Na segunda o sistema devera ter recebido o código do condomínio por querystring a partir do domínio do site do condomínio (se houver) e deverá exibir somente usuário e senha; o layout da tela mudará para as cofigurações de cor e imagem que o usuário escolherá e editará na entidade Configicuração do Condomínio."
+        "Descricao": "Deverá haver dua telas de login: na primeira o sistema deverá exibir os campos usuário, senha e o condomínio (Combobox_customizada) ao qual o usuário está se logando; a lista de condomínios deve conter somente aqueles em que o e-mail informado tem vínculo (PessoaCondominio ou PessoaUnidade), após digitar ao menos 3 letras do nome; o layout de Tela será o padrão/fixo. Na segunda o sistema devera ter recebido o código do condomínio por querystring a partir do domínio do site do condomínio (se houver) e deverá exibir somente usuário e senha; o layout da tela mudará para as cofigurações de cor e imagem que o usuário escolherá e editará na entidade Configicuração do Condomínio."
       },
       {
         "Regra": "RN-Gerais 14",
@@ -87,7 +87,37 @@
       {
         "Regra": "RN-Gerais 1e",
         "Tipo": "Regra de Negócio",
-        "Descricao": "Para o usuário se logar no sistema ele deverá ter um vinculo em PessoaCondominio ou PessoaUnidade. Caso o vinculo de PessoaUnidade, os tipos de vínculo   'Administrador Imobiliário', 'Proprietário Morador', 'Morador com Procuração' deve ser atribuído o perfil de Proprietário"
+        "Descricao": "Para o usuário se logar no sistema ele deverá ter um vinculo em PessoaCondominio ou PessoaUnidade. Caso o vinculo de PessoaUnidade, os tipos de vínculo   'Administrador Imobiliário', 'Proprietário Morador', 'Morador com Procuração' deve ser atribuído o perfil de Proprietário. O perfil usado pelo RBAC é PessoaCondominio.IdPerfil (Descricao de PerfilAcesso) no condomínio do login. Vínculo somente por PessoaUnidade, sem PessoaCondominio, resolve o perfil Morador. TipoVinculo não autoriza telas."
+      },
+      {
+        "Regra": "RN-Gerais 16",
+        "Tipo": "Regra de Negócio",
+        "Descricao": "O tenant ativo viaja no claim JWT idCondominio. O header X-Id-Condominio, quando enviado, deve ser igual a esse claim; divergência resulta em acesso negado. Rotas autenticadas sem o claim não executam operação de tenant. A troca de condomínio (POST /api/auth/trocar-condominio) só é permitida se o usuário tiver vínculo no destino e emite novo token com o novo IdCondominio. A consulta de condomínios para login ou troca (GET /api/auth/condominios) lista apenas os condomínios autorizados ao usuário autenticado ou ao e-mail informado. O CRUD da entidade Condominio, quando há tenant ativo, fica restrito a esse IdCondominio."
+      },
+      {
+        "Regra": "RN-RBAC 01",
+        "Tipo": "Regra de Negócio",
+        "Descricao": "RBAC por herança: a matriz global PerfilPermissao define as ações do PerfilAcesso. PessoaPermissaoExcecao sobrescreve somente aquele permissionKey para a pessoa no condomínio ativo. Não duplicar a matriz inteira por pessoa. Ao gravar exceções, a API persiste apenas o permissionKey cujo conjunto de ações difere da matriz do perfil; valor igual ao perfil não gera linha. O perfil cuja Descricao é Administrador tem acesso total às permissionKeys, apenas dentro do IdCondominio ativo, e não precisa de uma linha de PerfilPermissao para cada chave. Esse acesso total não ignora o query filter nem permite trocar de condomínio sem vínculo. Consultas de permissão usam IgnoreQueryFilters só nas tabelas de RBAC, sempre com IdCondominio explícito na exceção. Dados de negócio continuam filtrados pelo tenant."
+      },
+      {
+        "Regra": "RN-RBAC 02",
+        "Tipo": "Regra de Negócio",
+        "Descricao": "Toda validação de acesso da API e do frontend usa IPermissionResolver. A claim efetiva é permissionKey:Acao (ex.: BLOCO:Visualizar). A resolução usa IdPessoa e o IdCondominio do contexto. Fonte do catálogo: docs/rbac/. POST /api/auth/login e POST /api/auth/trocar-condominio devolvem acessoTotal e permissoes do condomínio escolhido. O claim perfil do token é a Descricao de PerfilAcesso desse vínculo, não TipoVinculo. Angular e Flutter guardam essa lista e consultam can(permissionKey, acao); acessoTotal dispensa a lista. Sem autenticação a API responde 401. Autenticado sem a ação responde 403."
+      },
+      {
+        "Regra": "RT-RBAC 03",
+        "Tipo": "Regra de Tela",
+        "Descricao": "Tela administrativa em /gerenciamento-permissoes para editar a matriz global do perfil e as exceções da pessoa no condomínio ativo. GET/PUT /api/Permissao/perfil/{id}, GET/PUT /api/Permissao/pessoa/{idPessoa}/excecoes, GET /api/Permissao/perfis e GET /api/Permissao/pessoas exigem PERMISSOES_GERENCIAR (GET = Visualizar, PUT = Alterar). As exceções são gravadas com o IdCondominio do contexto e a pessoa precisa ter vínculo nesse condomínio. GET /api/Permissao/minhas devolve as permissões efetivas do usuário no tenant e não exige PERMISSOES_GERENCIAR. GET /api/Permissao/opcoes-perfil lista PerfilAcesso para o combobox de IdPerfil em PessoaCondominio e também não exige essa permissionKey. O menu só mostra o link cuja permissionKey concede Visualizar. A rota /inicio (HOME) permanece disponível ao usuário autenticado. Trocar o condomínio recarrega acessoTotal e permissoes."
+      },
+      {
+        "Regra": "RN-RBAC 04",
+        "Tipo": "Regra de Negócio",
+        "Descricao": "Toda tela CRUD exposta ao usuário deve ter permissionKey no catálogo docs/rbac/funcionalidades-catalogo.json e ações aplicáveis em docs/rbac/permissoes-matriz.json. Há ainda docs/rbac/concessoes-perfil.json. Na subida, a API sincroniza PermissionKey e semeia PerfilPermissao somente quando a linha ainda não existe, sem sobrescrever edição posterior. Perfis citados em PerfisAcesso da entidade, exceto Administrador, recebem Visualizar, Incluir, Alterar e Excluir. HOME concede Visualizar a esses perfis. PERMISSOES_GERENCIAR tem Visualizar e Alterar aplicáveis. AUTH_LOGIN não é concedido na matriz. Os controllers gerados recebem PermissionResource com a permissionKey da entidade: GET e HEAD exigem Visualizar, POST Incluir, PUT e PATCH Alterar, DELETE Excluir. Login e a listagem de condomínios ficam anônimos e fora desse filtro. Sem a ação, a API responde 403."
+      },
+      {
+        "Regra": "RT-RBAC 05",
+        "Tipo": "Regra de Tela",
+        "Descricao": "O app Flutter persiste acessoTotal e permissoes depois do login e da troca de condomínio e consulta essas claims antes de abrir o fluxo. Leituras de hidrômetro exigem HIDROMETRO:Visualizar. Contas do condomínio exigem COBRANCA:Visualizar. Nesta etapa o mobile não tem a tela administrativa da matriz."
       }
     ],
     "Entidades": [
@@ -121,7 +151,15 @@
           "funcionário Manutenção",
           "Proprietário",
           "Morador"
-        ]
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - PerfilAcesso 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Estes registros são os perfis do RBAC. A Descricao Administrador, no vínculo PessoaCondominio do condomínio ativo, concede acesso total nesse tenant. Os demais perfis recebem somente o que estiver em PerfilPermissao, sobrescrito por PessoaPermissaoExcecao daquele IdCondominio."
+          }
+        ],
+        "EscopoTenant": "Global"
       },
       {
         "Entidade": "UF",
@@ -163,7 +201,8 @@
             "Tipo": "Regra de Negocio",
             "Descricao": "Deverá ser exibida, somente para leitura, nas telas de edição do CRUD uma lista com os nomes dos múnicípios que tenham a UF selecionada como sua UF (SiglaUF como Foreign Key)."
           }
-        ]
+        ],
+        "EscopoTenant": "Global"
       },
       {
         "Entidade": "Municipio",
@@ -212,7 +251,8 @@
             "Tipo": "Regra de Tela",
             "Descricao": "O campo SiglaUF deve ser apresentado como combobox_customizada"
           }
-        ]
+        ],
+        "EscopoTenant": "Global"
       },
       {
         "Entidade": "Bairro",
@@ -256,7 +296,8 @@
             "Tipo": "Regra de Tela",
             "Descricao": "O campo CodigoIBGEMunicipio deve ser apresentado como combobox_customizada"
           }
-        ]
+        ],
+        "EscopoTenant": "Global"
       },
       {
         "Entidade": "Endereco",
@@ -344,7 +385,8 @@
             "Tipo": "Regra de Negocio",
             "Descricao": "Tanto no componente como na tela de edição do CRUD, os campos: UF, município e Bairro devem ser apresentados como combobox e ao ser escolhida uma UF, a combobox município deverá exibir os municípios relativos aquela UF e após ser escolhido o município deverão ser filtrados os bairros daquele município."
           }
-        ]
+        ],
+        "EscopoTenant": "Global"
       },
       {
         "Entidade": "Condominio",
@@ -428,6 +470,27 @@
             "TipoDado": "CHAR(14)",
             "Obrigatorio": "Não",
             "Indice": "Unique"
+          },
+          {
+            "Campo": "Dominio",
+            "RotuloCampo": "Domínio",
+            "TipoDado": "varchar(255)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Ativo",
+            "RotuloCampo": "Ativo",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "DataInativacao",
+            "RotuloCampo": "Data Inativação",
+            "TipoDado": "DATETIME",
+            "Obrigatorio": "Não"
           }
         ],
         "Regras": [
@@ -450,8 +513,14 @@
             "Regra": "RN - Condomínio 04",
             "Tipo": "Regra de Negócio",
             "Descricao": "O campo QuantidadeTotalUnidades deverá aparecer sempre como somente leitura. Este deve ser calculado conforme descrito na regra 'RN - unidade 04'."
+          },
+          {
+            "Regra": "RN - Condomínio 05",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Esta entidade é o tenant do sistema (EscopoTenant=Condominio). Com sessão autenticada, listagem, consulta, alteração e exclusão ficam restritas ao IdCondominio ativo (RT-Gerais 12 e RN-Gerais 16). A escolha e a troca de condomínio usam somente os condomínios em que o usuário possui vínculo."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "ConfiguracaoCondominio",
@@ -504,7 +573,8 @@
             "Tipo": "Regra de Tela",
             "Descricao": "O campo IdCondominio não deve ser exibido, deve utilizado o IdCondominio da variável global do sistema conforme especificado RT-Gerais 12 (Regra de Ouro)."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "Bloco",
@@ -547,7 +617,8 @@
             "Tipo": "Regra de Tela",
             "Descricao": "O campo IdCondominio não deve ser exibido, deve utilizado o IdCondominio da variável global do sistema conforme especificado RT-Gerais 12 (Regra de Ouro)."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "TipoUnidade",
@@ -634,7 +705,8 @@
             ],
             "MensagemErroViolacao": "Descrição já existente para esse condomínio."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "Unidade",
@@ -716,7 +788,8 @@
             "Tipo": "Regra de Tela",
             "Descricao": "Toda vez que uma unidadade for incluída ou excluída o sistema deverá somar ou subitrair uma unidade no campo QuantidadeTotalUnidades na entidade Condominio."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "Hidrometro",
@@ -756,8 +829,7 @@
             "TipoDado": "varchar(40)",
             "Filtro": "Sim",
             "Obrigatorio": "Sim",
-            "Indice": "",
-            "EntidadeForeignKey": "Unidade"
+            "Indice": ""
           }
         ],
         "Regras": [
@@ -777,7 +849,8 @@
             ],
             "MensagemErroViolacao": "Já existe um hidrômetro com esse número de série para esse condomínio."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "ConsumoAgua",
@@ -873,7 +946,8 @@
             ],
             "MensagemErroViolacao": "Já existe um consumo registrado para essa unidade, mês de referência e hidrômetro."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "Pessoa",
@@ -931,7 +1005,9 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "O campo CPFCNPJ, deverá receber uma máscara 999.999.999-99 para o CPF ou XX.XXX.XXX/XXXX-99 para o CNPJ ao perder o foco. E toda vez que o campo receber o foco a mascara deverá ser removida."
           }
-        ]
+        ],
+        "EscopoTenant": "Indireto",
+        "VinculoTenant": "PessoaCondominio"
       },
       {
         "Entidade": "PessoaEndereco",
@@ -946,7 +1022,7 @@
             "RotuloCampo": "Id Pessoa",
             "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Sim",
-            "Indice": "Foreign Key",
+            "Indice": "Primary Key e Foreign Key",
             "EntidadeForeignKey": "Pessoa"
           },
           {
@@ -954,7 +1030,7 @@
             "RotuloCampo": "Id Endereço",
             "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Sim",
-            "Indice": "Foreign Key",
+            "Indice": "Primary Key e Foreign Key",
             "EntidadeForeignKey": "Endereco"
           },
           {
@@ -980,7 +1056,8 @@
               "Principal",
               "Secundário",
               "Inativo"
-            ]
+            ],
+            "Indice": ""
           }
         ],
         "Regras": [
@@ -994,7 +1071,9 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "Em caso de inativação de um endereço Principal ou de tornar o endereço Principal como secundário o sistema não deverá permitir e deverá emitir a mensagem: 'Cadastre outro endereço principal antes de Inativar ou tornar esse endereço Secundário.'."
           }
-        ]
+        ],
+        "EscopoTenant": "Indireto",
+        "VinculoTenant": "PessoaCondominio"
       },
       {
         "Entidade": "pessoafisica",
@@ -1065,7 +1144,9 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "Na tela de edição deverá ser apresentada uma lista com os endereços vinculados à pessoa, ao clicar no endereço deve ser apresentado o componente de endereço para alteração ou exclusão do mesmo, o que nesse caso só será permitido alterar o número ou complemento. Ao lado dessa lista deverá ter um botão que permida so usuário incluir novo endereço."
           }
-        ]
+        ],
+        "EscopoTenant": "Indireto",
+        "VinculoTenant": "PessoaCondominio"
       },
       {
         "Entidade": "PessoaJuridica",
@@ -1090,7 +1171,7 @@
             "Filtro": "Sim",
             "Obrigatorio": "Sim",
             "Indice": "Foreign Key",
-            "EntidadeForeignKey": "PessoaFisica"
+            "EntidadeForeignKey": "pessoafisica"
           },
           {
             "Campo": "NomeFantasia",
@@ -1145,7 +1226,9 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "Na tela de edição deverá ser apresentada uma lista com os endereços vinculados à pessoa, ao clicar no endereço deve ser apresentado o componente de endereço para alteração ou exclusão do mesmo do mesmo, o que nesse caso só será permitido alterar o número ou complemento. Ao lado dessa lista deverá ter um botão que permida so usuário incluir novo endereço."
           }
-        ]
+        ],
+        "EscopoTenant": "Indireto",
+        "VinculoTenant": "PessoaCondominio"
       },
       {
         "Entidade": "Fornecedor",
@@ -1188,7 +1271,8 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "Se ao informar um CPFCNPJ, o sistema deverá verificar se esse existe na Entidade PessoaFisica ou PassoaJuridica, dependendo da quantidade de caracteres digitados, se já houver registro o sistema deverá exibir todos os campos desabilitados, exceto para adicionar endereço e telefone, e obviamente para estabelecer um novo vínculo entre aquela pessoa e o condomínio."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "TipoAtividadeEconomica",
@@ -1211,7 +1295,8 @@
             "RotuloCampo": "Descrição",
             "TipoDado": "VARCHAR(255)",
             "Filtro": "Sim",
-            "Obrigatorio": "Sim"
+            "Obrigatorio": "Sim",
+            "Indice": ""
           }
         ],
         "Regras": [
@@ -1220,7 +1305,8 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "O Código do Tipo da Atividade Econômica deve ser digitado quando da Inclusão, mas não editável para alteração ou exclusão."
           }
-        ]
+        ],
+        "EscopoTenant": "Global"
       },
       {
         "Entidade": "AtividadeEconomica",
@@ -1231,7 +1317,7 @@
         ],
         "Campos": [
           {
-            "Campo": "CodigoTipoAtividadeEconomica",
+            "Campo": "CodigoAtividadeEconomica",
             "RotuloCampo": "Código",
             "TipoDado": "INT - Unsigned",
             "Filtro": "Sim",
@@ -1243,7 +1329,8 @@
             "RotuloCampo": "Descrição",
             "TipoDado": "VARCHAR(255)",
             "Filtro": "Sim",
-            "Obrigatorio": "Sim"
+            "Obrigatorio": "Sim",
+            "Indice": ""
           },
           {
             "Campo": "CodigoTipoAtividadeEconomica",
@@ -1261,7 +1348,8 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "O Código da Atividade Econômica deve ser digitado quando da Inclusão, mas não editável para alteração ou exclusão."
           }
-        ]
+        ],
+        "EscopoTenant": "Global"
       },
       {
         "Entidade": "FornecedorAtividade",
@@ -1277,17 +1365,19 @@
             "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Sim",
             "Indice": "Primary Key e Foreign Key",
-            "EntidadeForeignKey": "PessoaJuridica"
+            "EntidadeForeignKey": "Pessoa"
           },
           {
-            "Campo": "CodigoTipoAtividadeEconomica",
+            "Campo": "CodigoAtividadeEconomica",
             "RotuloCampo": "Atividade Economica",
             "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Sim",
             "Indice": "Primary Key e Foreign Key",
             "EntidadeForeignKey": "AtividadeEconomica"
           }
-        ]
+        ],
+        "EscopoTenant": "Indireto",
+        "VinculoTenant": "Fornecedor"
       },
       {
         "Entidade": "PessoaCondominio",
@@ -1300,7 +1390,7 @@
           {
             "Campo": "IdPessoa",
             "RotuloCampo": "IdPessoa",
-            "TipoDado": "INT",
+            "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Sim",
             "Filtro": "Sim",
             "Indice": "Primary Key e Foreign Key",
@@ -1337,7 +1427,17 @@
               "Funcionário Manutenção",
               "Visitante",
               "Prestador Serviço"
-            ]
+            ],
+            "Indice": ""
+          },
+          {
+            "Campo": "IdPerfil",
+            "RotuloCampo": "Perfil de acesso",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "PerfilAcesso"
           },
           {
             "Campo": "DataFim",
@@ -1346,7 +1446,15 @@
             "Obrigatorio": "Não",
             "Indice": ""
           }
-        ]
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - PessoaCondominio 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "IdPerfil referencia PerfilAcesso e é a fonte do RBAC neste condomínio. O login e a troca de condomínio leem a Descricao desse perfil. TipoVinculo descreve o vínculo operacional e não autoriza telas. Sem IdPerfil, a resolução usa o perfil Morador."
+          }
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "Equipamento",
@@ -1394,7 +1502,8 @@
             "Obrigatorio": "Sim",
             "Indice": ""
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "AluguelEquipamento",
@@ -1424,7 +1533,7 @@
           {
             "Campo": "IdEquipamento",
             "RotuloCampo": "IdEquipamento",
-            "TipoDado": "BIGINT",
+            "TipoDado": "INT - Unsigned",
             "Filtro": "Sim",
             "Obrigatorio": "Sim",
             "Indice": "Foreign Key",
@@ -1467,7 +1576,8 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "Não pode haver dois aluguéis de um equipamento com datas conflitantes.Por exemplo: Aluguel do Salão de Festas com data hora início em 23/04/2027 14:00 e com data fim 23/04/2027 22:00 e o mesmo Salão de Festas em 23/04/2027 15:00 e com data fim 23/04/2027 22:30. O segundo intervalo de datas é conflitante com o primeiro porque o início do segundo intervalo está entre as data do primeiro intervlo de datas."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "PessoaUnidade",
@@ -1523,19 +1633,22 @@
               "Proprietário Morador",
               "Morador com Procuração Proprietário",
               "Morador"
-            ]
+            ],
+            "Indice": ""
           },
           {
             "Campo": "Resposavel",
             "RotuloCampo": "Resposável",
             "TipoDado": "BOOLEAN",
-            "Obrigatorio": "Sim"
+            "Obrigatorio": "Sim",
+            "Indice": ""
           },
           {
             "Campo": "Procuracao",
             "RotuloCampo": "Procuração",
             "TipoDado": "LONGBLOB",
-            "Obrigatorio": "Não"
+            "Obrigatorio": "Não",
+            "Indice": ""
           }
         ],
         "Regras": [
@@ -1549,7 +1662,9 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "Se a Pessoa for uma Pessoa Jurídica, os tipos de vínculo a serem listados devem ser e aceitos são: Administrador ou Proprietário."
           }
-        ]
+        ],
+        "EscopoTenant": "Indireto",
+        "VinculoTenant": "Unidade"
       },
       {
         "Entidade": "Concorrencia",
@@ -1603,7 +1718,8 @@
               "Qualidade",
               "Prazo Entrega",
               "Capacidade Técnica"
-            ]
+            ],
+            "Indice": ""
           },
           {
             "Campo": "Fase",
@@ -1618,7 +1734,8 @@
               "Escolha Vencedor",
               "Assinatura Contrato",
               "Finalizado"
-            ]
+            ],
+            "Indice": ""
           },
           {
             "Campo": "DataAbertura",
@@ -1644,7 +1761,8 @@
             "Obrigatorio": "Não",
             "Indice": "Index"
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "TipoDespesa",
@@ -1686,7 +1804,8 @@
             "Enum": [
               "Por Metro Quadrado Unidade",
               "Pela Quantidade Unidades"
-            ]
+            ],
+            "Indice": ""
           },
           {
             "Campo": "CodigoContabil",
@@ -1696,7 +1815,8 @@
             "Obrigatorio": "Não",
             "Indice": ""
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "Despesa",
@@ -1788,7 +1908,8 @@
             "Obrigatorio": "Não",
             "Indice": ""
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "OfertaConcorrencia",
@@ -1892,7 +2013,8 @@
             "Obrigatorio": "Não",
             "Indice": ""
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "Banco",
@@ -1925,7 +2047,8 @@
             "Obrigatorio": "Sim",
             "Indice": "Unique Key"
           }
-        ]
+        ],
+        "EscopoTenant": "Global"
       },
       {
         "Entidade": "DadosBancarios",
@@ -2003,7 +2126,8 @@
             "Obrigatorio": "Não",
             "Indice": ""
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "Cobranca",
@@ -2050,8 +2174,7 @@
             "RotuloCampo": "IdArquivoCobrancaRemessa",
             "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Não",
-            "Indice": "Foreign Key",
-            "EntidadeForeignKey": "Unidade"
+            "Indice": ""
           },
           {
             "Campo": "SequencialRegistroRemessa",
@@ -2092,7 +2215,8 @@
             "Tipo": "Regra de Tela",
             "Descricao": "Na tela de edição deverá haver uma lista de detalhe cobrança para que sejam exibidos as linhas de detalhe da cobrança corrente. Deverá haver um botão para novo detalhe que abrirá um popup com a tela de inclusão do detalhe. Caso seja clicado em uma linha de detalhe deverá ser aberto o popup com a tela para edição/exclusão da cobrança detalhe."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "CobrancaDetalhe",
@@ -2162,7 +2286,8 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "Obrigatoriamente, ou o campo IdDespesas ou IdAluguelEquipamento deve ser preenchido."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "GuardaEncomenda",
@@ -2258,7 +2383,8 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "Só poderão ser listados Locais do tipo Armazenamento."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "Local",
@@ -2306,7 +2432,8 @@
             "Enum": [
               "Armazenamento",
               "Alocação"
-            ]
+            ],
+            "Indice": ""
           }
         ],
         "Regras": [
@@ -2315,7 +2442,8 @@
             "Tipo": "Regra de Negocio",
             "Descricao": "Na tela de edição/inclusão de Local, ao ser apontado um IdLocalPai o TipoLocal corrente deve ser o mesmo e o campo deve ficar desabilitado. Ou seja o TipoLocal só poderá ser escolhido pelo usuário se o Local não tiver um IDLocalPai."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "TipoMaterial",
@@ -2349,7 +2477,8 @@
               "Bem Permante",
               "Bem Intagível",
               "Material de Consumo"
-            ]
+            ],
+            "Indice": ""
           }
         ],
         "Regras": [
@@ -2373,7 +2502,8 @@
             "Tipo": "Regra de Tela",
             "Descricao": "Ao ser incluído um TipoMaterial, deverá ser incluído também TipoMaterialCondominio, de forma automática TipoMaterialCondominio para o condomínio corrente."
           }
-        ]
+        ],
+        "EscopoTenant": "Global"
       },
       {
         "Entidade": "TipoMaterialCondominio",
@@ -2399,7 +2529,8 @@
             "Indice": "Primary Key e Foreign Key",
             "EntidadeForeignKey": "Condominio"
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "Material",
@@ -2524,7 +2655,8 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "Para entidade Material só podem ser listados Tipos de Material classificados como Bem Permanente e Bem Intangível e que possuam registro em TipoMaterialCondominio."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "AlocacaoMaterial",
@@ -2605,7 +2737,8 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "O sistema não deve permitir o criação de registro de alocação de um mesmo material dentro do período onde o mesmo esteja alocado."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "EstoqueMaterialConsumo",
@@ -2731,7 +2864,8 @@
             "Tipo": "Regra de Negócio",
             "Descricao": "Só poderão ser listados Locais que o Tipo seja 'Armazenamento' ."
           }
-        ]
+        ],
+        "EscopoTenant": "Condominio"
       },
       {
         "Entidade": "EntradaSaidaMaterialConsumo",
@@ -2774,9 +2908,10 @@
           {
             "Campo": "IdEstoqueMaterialConsumo",
             "RotuloCampo": "Id do Estoque",
-            "TipoDado": "BIGINT - Unsigned - Auto incremental",
+            "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Sim",
-            "Indice": "Index"
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "EstoqueMaterialConsumo"
           },
           {
             "Campo": "IdTipoMaterial",
@@ -2858,6 +2993,185 @@
             "Regra": "RN - EntradaSaidaMaterialConsumo 04",
             "Tipo": "Regra de Negócio",
             "Descricao": "Na tela de Inclusão/Edição de Entrada e Saída de Material de Consumo, O Campo Consumidor Saída só deve ser apresentado quando o TipoLancamento for   'Saída por utilização'. E nesse caso o campo consumidor passa a ser de preenchimento obrigatório."
+          }
+        ],
+        "EscopoTenant": "Condominio"
+      },
+      {
+        "Entidade": "PermissionKey",
+        "RotuloEntidade": "Permissao",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "EscopoTenant": "Global",
+        "Campos": [
+          {
+            "Campo": "IdPermissionKey",
+            "RotuloCampo": "Id",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "Chave",
+            "RotuloCampo": "Chave",
+            "TipoDado": "varchar(80)",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key"
+          },
+          {
+            "Campo": "Nome",
+            "RotuloCampo": "Nome",
+            "TipoDado": "varchar(150)",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "Modulo",
+            "RotuloCampo": "Modulo",
+            "TipoDado": "varchar(80)",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - PermissionKey 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Catálogo global, sem CRUD gerado. Chave é única e estável: o nome da entidade de CRUD em maiúsculas, mais AUTH_LOGIN, HOME e PERMISSOES_GERENCIAR. Nome e Modulo vêm de docs/rbac/funcionalidades-catalogo.json e são atualizados na sincronização da API."
+          }
+        ]
+      },
+      {
+        "Entidade": "PerfilPermissao",
+        "RotuloEntidade": "Permissao do perfil",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "EscopoTenant": "Global",
+        "Campos": [
+          {
+            "Campo": "IdPerfil",
+            "RotuloCampo": "Perfil",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "PerfilAcesso"
+          },
+          {
+            "Campo": "IdPermissionKey",
+            "RotuloCampo": "Permissao",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "PermissionKey"
+          },
+          {
+            "Campo": "Visualizar",
+            "RotuloCampo": "Visualizar",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Incluir",
+            "RotuloCampo": "Incluir",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Alterar",
+            "RotuloCampo": "Alterar",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Excluir",
+            "RotuloCampo": "Excluir",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - PerfilPermissao 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Matriz global de PerfilAcesso por PermissionKey, com as ações Visualizar, Incluir, Alterar e Excluir. A semente inicial vem de docs/rbac/concessoes-perfil.json e só é inserida se a linha do par perfil e permissionKey ainda não existir. O perfil Administrador não depende desta matriz."
+          }
+        ]
+      },
+      {
+        "Entidade": "PessoaPermissaoExcecao",
+        "RotuloEntidade": "Excecao de permissao",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "EscopoTenant": "Condominio",
+        "Campos": [
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "Pessoa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Condominio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdPermissionKey",
+            "RotuloCampo": "Permissao",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "PermissionKey"
+          },
+          {
+            "Campo": "Visualizar",
+            "RotuloCampo": "Visualizar",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Incluir",
+            "RotuloCampo": "Incluir",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Alterar",
+            "RotuloCampo": "Alterar",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "Excluir",
+            "RotuloCampo": "Excluir",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - PessoaPermissaoExcecao 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Sobrescreve um permissionKey para a pessoa naquele IdCondominio. A exceção do condomínio 1 não vale no condomínio 2. A linha só existe quando as ações diferem de PerfilPermissao do perfil do vínculo. A entidade tem filtro de tenant por IdCondominio; a resolução informa o condomínio de forma explícita."
           }
         ]
       }

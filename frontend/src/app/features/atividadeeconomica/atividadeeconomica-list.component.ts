@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
+import { LIST_CARD_HUG_LAYOUT_STYLES } from '../../shared/list-card-hug-layout.styles';
+import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
 import { PagedResult } from '../../core/models/paged-result';
 import { AtividadeEconomicaService } from './atividadeeconomica.service';
 import { AtividadeEconomica } from './atividadeeconomica.model';
@@ -10,7 +12,8 @@ import { AtividadeEconomica } from './atividadeeconomica.model';
 @Component({
   selector: 'app-atividadeeconomica-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaginationComponent, ListLoadingModalComponent],
+  styles: [LIST_CARD_HUG_LAYOUT_STYLES],
   template: `
     <div class="list-page">
       <div class="list-header">
@@ -19,6 +22,7 @@ import { AtividadeEconomica } from './atividadeeconomica.model';
           <label>Filtro:</label>
           <input type="text" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" />
           <button type="button" class="btn-filtrar" (click)="applyFilter()">Filtrar</button>
+          <button type="button" class="btn-limpar" (click)="clearFilter()">Limpar</button>
         </div>
         <div class="top-actions">
           <app-pagination
@@ -30,10 +34,10 @@ import { AtividadeEconomica } from './atividadeeconomica.model';
       <div class="table-scroll-wrapper">
         <div class="table-container">
           <table *ngIf="paged?.items?.length; else empty">
-            <thead><tr><th>Código</th><th>Descrição</th></tr></thead>
+            <thead><tr><th>Código</th><th>Descrição</th><th>Tipo Atividade</th></tr></thead>
             <tbody>
               <tr *ngFor="let item of paged?.items" (click)="goEdit(item)" class="row-click">
-                <td>{{ item.codigoTipoAtividadeEconomica }}</td><td>{{ item.descricao }}</td>
+                <td>{{ item.codigoAtividadeEconomica }}</td><td>{{ item.descricao }}</td><td>{{ item.codigoTipoAtividadeEconomica }}</td>
               </tr>
             </tbody>
           </table>
@@ -47,6 +51,7 @@ import { AtividadeEconomica } from './atividadeeconomica.model';
           (pageChange)="loadPage($event)" [showPagination]="true" [showNovo]="false" [alignRight]="true" />
       </div>
     </div>
+    <app-list-loading-modal [visible]="loading" />
   `
 })
 export class AtividadeEconomicaListComponent implements OnInit {
@@ -64,6 +69,8 @@ export class AtividadeEconomicaListComponent implements OnInit {
 
   applyFilter(): void { this.page = 1; this.loadPage(1); }
 
+  clearFilter(): void { this.filterText = ''; this.applyFilter(); }
+
   loadPage(p: number): void {
     this.page = p;
     this.loading = true;
@@ -79,6 +86,6 @@ export class AtividadeEconomicaListComponent implements OnInit {
 
   goNovo(): void { this.router.navigate(['/atividadeeconomica', 'novo']); }
   goEdit(item: AtividadeEconomica): void {
-    this.router.navigate(['/atividadeeconomica', item.codigoTipoAtividadeEconomica]);
+    this.router.navigate(['/atividadeeconomica', item.codigoAtividadeEconomica]);
   }
 }

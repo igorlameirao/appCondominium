@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CondominioContextService } from './condominio-context.service';
+import { PermissionService } from './permission.service';
 
 export interface LoginRequest {
   usuario: string;
@@ -16,6 +17,8 @@ export interface LoginResponse {
   idCondominio: number;
   perfil: string;
   nome: string;
+  acessoTotal: boolean;
+  permissoes: string[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,7 +28,8 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private condominioContext: CondominioContextService
+    private condominioContext: CondominioContextService,
+    private permissions: PermissionService
   ) {}
 
   get token(): string | null {
@@ -43,18 +47,30 @@ export class AuthService {
         this.condominioContext.setCondominio(res.idCondominio);
         sessionStorage.setItem('perfil', res.perfil);
         sessionStorage.setItem('nome', res.nome);
+        this.permissions.apply(res.acessoTotal, res.permissoes);
       })
     );
   }
 
-  listCondominios(q?: string): Observable<{ idCondominio: number; nome: string }[]> {
+  listCondominios(q?: string, usuario?: string): Observable<{ idCondominio: number; nome: string }[]> {
     let params = new HttpParams();
-    if (q && q.length >= 3) {
-      params = params.set('q', q);
-    }
+    if (q && q.length >= 3) params = params.set('q', q);
+    if (usuario) params = params.set('usuario', usuario);
     return this.http.get<{ idCondominio: number; nome: string }[]>(
       `${environment.apiUrl}/auth/condominios`,
       { params }
+    );
+  }
+
+  trocarCondominio(idCondominio: number): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/trocar-condominio`, { idCondominio }).pipe(
+      tap(res => {
+        sessionStorage.setItem(this.tokenKey, res.token);
+        this.condominioContext.setCondominio(res.idCondominio);
+        sessionStorage.setItem('perfil', res.perfil);
+        sessionStorage.setItem('nome', res.nome);
+        this.permissions.apply(res.acessoTotal, res.permissoes);
+      })
     );
   }
 
@@ -62,6 +78,7 @@ export class AuthService {
     sessionStorage.removeItem(this.tokenKey);
     sessionStorage.removeItem('perfil');
     sessionStorage.removeItem('nome');
+    this.permissions.clear();
     this.condominioContext.clear();
     this.router.navigate(['/login']);
   }

@@ -39,7 +39,6 @@ import { FormsModule } from '@angular/forms';
     .pagination button { padding: 6px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; }
     .pagination button:disabled, .pagination input:disabled { opacity: 0.5; cursor: not-allowed; }
     .pagination input { padding: 6px 12px; width: 50px; text-align: center; }
-    .btn-novo { padding: 8px 16px; background: var(--app-accent, #0e7490); color: #fff; border: none; border-radius: 6px; cursor: pointer; }
   `]
 })
 export class PaginationComponent implements OnChanges {

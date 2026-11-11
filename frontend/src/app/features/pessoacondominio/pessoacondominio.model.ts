@@ -3,5 +3,6 @@ export interface PessoaCondominio {
   idCondominio?: number;
   dataInicio?: string;
   tipoVinculo?: number;
+  idPerfil?: number;
   dataFim?: string;
 }

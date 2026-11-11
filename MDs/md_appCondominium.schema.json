@@ -137,6 +137,11 @@
         "MensagemErroViolacao": { "type": "string", "minLength": 1 }
       }
     },
+    "escopoTenant": {
+      "type": "string",
+      "enum": ["Global", "Condominio", "Indireto"],
+      "description": "Global: catálogo compartilhado. Condominio: isolado por IdCondominio. Indireto: isolado via VinculoTenant."
+    },
     "entidade": {
       "type": "object",
       "additionalProperties": false,
@@ -145,6 +150,12 @@
         "Entidade": { "$ref": "#/$defs/nomeEntidade" },
         "RotuloEntidade": { "type": "string", "minLength": 1 },
         "Gerar CRUD": { "$ref": "#/$defs/simNao" },
+        "EscopoTenant": { "$ref": "#/$defs/escopoTenant" },
+        "VinculoTenant": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Entidade usada para isolar escopo Indireto (ex.: PessoaCondominio, Unidade, Fornecedor, Cobranca)."
+        },
         "PerfisAcesso": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 },

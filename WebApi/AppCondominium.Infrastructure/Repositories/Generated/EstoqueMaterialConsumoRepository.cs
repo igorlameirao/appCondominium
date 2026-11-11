@@ -21,8 +21,8 @@ public class EstoqueMaterialConsumoRepository
 
     private IQueryable<EstoqueMaterialConsumo> ApplyCondominioFilter(IQueryable<EstoqueMaterialConsumo> query)
     {
-        if (_condominio.IdCondominio.HasValue)
-            query = query.Where(e => e.IdCondominio == _condominio.IdCondominio.Value);
+        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e => e.IdCondominio == tenantId);
         return query;
     }
 
@@ -43,9 +43,8 @@ public class EstoqueMaterialConsumoRepository
 
     public async Task<EstoqueMaterialConsumo> AddAsync(EstoqueMaterialConsumo entity, CancellationToken ct = default)
     {
-
-        if (_condominio.IdCondominio.HasValue)
-            entity.IdCondominio = _condominio.IdCondominio.Value;
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
 
         await _ctx.Set<EstoqueMaterialConsumo>().AddAsync(entity, ct);
         await _ctx.SaveChangesAsync(ct);
@@ -54,6 +53,8 @@ public class EstoqueMaterialConsumoRepository
 
     public async Task UpdateAsync(EstoqueMaterialConsumo entity, CancellationToken ct = default)
     {
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
         _ctx.Set<EstoqueMaterialConsumo>().Update(entity);
         await _ctx.SaveChangesAsync(ct);
     }

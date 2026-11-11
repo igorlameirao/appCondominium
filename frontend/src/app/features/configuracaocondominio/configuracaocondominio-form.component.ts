@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastService } from '../../core/services/toast.service';
 import { ConfiguracaoCondominioService } from './configuracaocondominio.service';
 import { ConfiguracaoCondominio } from './configuracaocondominio.model';
 import { PermissionService } from '../../core/services/permission.service';
@@ -22,44 +23,41 @@ import { LookupService } from '../../core/services/lookup.service';
       </p>
       <div class="form-scroll">
         <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
-          <div class="grid grid-id" *ngIf="isEdit">
-            <div class="form-group">
+          <div class="form-grid">
+            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
               <label>Id Configuração</label>
               <input type="text" [value]="model.idConfiguracao" readonly class="readonly" />
             </div>
-          </div>
-          <div class="grid grid-2">
-            <div class="form-group">
-              <label>Cor Padrão (RT-Gerais 13)</label>
-              <input type="color" [(ngModel)]="corHex" name="corPadrao" [disabled]="!canEdit" />
-            </div>
-          </div>
-          <div class="grid grid-2 img-grid">
-            <app-imagem-upload
+            <app-imagem-upload style="grid-column: 3 / span 6; grid-row: 1" class="fg-col-6"
               label="Imagem Tela de Login"
               [(value)]="model.imagemLogin"
               [disabled]="!canEdit"
               [maxMb]="5" />
-            <app-imagem-upload
+            <app-imagem-upload style="grid-column: 1 / span 6; grid-row: 2" class="fg-col-6"
               label="Ícone do Condomínio"
               [(value)]="model.imagemIcone"
               [disabled]="!canEdit"
               [maxMb]="2" />
+            <div style="grid-column: 7 / span 2; grid-row: 2" class="form-group fg-col-2">
+              <label>Cor Padrão (RT-Gerais 13)</label>
+              <input type="color" [(ngModel)]="corHex" name="corPadrao" [disabled]="!canEdit" />
+            </div>
           </div>
         </form>
       </div>
       <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !canEdit">Gravar</button>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
+        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
       </div>
-      <div class="msg-erro" *ngIf="formError">{{ formError }}</div>
     </div>
     <div class="confirm-overlay" *ngIf="showDeleteConfirm">
       <div class="confirm-modal">
         <p>Deseja realmente excluir este registro?</p>
-        <button type="button" class="btn-cancelar" (click)="showDeleteConfirm=false">Cancelar</button>
-        <button type="button" class="btn-excluir" (click)="confirmDelete()">Excluir</button>
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancelar-modal" (click)="showDeleteConfirm=false">Cancelar</button>
+          <button type="button" class="btn-confirm-danger" (click)="confirmDelete()">Excluir</button>
+        </div>
       </div>
     </div>
   `,
@@ -72,8 +70,10 @@ export class ConfiguracaoCondominioFormComponent implements OnInit {
   model: ConfiguracaoCondominio = { idCondominio: 0, idConfiguracao: 0 };
   isEdit = false;
   saving = false;
-  formError = '';
+  private readonly toast = inject(ToastService);
+  private readonly entityTitle = 'Configuração do Condomínio';
   showDeleteConfirm = false;
+  readonly permissionKey = 'CONFIGURACAOCONDOMINIO';
   canEdit = true;
   canDelete = true;
 
@@ -85,8 +85,18 @@ export class ConfiguracaoCondominioFormComponent implements OnInit {
     public condominioCtx: CondominioContextService,
     private lookup: LookupService
   ) {
-    this.canEdit = this.permissions.canEdit();
-    this.canDelete = this.permissions.canDelete();
+    this.refreshPermissions();
+  }
+
+  get podeGravar(): boolean {
+    return this.isEdit
+      ? this.permissions.can(this.permissionKey, 'Alterar')
+      : this.permissions.can(this.permissionKey, 'Incluir');
+  }
+
+  private refreshPermissions(): void {
+    this.canEdit = this.podeGravar;
+    this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
   get corHex(): string {
@@ -104,15 +114,17 @@ export class ConfiguracaoCondominioFormComponent implements OnInit {
 
     if (isNovo) {
       this.isEdit = false;
+      this.refreshPermissions();
       const idCond = this.condominioCtx.idCondominio;
       if (!idCond) {
-        this.formError = 'Selecione um condomínio no login (RT-Gerais 12).';
+        this.toast.showError('Selecione um condomínio no login (RT-Gerais 12).');
         return;
       }
       this.model.idCondominio = idCond;
       this.lookup.configuracaoPorCondominio(idCond).subscribe({
         next: cfg => {
           this.isEdit = true;
+          this.refreshPermissions();
           this.model = this.normalizarImagens(cfg);
         },
         error: () => {
@@ -124,9 +136,10 @@ export class ConfiguracaoCondominioFormComponent implements OnInit {
 
     if (idConfiguracao) {
       this.isEdit = true;
+      this.refreshPermissions();
       this.service.getById(idConfiguracao).subscribe({
         next: (r) => this.model = this.normalizarImagens(r),
-        error: () => this.formError = 'Registro não encontrado.'
+        error: () => this.toast.showError('Registro não encontrado.')
       });
     }
   }
@@ -147,20 +160,19 @@ export class ConfiguracaoCondominioFormComponent implements OnInit {
   }
 
   submit(f: NgForm): void {
-    if (!f.valid) { this.formError = 'Preencha os campos obrigatórios.'; return; }
+    if (!f.valid) { this.toast.showError('Preencha os campos obrigatórios antes de gravar.'); return; }
     this.saving = true;
-    this.formError = '';
     const body = this.payload();
     if (this.isEdit && this.model.idConfiguracao) {
       this.service.update(body).subscribe({
-        next: () => this.router.navigate(['/configuracaocondominio']),
-        error: (e: unknown) => { this.formError = (e as any)?.error?.title ?? (e as any)?.message ?? 'Erro ao gravar'; this.saving = false; },
+        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/configuracaocondominio']); },
+        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
         complete: () => this.saving = false
       });
     } else {
       this.service.create(body).subscribe({
-        next: () => this.router.navigate(['/configuracaocondominio']),
-        error: (e: unknown) => { this.formError = (e as any)?.error?.title ?? (e as any)?.message ?? 'Erro ao gravar'; this.saving = false; },
+        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/configuracaocondominio']); },
+        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
         complete: () => this.saving = false
       });
     }
@@ -171,6 +183,6 @@ export class ConfiguracaoCondominioFormComponent implements OnInit {
   confirmDelete(): void {
     const id = this.model.idConfiguracao;
     if (!id) return;
-    this.service.delete(id).subscribe({ next: () => this.router.navigate(['/configuracaocondominio']) });
+    this.service.delete(id).subscribe({ next: () => this.router.navigate(['/configuracaocondominio']), error: () => this.toast.showError('Não foi possível excluir. Tente novamente.') });
   }
 }

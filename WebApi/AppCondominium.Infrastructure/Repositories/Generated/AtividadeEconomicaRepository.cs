@@ -36,10 +36,10 @@ public class AtividadeEconomicaRepository
         return new PagedResult<AtividadeEconomica> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
     }
 
-    public async Task<AtividadeEconomica?> GetByIdAsync(uint? codigoTipoAtividadeEconomica, CancellationToken ct = default)
+    public async Task<AtividadeEconomica?> GetByIdAsync(uint? codigoAtividadeEconomica, CancellationToken ct = default)
     {
         var q = ApplyCondominioFilter(BaseQuery());
-        return await q.FirstOrDefaultAsync(e => e.CodigoTipoAtividadeEconomica == codigoTipoAtividadeEconomica, ct);
+        return await q.FirstOrDefaultAsync(e => e.CodigoAtividadeEconomica == codigoAtividadeEconomica, ct);
     }
 
     public async Task<AtividadeEconomica> AddAsync(AtividadeEconomica entity, CancellationToken ct = default)
@@ -56,9 +56,9 @@ public class AtividadeEconomicaRepository
         await _ctx.SaveChangesAsync(ct);
     }
 
-    public async Task<bool> DeleteAsync(uint? codigoTipoAtividadeEconomica, CancellationToken ct = default)
+    public async Task<bool> DeleteAsync(uint? codigoAtividadeEconomica, CancellationToken ct = default)
     {
-        var e = await GetByIdAsync(codigoTipoAtividadeEconomica, ct);
+        var e = await GetByIdAsync(codigoAtividadeEconomica, ct);
         if (e == null) return false;
         _ctx.Set<AtividadeEconomica>().Remove(e);
         await _ctx.SaveChangesAsync(ct);

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AppCondominium.API.Authorization;
 using AppCondominium.Application.Common;
 using AppCondominium.Domain.Entities;
 using AppCondominium.Infrastructure.Repositories.Generated;
@@ -9,6 +10,7 @@ namespace AppCondominium.API.Controllers.Generated;
 [ApiController]
 [Route("api/concorrencia")]
 [Authorize]
+[PermissionResource("CONCORRENCIA")]
 public class ConcorrenciaController : ControllerBase
 {
     private readonly ConcorrenciaRepository _repo;

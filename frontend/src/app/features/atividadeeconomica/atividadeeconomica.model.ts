@@ -1,4 +1,5 @@
 export interface AtividadeEconomica {
-  codigoTipoAtividadeEconomica?: number;
+  codigoAtividadeEconomica?: number;
   descricao?: string;
+  codigoTipoAtividadeEconomica?: number;
 }

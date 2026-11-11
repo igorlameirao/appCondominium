@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sagaz_condominium/common/custom_tile.dart';
+import 'package:sagaz_condominium/data/view_models/usuario_logado.dart';
+import 'package:sagaz_condominium/services/auth_service.dart';
 import 'package:sagaz_condominium/common/fundo_arredondado.dart';
 import 'package:sagaz_condominium/common/linha_campo.dart';
 import 'package:sagaz_condominium/common/preferencial_tema.dart';
@@ -19,6 +21,35 @@ Widget menuPagina(BuildContext context, int numeroPg, int vencimento) {
 }
 
 const _iconSize = 40.0;
+
+Future<void> _trocarCondominio(BuildContext context) async {
+  final controller = TextEditingController(text: '${UsuarioLogado.idCondominio ?? ''}');
+  final id = await showDialog<int>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Trocar condomínio'),
+      content: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(labelText: 'Id do condomínio'),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, int.tryParse(controller.text.trim())),
+          child: const Text('Trocar'),
+        ),
+      ],
+    ),
+  );
+  if (id == null || !context.mounted) return;
+  final ok = await AuthService().trocarCondominio(id);
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(ok ? 'Condomínio ativo: $id' : 'Sem acesso a este condomínio')),
+  );
+}
+
 List<Widget> _montarListaMenu(
     BuildContext context, int numeroPg, int vencimento) {
   var assetColorFilter = ColorFilter.mode(
@@ -26,6 +57,12 @@ List<Widget> _montarListaMenu(
       BlendMode.srcIn);
   List<Widget> lst = [];
   if (numeroPg < 2) {
+    lst.add(customTile(
+      context,
+      "Trocar condomínio\n#${UsuarioLogado.idCondominio ?? '-'}",
+      const Icon(Icons.apartment_outlined, size: _iconSize),
+      onTap: () => _trocarCondominio(context),
+    ));
     lst.add(_quadroAvisos(context));
 
     lst.add(_boletoCobranca(context, vencimento));
@@ -35,22 +72,26 @@ List<Widget> _montarListaMenu(
     //     SvgPicture.asset(
     //       'assets/images/svg/barcode.svg',
     //     )));
-    lst.add(
-      customTile(
+    if (UsuarioLogado.pode('HIDROMETRO', 'Visualizar')) {
+      lst.add(
+        customTile(
+          context,
+          "Leituras Hidrômetro",
+          SvgPicture.asset('assets/images/svg/water_pump.svg',
+              colorFilter: assetColorFilter),
+        ),
+      );
+    }
+    if (UsuarioLogado.pode('COBRANCA', 'Visualizar')) {
+      lst.add(customTile(
         context,
-        "Leituras Hidrômetro",
-        SvgPicture.asset('assets/images/svg/water_pump.svg',
-            colorFilter: assetColorFilter),
-      ),
-    );
-    lst.add(customTile(
-      context,
-      "Contas do Condomínio",
-      const Icon(
-        Icons.pie_chart_outline,
-        size: _iconSize,
-      ),
-    ));
+        "Contas do Condomínio",
+        const Icon(
+          Icons.pie_chart_outline,
+          size: _iconSize,
+        ),
+      ));
+    }
     lst.add(customTile(
       context,
       "Livro de\nReclamações",

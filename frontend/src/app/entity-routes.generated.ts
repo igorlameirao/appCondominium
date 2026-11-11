@@ -45,7 +45,7 @@
   { path: 'tipoatividadeeconomica/{codigoTipoAtividadeEconomica}', loadComponent: () => import('./features/tipoatividadeeconomica/tipoatividadeeconomica-form.component').then(m => m.TipoAtividadeEconomicaFormComponent) },
   { path: 'atividadeeconomica', loadComponent: () => import('./features/atividadeeconomica/atividadeeconomica-list.component').then(m => m.AtividadeEconomicaListComponent) },
   { path: 'atividadeeconomica/novo', loadComponent: () => import('./features/atividadeeconomica/atividadeeconomica-form.component').then(m => m.AtividadeEconomicaFormComponent) },
-  { path: 'atividadeeconomica/{codigoTipoAtividadeEconomica}', loadComponent: () => import('./features/atividadeeconomica/atividadeeconomica-form.component').then(m => m.AtividadeEconomicaFormComponent) },
+  { path: 'atividadeeconomica/{codigoAtividadeEconomica}', loadComponent: () => import('./features/atividadeeconomica/atividadeeconomica-form.component').then(m => m.AtividadeEconomicaFormComponent) },
   { path: 'pessoacondominio', loadComponent: () => import('./features/pessoacondominio/pessoacondominio-list.component').then(m => m.PessoaCondominioListComponent) },
   { path: 'pessoacondominio/novo', loadComponent: () => import('./features/pessoacondominio/pessoacondominio-form.component').then(m => m.PessoaCondominioFormComponent) },
   { path: 'pessoacondominio/{idPessoa}/{idCondominio}', loadComponent: () => import('./features/pessoacondominio/pessoacondominio-form.component').then(m => m.PessoaCondominioFormComponent) },

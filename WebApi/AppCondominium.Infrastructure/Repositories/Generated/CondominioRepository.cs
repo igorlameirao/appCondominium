@@ -21,6 +21,8 @@ public class CondominioRepository
 
     private IQueryable<Condominio> ApplyCondominioFilter(IQueryable<Condominio> query)
     {
+        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e => e.IdCondominio == tenantId);
         return query;
     }
 
@@ -29,7 +31,7 @@ public class CondominioRepository
         var query = ApplyCondominioFilter(BaseQuery().AsNoTracking());
 
         if (!string.IsNullOrWhiteSpace(filter) && filter.Length >= 3)
-            query = query.Where(e => (e.Nome != null && e.Nome.Contains(filter)));
+            query = query.Where(e => (e.Nome != null && e.Nome.Contains(filter)) || (e.Dominio != null && e.Dominio.Contains(filter)));
 
         var total = await query.CountAsync(ct);
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
@@ -44,6 +46,8 @@ public class CondominioRepository
 
     public async Task<Condominio> AddAsync(Condominio entity, CancellationToken ct = default)
     {
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
 
         await _ctx.Set<Condominio>().AddAsync(entity, ct);
         await _ctx.SaveChangesAsync(ct);
@@ -52,6 +56,8 @@ public class CondominioRepository
 
     public async Task UpdateAsync(Condominio entity, CancellationToken ct = default)
     {
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
         _ctx.Set<Condominio>().Update(entity);
         await _ctx.SaveChangesAsync(ct);
     }

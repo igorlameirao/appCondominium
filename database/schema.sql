@@ -1,6 +1,6 @@
 -- AppCondominium schema gerado (PK, FK, UNIQUE, INDEX)
-CREATE DATABASE IF NOT EXISTS appcondominium CHARACTER SET utf8mb4;
-USE appcondominium;
+CREATE DATABASE IF NOT EXISTS condominium CHARACTER SET utf8mb4;
+USE condominium;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -67,6 +67,9 @@ CREATE TABLE IF NOT EXISTS `Condominio` (
   `AreaTotalUnidades` DECIMAL(10,3) UNSIGNED NULL,
   `QuantidadeTotalUnidades` INT UNSIGNED NULL,
   `CNPJ` CHAR(14) NULL,
+  `Dominio` VARCHAR(255) NOT NULL,
+  `Ativo` TINYINT UNSIGNED NOT NULL,
+  `DataInativacao` DATETIME NULL,
   PRIMARY KEY (`IdCondominio`),
   UNIQUE KEY `uq_Condominio_Nome` (`Nome`),
   UNIQUE KEY `uq_Condominio_CNPJ` (`CNPJ`),
@@ -103,48 +106,6 @@ CREATE TABLE IF NOT EXISTS `TipoUnidade` (
   PRIMARY KEY (`IdTipoUnidade`),
   UNIQUE KEY `IdxCKTipoUnidade` (`IdCondominio`, `Descricao`),
   CONSTRAINT `fk_TipoUnidade_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `Unidade` (
-  `IdUnidade` INT UNSIGNED NOT NULL,
-  `IdCondominio` INT UNSIGNED NOT NULL,
-  `IdBloco` INT UNSIGNED NOT NULL,
-  `Numero` INT UNSIGNED NULL,
-  `IdTipoUnidade` INT UNSIGNED NOT NULL,
-  `IdHidrometro` INT UNSIGNED NOT NULL,
-  PRIMARY KEY (`IdUnidade`),
-  CONSTRAINT `fk_Unidade_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_Unidade_IdBloco` FOREIGN KEY (`IdBloco`) REFERENCES `Bloco` (`IdBloco`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_Unidade_IdTipoUnidade` FOREIGN KEY (`IdTipoUnidade`) REFERENCES `TipoUnidade` (`IdTipoUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_Unidade_IdHidrometro` FOREIGN KEY (`IdHidrometro`) REFERENCES `Hidrometro` (`IdHidrometro`) ON UPDATE CASCADE ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `Hidrometro` (
-  `IdHidrometro` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `IdCondominio` INT UNSIGNED NOT NULL,
-  `IdUnidade` INT UNSIGNED NOT NULL,
-  `NumeroSerie` VARCHAR(40) NOT NULL,
-  PRIMARY KEY (`IdHidrometro`),
-  UNIQUE KEY `IdxCKHidrometro` (`IdCondominio`, `NumeroSerie`),
-  CONSTRAINT `fk_Hidrometro_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_Hidrometro_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `ConsumoAgua` (
-  `IdConsumo` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `IdCondominio` INT UNSIGNED NOT NULL,
-  `IdUnidade` INT UNSIGNED NOT NULL,
-  `IdHidrometro` INT UNSIGNED NOT NULL,
-  `DataLeitura` DATETIME NOT NULL,
-  `LeituraHidrometro` INT UNSIGNED NOT NULL,
-  `Consumo` INT UNSIGNED NULL,
-  `MesReferencia` CHAR(7) NULL,
-  PRIMARY KEY (`IdConsumo`),
-  UNIQUE KEY `uq_ConsumoAgua_MesReferencia` (`MesReferencia`),
-  UNIQUE KEY `IdxCKConsumoAgua` (`IdUnidade`, `MesReferencia`, `IdHidrometro`),
-  CONSTRAINT `fk_ConsumoAgua_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_ConsumoAgua_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_ConsumoAgua_IdHidrometro` FOREIGN KEY (`IdHidrometro`) REFERENCES `Hidrometro` (`IdHidrometro`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `Pessoa` (
@@ -209,17 +170,19 @@ CREATE TABLE IF NOT EXISTS `TipoAtividadeEconomica` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `AtividadeEconomica` (
-  `CodigoTipoAtividadeEconomica` INT UNSIGNED NOT NULL,
+  `CodigoAtividadeEconomica` INT UNSIGNED NOT NULL,
   `Descricao` VARCHAR(255) NOT NULL,
-  PRIMARY KEY (`CodigoTipoAtividadeEconomica`)
+  `CodigoTipoAtividadeEconomica` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`CodigoAtividadeEconomica`),
+  CONSTRAINT `fk_AtividadeEconomica_CodigoTipoAtividadeEconomica` FOREIGN KEY (`CodigoTipoAtividadeEconomica`) REFERENCES `TipoAtividadeEconomica` (`CodigoTipoAtividadeEconomica`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `FornecedorAtividade` (
   `IdPessoa` INT UNSIGNED NOT NULL,
-  `CodigoTipoAtividadeEconomica` INT UNSIGNED NOT NULL,
-  PRIMARY KEY (`IdPessoa`, `CodigoTipoAtividadeEconomica`),
-  CONSTRAINT `fk_FornecedorAtividade_IdPessoa` FOREIGN KEY (`IdPessoa`) REFERENCES `PessoaJuridica` (`IdPessoa`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_FornecedorAtividade_CodigoTipoAtividadeEconomica` FOREIGN KEY (`CodigoTipoAtividadeEconomica`) REFERENCES `AtividadeEconomica` (`CodigoTipoAtividadeEconomica`) ON UPDATE CASCADE ON DELETE RESTRICT
+  `CodigoAtividadeEconomica` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`IdPessoa`, `CodigoAtividadeEconomica`),
+  CONSTRAINT `fk_FornecedorAtividade_IdPessoa` FOREIGN KEY (`IdPessoa`) REFERENCES `Pessoa` (`IdPessoa`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_FornecedorAtividade_CodigoAtividadeEconomica` FOREIGN KEY (`CodigoAtividadeEconomica`) REFERENCES `AtividadeEconomica` (`CodigoAtividadeEconomica`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `PessoaCondominio` (
@@ -227,10 +190,12 @@ CREATE TABLE IF NOT EXISTS `PessoaCondominio` (
   `IdCondominio` INT UNSIGNED NOT NULL,
   `DataInicio` DATE NOT NULL,
   `TipoVinculo` TINYINT UNSIGNED NOT NULL,
+  `IdPerfil` INT UNSIGNED NOT NULL,
   `DataFim` DATE NULL,
   PRIMARY KEY (`IdPessoa`, `IdCondominio`),
   CONSTRAINT `fk_PessoaCondominio_IdPessoa` FOREIGN KEY (`IdPessoa`) REFERENCES `Pessoa` (`IdPessoa`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_PessoaCondominio_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
+  CONSTRAINT `fk_PessoaCondominio_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_PessoaCondominio_IdPerfil` FOREIGN KEY (`IdPerfil`) REFERENCES `PerfilAcesso` (`IdPerfil`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `Equipamento` (
@@ -243,31 +208,14 @@ CREATE TABLE IF NOT EXISTS `Equipamento` (
   CONSTRAINT `fk_Equipamento_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `AluguelEquipamento` (
-  `IdAluguelEquipamento` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `IdUnidade` INT UNSIGNED NOT NULL,
-  `IdEquipamento` BIGINT UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS `TipoDespesa` (
+  `idTipoDespesa` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `IdCondominio` INT UNSIGNED NOT NULL,
-  `DataInicio` DATETIME NULL,
-  `DataFim` DATETIME NULL,
-  `Valor` DECIMAL(10,2) UNSIGNED NULL,
-  PRIMARY KEY (`IdAluguelEquipamento`),
-  CONSTRAINT `fk_AluguelEquipamento_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_AluguelEquipamento_IdEquipamento` FOREIGN KEY (`IdEquipamento`) REFERENCES `Equipamento` (`IdEquipamento`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_AluguelEquipamento_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `PessoaUnidade` (
-  `IdPessoa` INT UNSIGNED NOT NULL,
-  `IdUnidade` INT UNSIGNED NOT NULL,
-  `DataInicio` DATE NOT NULL,
-  `DataFim` DATE NULL,
-  `TipoVinculo` TINYINT UNSIGNED NOT NULL,
-  `Resposavel` TINYINT(1) NOT NULL,
-  `Procuracao` BLOB NULL,
-  PRIMARY KEY (`IdPessoa`, `IdUnidade`),
-  CONSTRAINT `fk_PessoaUnidade_IdPessoa` FOREIGN KEY (`IdPessoa`) REFERENCES `Pessoa` (`IdPessoa`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_PessoaUnidade_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT
+  `Descricao` VARCHAR(255) NOT NULL,
+  `TipoRateio` CHAR(1) NOT NULL,
+  `CodigoContabil` VARCHAR(50) NULL,
+  PRIMARY KEY (`idTipoDespesa`),
+  CONSTRAINT `fk_TipoDespesa_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `Concorrencia` (
@@ -286,16 +234,6 @@ CREATE TABLE IF NOT EXISTS `Concorrencia` (
   KEY `idx_Concorrencia_DataEncerramento` (`DataEncerramento`),
   CONSTRAINT `fk_Concorrencia_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_Concorrencia_idTipoDespesa` FOREIGN KEY (`idTipoDespesa`) REFERENCES `TipoDespesa` (`idTipoDespesa`) ON UPDATE CASCADE ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `TipoDespesa` (
-  `idTipoDespesa` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `IdCondominio` INT UNSIGNED NOT NULL,
-  `Descricao` VARCHAR(255) NOT NULL,
-  `TipoRateio` CHAR(1) NOT NULL,
-  `CodigoContabil` VARCHAR(50) NULL,
-  PRIMARY KEY (`idTipoDespesa`),
-  CONSTRAINT `fk_TipoDespesa_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `Despesa` (
@@ -359,59 +297,6 @@ CREATE TABLE IF NOT EXISTS `DadosBancarios` (
   CONSTRAINT `fk_DadosBancarios_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `Cobranca` (
-  `IdCobranca` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `IdCondominio` INT UNSIGNED NOT NULL,
-  `IdArquivoCobrancaRetorno` INT UNSIGNED NULL,
-  `SequencialRegistroRetorno` INT UNSIGNED NULL,
-  `IdArquivoCobrancaRemessa` INT UNSIGNED NULL,
-  `SequencialRegistroRemessa` INT UNSIGNED NULL,
-  `IdUnidade` INT UNSIGNED NOT NULL,
-  `DataGeracao` DATE NULL,
-  `DataVencimento` DATE NULL,
-  PRIMARY KEY (`IdCobranca`),
-  KEY `idx_Cobranca_SequencialRegistroRetorno` (`SequencialRegistroRetorno`),
-  KEY `idx_Cobranca_SequencialRegistroRemessa` (`SequencialRegistroRemessa`),
-  CONSTRAINT `fk_Cobranca_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_Cobranca_IdArquivoCobrancaRemessa` FOREIGN KEY (`IdArquivoCobrancaRemessa`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_Cobranca_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `CobrancaDetalhe` (
-  `IdCobrancaDetalhe` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `IdCondominio` INT UNSIGNED NOT NULL,
-  `IdAluguelEquipamento` INT UNSIGNED NULL,
-  `IdDespesa` BIGINT UNSIGNED NULL,
-  `IdCobranca` BIGINT UNSIGNED NULL,
-  `Descricao` VARCHAR(255) NULL,
-  `Valor` DECIMAL(10,2) UNSIGNED NOT NULL,
-  PRIMARY KEY (`IdCobrancaDetalhe`),
-  CONSTRAINT `fk_CobrancaDetalhe_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_CobrancaDetalhe_IdAluguelEquipamento` FOREIGN KEY (`IdAluguelEquipamento`) REFERENCES `AluguelEquipamento` (`IdAluguelEquipamento`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_CobrancaDetalhe_IdDespesa` FOREIGN KEY (`IdDespesa`) REFERENCES `Despesa` (`IdDespesa`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_CobrancaDetalhe_IdCobranca` FOREIGN KEY (`IdCobranca`) REFERENCES `Cobranca` (`IdCobranca`) ON UPDATE CASCADE ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `GuardaEncomenda` (
-  `IdGuardaEncomenda` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `IdCondominio` INT UNSIGNED NOT NULL,
-  `IdUnidade` INT UNSIGNED NOT NULL,
-  `CodigoEncomenda` VARCHAR(255) NOT NULL,
-  `IdLocal` INT UNSIGNED NULL,
-  `DataHoraEntrada` DATETIME NOT NULL,
-  `DataHoraSaida` DATETIME NULL,
-  `IdPessoaEntrada` INT UNSIGNED NOT NULL,
-  `IdPessoaSaida` INT UNSIGNED NULL,
-  PRIMARY KEY (`IdGuardaEncomenda`),
-  KEY `idx_GuardaEncomenda_CodigoEncomenda` (`CodigoEncomenda`),
-  KEY `idx_GuardaEncomenda_DataHoraEntrada` (`DataHoraEntrada`),
-  CONSTRAINT `fk_GuardaEncomenda_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_GuardaEncomenda_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_GuardaEncomenda_IdLocal` FOREIGN KEY (`IdLocal`) REFERENCES `Local` (`IdLocal`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_GuardaEncomenda_IdPessoaEntrada` FOREIGN KEY (`IdPessoaEntrada`) REFERENCES `Pessoa` (`IdPessoa`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_GuardaEncomenda_IdPessoaSaida` FOREIGN KEY (`IdPessoaSaida`) REFERENCES `PessoaUnidade` (`IdPessoa`, `IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE IF NOT EXISTS `Local` (
   `IdLocal` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `IdCondominio` INT UNSIGNED NOT NULL,
@@ -447,7 +332,7 @@ CREATE TABLE IF NOT EXISTS `Material` (
   `Patrimonio` VARCHAR(30) NOT NULL,
   `Descricao` VARCHAR(255) NULL,
   `IdTipoMaterial` INT UNSIGNED NOT NULL,
-  `VidaUtil` INT UNSIGNED NOT NULL,
+  `VidaUtil` VARCHAR(255) NULL,
   `ValorAquisicao` VARCHAR(255) NULL,
   `ValorDepreciavel` VARCHAR(255) NULL,
   `ValorDepreciacao` VARCHAR(255) NULL,
@@ -474,7 +359,7 @@ CREATE TABLE IF NOT EXISTS `AlocacaoMaterial` (
   KEY `idx_AlocacaoMaterial_DataHoraFim` (`DataHoraFim`),
   CONSTRAINT `fk_AlocacaoMaterial_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_AlocacaoMaterial_IdMaterial` FOREIGN KEY (`IdMaterial`) REFERENCES `Material` (`IdMaterial`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_AlocacaoMaterial_IdPessoa` FOREIGN KEY (`IdPessoa`) REFERENCES `PessoaCondominio` (`IdPessoa`, `IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_AlocacaoMaterial_IdPessoa` FOREIGN KEY (`IdPessoa`, `IdCondominio`) REFERENCES `PessoaCondominio` (`IdPessoa`, `IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_AlocacaoMaterial_IdLocal` FOREIGN KEY (`IdLocal`) REFERENCES `Local` (`IdLocal`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -504,7 +389,7 @@ CREATE TABLE IF NOT EXISTS `EntradaSaidaMaterialConsumo` (
   `IdEntradaSaidaMaterialConsumo` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `IdCondominio` INT UNSIGNED NOT NULL,
   `TipoLancamento` TINYINT UNSIGNED NOT NULL,
-  `IdEstoqueMaterialConsumo` BIGINT UNSIGNED NOT NULL,
+  `IdEstoqueMaterialConsumo` INT UNSIGNED NOT NULL,
   `IdTipoMaterial` INT UNSIGNED NOT NULL,
   `DataValidade` DATETIME NULL,
   `Lote` VARCHAR(20) NULL,
@@ -513,12 +398,169 @@ CREATE TABLE IF NOT EXISTS `EntradaSaidaMaterialConsumo` (
   `UnidadeMedida` TINYINT UNSIGNED NOT NULL,
   `IdPessoa` INT UNSIGNED NULL,
   PRIMARY KEY (`IdEntradaSaidaMaterialConsumo`),
-  KEY `idx_EntradaSaidaMaterialConsumo_IdEstoqueMaterialConsumo` (`IdEstoqueMaterialConsumo`),
   KEY `idx_EntradaSaidaMaterialConsumo_DataValidade` (`DataValidade`),
   KEY `idx_EntradaSaidaMaterialConsumo_Lote` (`Lote`),
   CONSTRAINT `fk_EntradaSaidaMaterialConsumo_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_EntradaSaidaMaterialConsumo_IdEstoqueMaterialConsumo` FOREIGN KEY (`IdEstoqueMaterialConsumo`) REFERENCES `EstoqueMaterialConsumo` (`IdEstoqueMaterialConsumo`) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_EntradaSaidaMaterialConsumo_IdTipoMaterial` FOREIGN KEY (`IdTipoMaterial`) REFERENCES `TipoMaterial` (`IdTipoMaterial`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_EntradaSaidaMaterialConsumo_IdPessoa` FOREIGN KEY (`IdPessoa`) REFERENCES `PessoaCondominio` (`IdPessoa`, `IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
+  CONSTRAINT `fk_EntradaSaidaMaterialConsumo_IdPessoa` FOREIGN KEY (`IdPessoa`, `IdCondominio`) REFERENCES `PessoaCondominio` (`IdPessoa`, `IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `PermissionKey` (
+  `IdPermissionKey` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `Chave` VARCHAR(80) NOT NULL,
+  `Nome` VARCHAR(150) NOT NULL,
+  `Modulo` VARCHAR(80) NOT NULL,
+  PRIMARY KEY (`IdPermissionKey`),
+  UNIQUE KEY `uq_PermissionKey_Chave` (`Chave`),
+  KEY `idx_PermissionKey_Nome` (`Nome`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `PerfilPermissao` (
+  `IdPerfil` INT UNSIGNED NOT NULL,
+  `IdPermissionKey` INT UNSIGNED NOT NULL,
+  `Visualizar` TINYINT(1) NOT NULL,
+  `Incluir` TINYINT(1) NOT NULL,
+  `Alterar` TINYINT(1) NOT NULL,
+  `Excluir` TINYINT(1) NOT NULL,
+  PRIMARY KEY (`IdPerfil`, `IdPermissionKey`),
+  CONSTRAINT `fk_PerfilPermissao_IdPerfil` FOREIGN KEY (`IdPerfil`) REFERENCES `PerfilAcesso` (`IdPerfil`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_PerfilPermissao_IdPermissionKey` FOREIGN KEY (`IdPermissionKey`) REFERENCES `PermissionKey` (`IdPermissionKey`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `PessoaPermissaoExcecao` (
+  `IdPessoa` INT UNSIGNED NOT NULL,
+  `IdCondominio` INT UNSIGNED NOT NULL,
+  `IdPermissionKey` INT UNSIGNED NOT NULL,
+  `Visualizar` TINYINT(1) NOT NULL,
+  `Incluir` TINYINT(1) NOT NULL,
+  `Alterar` TINYINT(1) NOT NULL,
+  `Excluir` TINYINT(1) NOT NULL,
+  PRIMARY KEY (`IdPessoa`, `IdCondominio`, `IdPermissionKey`),
+  CONSTRAINT `fk_PessoaPermissaoExcecao_IdPessoa` FOREIGN KEY (`IdPessoa`) REFERENCES `Pessoa` (`IdPessoa`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_PessoaPermissaoExcecao_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_PessoaPermissaoExcecao_IdPermissionKey` FOREIGN KEY (`IdPermissionKey`) REFERENCES `PermissionKey` (`IdPermissionKey`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `Unidade` (
+  `IdUnidade` INT UNSIGNED NOT NULL,
+  `IdCondominio` INT UNSIGNED NOT NULL,
+  `IdBloco` INT UNSIGNED NOT NULL,
+  `Numero` INT UNSIGNED NULL,
+  `IdTipoUnidade` INT UNSIGNED NOT NULL,
+  `IdHidrometro` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`IdUnidade`),
+  CONSTRAINT `fk_Unidade_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_Unidade_IdBloco` FOREIGN KEY (`IdBloco`) REFERENCES `Bloco` (`IdBloco`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_Unidade_IdTipoUnidade` FOREIGN KEY (`IdTipoUnidade`) REFERENCES `TipoUnidade` (`IdTipoUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_Unidade_IdHidrometro` FOREIGN KEY (`IdHidrometro`) REFERENCES `Hidrometro` (`IdHidrometro`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `Hidrometro` (
+  `IdHidrometro` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `IdCondominio` INT UNSIGNED NOT NULL,
+  `IdUnidade` INT UNSIGNED NOT NULL,
+  `NumeroSerie` VARCHAR(40) NOT NULL,
+  PRIMARY KEY (`IdHidrometro`),
+  UNIQUE KEY `IdxCKHidrometro` (`IdCondominio`, `NumeroSerie`),
+  CONSTRAINT `fk_Hidrometro_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_Hidrometro_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ConsumoAgua` (
+  `IdConsumo` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `IdCondominio` INT UNSIGNED NOT NULL,
+  `IdUnidade` INT UNSIGNED NOT NULL,
+  `IdHidrometro` INT UNSIGNED NOT NULL,
+  `DataLeitura` DATETIME NOT NULL,
+  `LeituraHidrometro` INT UNSIGNED NOT NULL,
+  `Consumo` INT UNSIGNED NULL,
+  `MesReferencia` CHAR(7) NULL,
+  PRIMARY KEY (`IdConsumo`),
+  UNIQUE KEY `uq_ConsumoAgua_MesReferencia` (`MesReferencia`),
+  UNIQUE KEY `IdxCKConsumoAgua` (`IdUnidade`, `MesReferencia`, `IdHidrometro`),
+  CONSTRAINT `fk_ConsumoAgua_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_ConsumoAgua_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_ConsumoAgua_IdHidrometro` FOREIGN KEY (`IdHidrometro`) REFERENCES `Hidrometro` (`IdHidrometro`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `AluguelEquipamento` (
+  `IdAluguelEquipamento` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `IdUnidade` INT UNSIGNED NOT NULL,
+  `IdEquipamento` INT UNSIGNED NOT NULL,
+  `IdCondominio` INT UNSIGNED NOT NULL,
+  `DataInicio` DATETIME NULL,
+  `DataFim` DATETIME NULL,
+  `Valor` DECIMAL(10,2) UNSIGNED NULL,
+  PRIMARY KEY (`IdAluguelEquipamento`),
+  CONSTRAINT `fk_AluguelEquipamento_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_AluguelEquipamento_IdEquipamento` FOREIGN KEY (`IdEquipamento`) REFERENCES `Equipamento` (`IdEquipamento`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_AluguelEquipamento_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `PessoaUnidade` (
+  `IdPessoa` INT UNSIGNED NOT NULL,
+  `IdUnidade` INT UNSIGNED NOT NULL,
+  `DataInicio` DATE NOT NULL,
+  `DataFim` DATE NULL,
+  `TipoVinculo` TINYINT UNSIGNED NOT NULL,
+  `Resposavel` TINYINT(1) NOT NULL,
+  `Procuracao` BLOB NULL,
+  PRIMARY KEY (`IdPessoa`, `IdUnidade`),
+  CONSTRAINT `fk_PessoaUnidade_IdPessoa` FOREIGN KEY (`IdPessoa`) REFERENCES `Pessoa` (`IdPessoa`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_PessoaUnidade_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `Cobranca` (
+  `IdCobranca` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `IdCondominio` INT UNSIGNED NOT NULL,
+  `IdArquivoCobrancaRetorno` INT UNSIGNED NULL,
+  `SequencialRegistroRetorno` INT UNSIGNED NULL,
+  `IdArquivoCobrancaRemessa` INT UNSIGNED NULL,
+  `SequencialRegistroRemessa` INT UNSIGNED NULL,
+  `IdUnidade` INT UNSIGNED NOT NULL,
+  `DataGeracao` DATE NULL,
+  `DataVencimento` DATE NULL,
+  PRIMARY KEY (`IdCobranca`),
+  KEY `idx_Cobranca_SequencialRegistroRetorno` (`SequencialRegistroRetorno`),
+  KEY `idx_Cobranca_SequencialRegistroRemessa` (`SequencialRegistroRemessa`),
+  CONSTRAINT `fk_Cobranca_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_Cobranca_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `CobrancaDetalhe` (
+  `IdCobrancaDetalhe` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `IdCondominio` INT UNSIGNED NOT NULL,
+  `IdAluguelEquipamento` INT UNSIGNED NULL,
+  `IdDespesa` BIGINT UNSIGNED NULL,
+  `IdCobranca` BIGINT UNSIGNED NULL,
+  `Descricao` VARCHAR(255) NULL,
+  `Valor` DECIMAL(10,2) UNSIGNED NOT NULL,
+  PRIMARY KEY (`IdCobrancaDetalhe`),
+  CONSTRAINT `fk_CobrancaDetalhe_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_CobrancaDetalhe_IdAluguelEquipamento` FOREIGN KEY (`IdAluguelEquipamento`) REFERENCES `AluguelEquipamento` (`IdAluguelEquipamento`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_CobrancaDetalhe_IdDespesa` FOREIGN KEY (`IdDespesa`) REFERENCES `Despesa` (`IdDespesa`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_CobrancaDetalhe_IdCobranca` FOREIGN KEY (`IdCobranca`) REFERENCES `Cobranca` (`IdCobranca`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `GuardaEncomenda` (
+  `IdGuardaEncomenda` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `IdCondominio` INT UNSIGNED NOT NULL,
+  `IdUnidade` INT UNSIGNED NOT NULL,
+  `CodigoEncomenda` VARCHAR(255) NOT NULL,
+  `IdLocal` INT UNSIGNED NULL,
+  `DataHoraEntrada` DATETIME NOT NULL,
+  `DataHoraSaida` DATETIME NULL,
+  `IdPessoaEntrada` INT UNSIGNED NOT NULL,
+  `IdPessoaSaida` INT UNSIGNED NULL,
+  PRIMARY KEY (`IdGuardaEncomenda`),
+  KEY `idx_GuardaEncomenda_CodigoEncomenda` (`CodigoEncomenda`),
+  KEY `idx_GuardaEncomenda_DataHoraEntrada` (`DataHoraEntrada`),
+  CONSTRAINT `fk_GuardaEncomenda_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_GuardaEncomenda_IdUnidade` FOREIGN KEY (`IdUnidade`) REFERENCES `Unidade` (`IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_GuardaEncomenda_IdLocal` FOREIGN KEY (`IdLocal`) REFERENCES `Local` (`IdLocal`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_GuardaEncomenda_IdPessoaEntrada` FOREIGN KEY (`IdPessoaEntrada`) REFERENCES `Pessoa` (`IdPessoa`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `fk_GuardaEncomenda_IdPessoaSaida` FOREIGN KEY (`IdPessoaSaida`, `IdUnidade`) REFERENCES `PessoaUnidade` (`IdPessoa`, `IdUnidade`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastService } from '../../core/services/toast.service';
 import { UFService } from './uf.service';
 import { UF } from './uf.model';
 import { PermissionService } from '../../core/services/permission.service';
@@ -17,17 +18,17 @@ import { LookupService, MunicipioResumo } from '../../core/services/lookup.servi
       <h2>{{ isEdit ? 'Editar' : 'Novo' }} UF</h2>
       <div class="form-scroll">
         <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
-          <div class="grid grid-2">
-            <div class="form-group">
+          <div class="form-grid">
+            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
               <label>Sigla UF *</label>
               <input type="text" [(ngModel)]="model.siglaUF" name="siglaUF" maxlength="2"
-                [readonly]="isEdit || fieldDisabled('siglaUF')" style="text-transform: uppercase" />
+                [readonly]="isEdit || fieldDisabled('siglaUF')" style="text-transform: uppercase" required />
             </div>
-            <div class="form-group">
+            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
               <label>Estado *</label>
               <input type="text" [(ngModel)]="model.estado" name="estado" maxlength="150" [readonly]="fieldDisabled('estado')" required />
             </div>
-            <div class="form-group">
+            <div style="grid-column: 1 / span 2; grid-row: 3" class="form-group fg-col-2">
               <label>Código IBGE *</label>
               <input type="number" [(ngModel)]="model.codigoIBGE" name="codigoIBGE" [readonly]="fieldDisabled('codigoIBGE')" required />
             </div>
@@ -49,17 +50,18 @@ import { LookupService, MunicipioResumo } from '../../core/services/lookup.servi
         </form>
       </div>
       <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !canEdit">Gravar</button>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
+        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
       </div>
-      <div class="msg-erro" *ngIf="formError">{{ formError }}</div>
     </div>
     <div class="confirm-overlay" *ngIf="showDeleteConfirm">
       <div class="confirm-modal">
         <p>Deseja realmente excluir este registro?</p>
-        <button type="button" class="btn-cancelar" (click)="showDeleteConfirm=false">Cancelar</button>
-        <button type="button" class="btn-excluir" (click)="confirmDelete()">Excluir</button>
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancelar-modal" (click)="showDeleteConfirm=false">Cancelar</button>
+          <button type="button" class="btn-confirm-danger" (click)="confirmDelete()">Excluir</button>
+        </div>
       </div>
     </div>
   `,
@@ -77,8 +79,10 @@ export class UFFormComponent implements OnInit {
   model: UF = {} as UF;
   isEdit = false;
   saving = false;
-  formError = '';
+  private readonly toast = inject(ToastService);
+  private readonly entityTitle = 'UF';
   showDeleteConfirm = false;
+  readonly permissionKey = 'UF';
   canEdit = true;
   canDelete = true;
   municipios: MunicipioResumo[] = [];
@@ -90,8 +94,18 @@ export class UFFormComponent implements OnInit {
     private permissions: PermissionService,
     private lookup: LookupService
   ) {
-    this.canEdit = this.permissions.canEdit();
-    this.canDelete = this.permissions.canDelete();
+    this.refreshPermissions();
+  }
+
+  get podeGravar(): boolean {
+    return this.isEdit
+      ? this.permissions.can(this.permissionKey, 'Alterar')
+      : this.permissions.can(this.permissionKey, 'Incluir');
+  }
+
+  private refreshPermissions(): void {
+    this.canEdit = this.podeGravar;
+    this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
   ngOnInit(): void {
@@ -99,16 +113,18 @@ export class UFFormComponent implements OnInit {
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
     if (isNovo) {
       this.isEdit = false;
+      this.refreshPermissions();
       return;
     }
     if (siglaUF) {
       this.isEdit = true;
+      this.refreshPermissions();
       this.service.getById(siglaUF).subscribe({
         next: (r) => {
           this.model = r;
           this.carregarMunicipios();
         },
-        error: () => this.formError = 'Registro não encontrado.'
+        error: () => this.toast.showError('Registro não encontrado.')
       });
     }
   }
@@ -128,20 +144,19 @@ export class UFFormComponent implements OnInit {
   }
 
   submit(f: NgForm): void {
-    if (!f.valid) { this.formError = 'Preencha os campos obrigatórios.'; return; }
+    if (!f.valid) { this.toast.showError('Preencha os campos obrigatórios antes de gravar.'); return; }
     if (this.model.siglaUF) this.model.siglaUF = this.model.siglaUF.toUpperCase();
     this.saving = true;
-    this.formError = '';
     if (this.isEdit) {
       this.service.update(this.model).subscribe({
-        next: () => this.router.navigate(['/uf']),
-        error: (e: unknown) => { this.formError = (e as any)?.error?.title ?? (e as any)?.message ?? 'Erro ao gravar'; this.saving = false; },
+        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/uf']); },
+        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
         complete: () => this.saving = false
       });
     } else {
       this.service.create(this.model).subscribe({
-        next: () => this.router.navigate(['/uf']),
-        error: (e: unknown) => { this.formError = (e as any)?.error?.title ?? (e as any)?.message ?? 'Erro ao gravar'; this.saving = false; },
+        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/uf']); },
+        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
         complete: () => this.saving = false
       });
     }
@@ -152,6 +167,6 @@ export class UFFormComponent implements OnInit {
   confirmDelete(): void {
     const id = this.model.siglaUF ?? this.route.snapshot.paramMap.get('siglaUF');
     if (!id) return;
-    this.service.delete(id).subscribe({ next: () => this.router.navigate(['/uf']) });
+    this.service.delete(id).subscribe({ next: () => this.router.navigate(['/uf']), error: () => this.toast.showError('Não foi possível excluir. Tente novamente.') });
   }
 }

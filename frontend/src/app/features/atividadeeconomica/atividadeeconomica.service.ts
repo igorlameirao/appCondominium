@@ -17,8 +17,8 @@ export class AtividadeEconomicaService {
     return this.http.get<PagedResult<AtividadeEconomica>>(this.base, { params });
   }
 
-  getById(codigoTipoAtividadeEconomica: number | string): Observable<AtividadeEconomica> {
-    return this.http.get<AtividadeEconomica>(`${this.base}/${codigoTipoAtividadeEconomica}`);
+  getById(codigoAtividadeEconomica: number | string): Observable<AtividadeEconomica> {
+    return this.http.get<AtividadeEconomica>(`${this.base}/${codigoAtividadeEconomica}`);
   }
 
   create(item: AtividadeEconomica): Observable<AtividadeEconomica> {
@@ -26,10 +26,10 @@ export class AtividadeEconomicaService {
   }
 
   update(item: AtividadeEconomica): Observable<void> {
-    return this.http.put<void>(`${this.base}/${item.codigoTipoAtividadeEconomica}`, item);
+    return this.http.put<void>(`${this.base}/${item.codigoAtividadeEconomica}`, item);
   }
 
-  delete(codigoTipoAtividadeEconomica: number | string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${codigoTipoAtividadeEconomica}`);
+  delete(codigoAtividadeEconomica: number | string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${codigoAtividadeEconomica}`);
   }
 }

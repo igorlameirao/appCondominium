@@ -28,7 +28,7 @@ import {
     <span class="doc-erro" *ngIf="invalid && touched">Documento inválido</span>
   `,
   styles: [`
-    .doc-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
+    .doc-input { width: 100%; padding: 5px 10px; min-height: 2.125rem; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
     .doc-input--invalid { border-color: #dc3545; box-shadow: 0 0 0 2px rgba(220,53,69,.15); }
     .doc-erro { color: #dc3545; font-size: 12px; }
   `]

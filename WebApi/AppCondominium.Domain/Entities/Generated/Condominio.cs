@@ -12,4 +12,7 @@ public class Condominio
     public decimal? AreaTotalUnidades { get; set; }
     public uint? QuantidadeTotalUnidades { get; set; }
     public string? CNPJ { get; set; }
+    public string? Dominio { get; set; }
+    public byte? Ativo { get; set; }
+    public DateTime? DataInativacao { get; set; }
 }

@@ -3,6 +3,8 @@
 @import 'leaflet/dist/leaflet.css';
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import './styles-premium-shell.css';
+@import './styles-buttons.css';
+@import './styles-login.css';
 
 /* Leaflet/OpenStreetMap: `img` com max-width e ancestrais com scroll quebram o encaixe dos tiles */
 .leaflet-container img.leaflet-tile,
@@ -61,13 +63,13 @@ select {
   font-size: 12px;
 }
 
-/* Estilos para campos obrigatórios (exceto checkbox/radio — sombra não deve “crescer” além do controle) */
+/* Campos obrigatórios: vazio vermelho, preenchido slate, sem sombra (hug SCO). */
 input[required]:not([type="checkbox"]):not([type="radio"]),
 select[required],
 textarea[required] {
   border: 1px solid #dc3545 !important;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.24) !important;
+  box-shadow: none !important;
 }
 
 input[required]:not([type="checkbox"]):not([type="radio"]).ng-valid,
@@ -76,8 +78,8 @@ select[required].ng-valid,
 select[required]:valid,
 textarea[required].ng-valid,
 textarea[required]:valid {
-  border-color: #000 !important;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.24) !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: none !important;
 }
 
 input[required]:not([type="checkbox"]):not([type="radio"]).ng-invalid,
@@ -85,9 +87,10 @@ input[required]:not([type="checkbox"]):not([type="radio"]):invalid,
 select[required].ng-invalid,
 select[required]:invalid,
 textarea[required].ng-invalid,
-textarea[required]:invalid {
-  border-color: #dc3545 !important;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.24) !important;
+textarea[required]:invalid,
+select[required]:has(> option.opt-placeholder:checked) {
+  border: 1px solid #dc3545 !important;
+  box-shadow: none !important;
 }
 
 input:not([required]):not(.readonly):not([disabled]):not([type="checkbox"]):not([type="radio"]),
@@ -165,7 +168,7 @@ textarea:focus:not([disabled]),
  * máximo = viewport — aí a .table-scroll-wrapper ganha scroll horizontal se preciso.
  * Lista principal /ocorrencia + catálogos full (Categoria/Tipo/Subtipo, catalogo-ocorrencia-list-full) excluídas: shell flex até ao rodapé no app.component.
  */
-.content-card:not(.content-card-ocorrencia-list):not(.content-card-catalogo-ocorrencia-list-full):has(.list-page) {
+.content-card:not(.content-card-ocorrencia-list):not(.content-card-catalogo-ocorrencia-list-full):not(.content-card-entity-list):has(.list-page) {
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -180,11 +183,11 @@ textarea:focus:not([disabled]),
   margin-right: auto;
   align-self: center;
   box-sizing: border-box;
-  max-height: min(100%, calc(100vh - 172px));
-  max-height: min(100%, calc(100dvh - 172px));
+  flex: 0 1 auto;
+  max-height: 100%;
 }
 
-.content-card:not(.content-card-ocorrencia-list):not(.content-card-catalogo-ocorrencia-list-full) > *:has(.list-page) {
+.content-card:not(.content-card-ocorrencia-list):not(.content-card-catalogo-ocorrencia-list-full):not(.content-card-entity-list) > *:has(.list-page) {
   display: flex;
   flex-direction: column;
   flex: 0 1 auto;
@@ -197,13 +200,26 @@ textarea:focus:not([disabled]),
 .list-page {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   min-width: 0;
   width: max-content;
   max-width: 100%;
   overflow: hidden;
   padding: 0;
+}
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-row label { font-weight: 600; font-size: 12px; color: #334155; }
+.filter-row input[type="text"] {
+  padding: 5px 10px;
+  min-height: 2.125rem;
+  font-size: 12px;
+  border-radius: 6px;
 }
 /* Materiais — listas: card e tabela na largura útil (sobrescreve max-content genérico das listas). */
 .content-card.content-card-materiais-list,
@@ -293,19 +309,22 @@ textarea:focus:not([disabled]),
   display: inline-block;
   position: relative;
   padding-bottom: 10px;
+  z-index: 0;
 }
 .content-card:has(.list-page) .list-header h2::after {
   content: '';
   position: absolute;
-  left: 50%;
+  left: 0;
   bottom: 0;
-  width: 400%;
-  min-width: 120px;
-  max-width: 800px;
+  width: 100%;
   height: 4px;
-  transform: translateX(-50%);
   background: linear-gradient(to right, #0891b2 0%, #ffffff 100%);
   border-radius: 0;
+  pointer-events: none;
+}
+.content-card:has(.list-page) .list-header .filter-row {
+  position: relative;
+  z-index: 1;
 }
 
 .content-wrapper:has(app-uf-list),
@@ -411,7 +430,7 @@ app-funcao-form.form-page .form-group.col-funcao-nome input[type="text"] {
  * Novo/editar: fallback quando o módulo não define card próprio (especificidade baixa).
  * Ocorrência: formulário largo — excluída.
  */
-:where(.content-card):has(.form-layout):not(:has(.list-page)):not(:has(app-ocorrencia-form)):not(:has(app-abastecimento-viatura-form)):not(:has(app-alocacao-viatura-check-in)):not(:has(app-alocacao-viatura-checkout)):not(:has(app-alocacao-viatura-view)):not(:has(app-fabricante-veiculo-form)):not(:has(app-modelo-veiculo-form)):not(:has(app-viatura-form)) {
+:where(.content-card):has(.form-layout):not(.content-card-entity-form):not(:has(.list-page)):not(:has(app-ocorrencia-form)):not(:has(app-abastecimento-viatura-form)):not(:has(app-alocacao-viatura-check-in)):not(:has(app-alocacao-viatura-checkout)):not(:has(app-alocacao-viatura-view)):not(:has(app-fabricante-veiculo-form)):not(:has(app-modelo-veiculo-form)):not(:has(app-viatura-form)) {
   width: 100%;
   max-width: min(900px, calc(100vw - 40px));
   margin-left: auto;
@@ -419,25 +438,29 @@ app-funcao-form.form-page .form-group.col-funcao-nome input[type="text"] {
   align-self: center;
   box-sizing: border-box;
 }
-:where(.content-card):has(.form-layout):not(:has(.list-page)):not(:has(app-ocorrencia-form)):not(:has(app-abastecimento-viatura-form)):not(:has(app-alocacao-viatura-check-in)):not(:has(app-alocacao-viatura-checkout)):not(:has(app-alocacao-viatura-view)):not(:has(app-fabricante-veiculo-form)):not(:has(app-modelo-veiculo-form)):not(:has(app-viatura-form)) .form-page .form-layout {
+:where(.content-card):has(.form-layout):not(.content-card-entity-form):not(:has(.list-page)):not(:has(app-ocorrencia-form)):not(:has(app-abastecimento-viatura-form)):not(:has(app-alocacao-viatura-check-in)):not(:has(app-alocacao-viatura-checkout)):not(:has(app-alocacao-viatura-view)):not(:has(app-fabricante-veiculo-form)):not(:has(app-modelo-veiculo-form)):not(:has(app-viatura-form)) .form-page .form-layout {
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
 }
 
-/* Layout das telas de inclusão/edição */
+/* Layout das telas de inclusão/edição — hug: altura pelo conteúdo, sem esticar o host. */
 .form-page {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  flex: 1;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .form-page .form-layout {
   display: flex;
   flex-direction: column;
-  max-width: 900px;
+  max-width: 100%;
+  width: 100%;
   min-height: 0;
-  flex: 1;
+  flex: 0 0 auto;
 }
 .form-page .form-layout h2 {
   flex-shrink: 0;
@@ -459,17 +482,17 @@ app-funcao-form.form-page .form-group.col-funcao-nome input[type="text"] {
   border-radius: 0;
 }
 .form-page .form-scroll {
-  flex: 1;
+  flex: 0 0 auto;
   min-height: 0;
-  overflow-y: auto;
+  overflow: visible;
   padding-right: 8px;
   margin-bottom: 12px;
-  /* Igual Nova Ocorrência (ocorrencia-form): fundo branco, borda slate — sem cinza #fafafa. */
+  /* Fundo branco, borda slate. Scroll fica no card hug, nao neste miolo. */
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: #fff;
   box-sizing: border-box;
-  scrollbar-gutter: stable;
+  scrollbar-gutter: auto;
 }
 .form-page .form-scroll form {
   display: block;
@@ -550,182 +573,8 @@ app-subtipo-ocorrencia-form.form-page .form-scroll {
   margin: 0;
   padding: 8px 0 0 0;
   border-top: 1px solid #eee;
-  display: flex;
-  gap: 24px;
-}
-.form-page .actions.form-actions button {
-  padding: 6px 14px;
-  cursor: pointer;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background: #f8f8f8;
-}
-.form-page .actions.form-actions button:hover:not(:disabled) {
-  background: #eee;
 }
 
-.btn-excluir,
-.form-page .actions.form-actions .btn-excluir {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  text-align: right;
-  background: linear-gradient(45deg, #6c757d 0%, #8b9198 21%, #adb5bd 33%, transparent 40%), #fff;
-  color: #495057;
-  border: none;
-  border-radius: 999px;
-  padding: 10px 24px 10px 32px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  overflow: visible;
-}
-.btn-excluir:hover:not(:disabled),
-.form-page .actions.form-actions .btn-excluir:hover:not(:disabled) {
-  background: linear-gradient(45deg, #5a6268 0%, #8b9198 21%, #adb5bd 33%, transparent 40%), #f8f9fa;
-}
-.btn-excluir::before,
-.form-page .actions.form-actions .btn-excluir::before {
-  content: '';
-  position: absolute;
-  left: -16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'/%3E%3C/svg%3E") no-repeat center,
-    linear-gradient(135deg, #dc3545 0%, #c82333 50%, #bd2130 100%);
-  background-size: 20px 20px, 100% 100%;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2), 2px 2px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1;
-}
-
-.btn-cancelar,
-.form-page .actions.form-actions .btn-cancelar {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  text-align: right;
-  background: linear-gradient(45deg, #6c757d 0%, #8b9198 21%, #adb5bd 33%, transparent 40%), #fff;
-  color: #495057;
-  border: none;
-  border-radius: 999px;
-  padding: 10px 24px 10px 32px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  overflow: visible;
-}
-.btn-cancelar:hover:not(:disabled),
-.form-page .actions.form-actions .btn-cancelar:hover:not(:disabled) {
-  background: linear-gradient(45deg, #5a6268 0%, #8b9198 21%, #adb5bd 33%, transparent 40%), #f8f9fa;
-}
-.btn-cancelar::before,
-.form-page .actions.form-actions .btn-cancelar::before {
-  content: '';
-  position: absolute;
-  left: -16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M20 11H6.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L6.83 13H20v-2z'/%3E%3C/svg%3E") no-repeat center,
-    linear-gradient(135deg, #dc3545 0%, #c82333 50%, #bd2130 100%);
-  background-size: 26px 26px, 100% 100%;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2), 2px 2px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1;
-}
-
-.btn-gravar,
-.form-page .actions.form-actions .btn-gravar {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  text-align: right;
-  background: linear-gradient(45deg, #6c757d 0%, #8b9198 21%, #adb5bd 33%, transparent 40%), #fff;
-  color: #495057;
-  border: none;
-  border-radius: 999px;
-  padding: 10px 24px 10px 32px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  overflow: visible;
-}
-.btn-gravar:hover:not(:disabled),
-.form-page .actions.form-actions .btn-gravar:hover:not(:disabled) {
-  background: linear-gradient(45deg, #5a6268 0%, #8b9198 21%, #adb5bd 33%, transparent 40%), #f8f9fa;
-}
-.btn-gravar::before,
-.form-page .actions.form-actions .btn-gravar::before {
-  content: '';
-  position: absolute;
-  left: -16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M10 16.17l-4.59-4.58L7 10.17l3 3 7-7 1.41 1.41z'/%3E%3C/svg%3E") no-repeat center,
-    linear-gradient(135deg, #28a745 0%, #20c997 50%, #17a2b8 100%);
-  background-size: 20px 20px, 100% 100%;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2), 2px 2px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1;
-}
-
-.btn-novo {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  text-align: right;
-  margin-right: 16px;
-  background: linear-gradient(45deg, #6c757d 0%, #8b9198 21%, #adb5bd 33%, transparent 40%), #fff;
-  color: #495057;
-  border: none;
-  border-radius: 999px;
-  padding: 10px 24px 10px 32px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  overflow: visible;
-  z-index: 2;
-}
-.btn-novo:hover:not(:disabled) {
-  background: linear-gradient(45deg, #5a6268 0%, #8b9198 21%, #adb5bd 33%, transparent 40%), #f8f9fa;
-}
-.btn-novo::before {
-  content: '';
-  position: absolute;
-  left: -16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='5' y='2' width='14' height='20' rx='1' fill='white'/%3E%3Cline x1='8' y1='7' x2='16' y2='7' stroke='%230d6efd' stroke-width='1'/%3E%3Cline x1='8' y1='11' x2='16' y2='11' stroke='%230d6efd' stroke-width='1'/%3E%3Cline x1='8' y1='15' x2='14' y2='15' stroke='%230d6efd' stroke-width='1'/%3E%3C/svg%3E") no-repeat center,
-    linear-gradient(135deg, #0d6efd 0%, #0b5ed7 50%, #0a58ca 100%);
-  background-size: 20px 20px, 100% 100%;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2), 2px 2px 6px rgba(0, 0, 0, 0.1);
-  z-index: 3;
-}
 
 /* Município (form): largura do groupbox = card (~520px no app.component), campos 100%. */
 app-municipio-form.form-page {
@@ -1417,4 +1266,396 @@ app-ocorrencia-list .checkin-filtros-panel .filtro-periodo .periodo-inputs input
   max-width: 10.1rem;
   flex: 0 0 auto;
 }
+
+/* Hug Escalas — cards genéricos do AppCondominium (lista pelo conteúdo, form 720/1040). */
+.content-wrapper--list-hug .content-card.content-card-entity-list {
+  width: 90%;
+  max-width: 90%;
+  min-width: 0;
+  height: 90%;
+  min-height: 90%;
+  max-height: 90%;
+  flex: 0 0 auto;
+  align-self: center;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  padding: 24px;
+  scrollbar-gutter: auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-list > router-outlet + *,
+.content-wrapper--list-hug .content-card.content-card-entity-list > *:not(router-outlet) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  overflow: hidden;
+  align-self: stretch;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-list .list-page {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  justify-content: flex-start;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-list .list-header {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 12px 16px;
+  align-items: center;
+  justify-content: stretch;
+  margin-bottom: 12px;
+  padding-top: 0;
+  width: 100%;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-list .list-header h2 {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  margin: 0;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-list .list-header .top-actions {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-list .list-header .filter-row {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  margin: 0;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-list .table-scroll-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-list .list-footer {
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: 12px;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-form {
+  width: 90%;
+  max-width: 90%;
+  min-width: 0;
+  height: 90%;
+  min-height: 90%;
+  max-height: 90%;
+  flex: 0 0 auto;
+  align-self: center;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  scrollbar-gutter: auto;
+  box-sizing: border-box;
+  padding: 24px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-form > router-outlet + *,
+.content-wrapper--list-hug .content-card.content-card-entity-form > *:not(router-outlet) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  overflow: hidden;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-form .form-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-form .form-page .form-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  margin: 0;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-form .form-page .form-layout > h2 {
+  flex-shrink: 0;
+  margin: 0 0 12px 0;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-form .form-page .form-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin-bottom: 0;
+}
+.content-wrapper--list-hug .content-card.content-card-entity-form .form-page .actions.form-actions {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group { min-width: 0; }
+.form-group > label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+}
+.grid { display: grid; gap: 16px; align-items: end; }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px 12px;
+  align-items: stretch;
+  grid-auto-flow: row;
+}
+.form-grid > .fg-col-2 { grid-column: span 2; }
+.form-grid > .fg-col-3 { grid-column: span 3; }
+.form-grid > .fg-col-4 { grid-column: span 4; }
+.form-grid > .fg-col-6 { grid-column: span 6; }
+.form-grid > .fg-col-10 { grid-column: span 10; }
+.form-grid > .fg-col-12 { grid-column: span 12; }
+.form-grid > .form-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+.form-grid > .form-group > label {
+  min-height: 2.5em;
+  line-height: 1.25;
+}
+.form-grid > .form-group.fg-label-nowrap > label {
+  white-space: nowrap;
+  min-height: 1.25em;
+}
+.form-grid > .form-group > :not(label) {
+  margin-top: auto;
+}
+.form-group select:not([multiple]),
+.form-group input:not([type]),
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="password"],
+.form-group input[type="datetime-local"],
+.form-group input[type="date"],
+.form-group input[type="time"],
+.form-group input[type="search"],
+.form-group textarea {
+  padding: 5px 10px;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  min-height: 2.125rem;
+  line-height: 1.2;
+  font-size: 12px;
+  border-radius: 6px;
+}
+@media (max-width: 720px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .form-grid > .fg-col-2,
+  .form-grid > .fg-col-3,
+  .form-grid > .fg-col-4,
+  .form-grid > .fg-col-6,
+  .form-grid > .fg-col-10,
+  .form-grid > .fg-col-12 {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+}
+
+/* Data / data-hora (Angular Material) compactos, alinhados ao hug SCO */
+.form-group app-campo-data,
+.form-group app-campo-data-hora,
+.form-grid > app-campo-data,
+.form-grid > app-campo-data-hora {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+.campo-data .mat-mdc-form-field,
+.campo-data-hora .mat-mdc-form-field {
+  width: 100%;
+  font-size: 12px;
+}
+.campo-data .mat-mdc-text-field-wrapper,
+.campo-data-hora .mat-mdc-text-field-wrapper {
+  height: 2.125rem;
+  padding-bottom: 0;
+}
+.campo-data .mat-mdc-form-field-infix,
+.campo-data-hora .mat-mdc-form-field-infix {
+  min-height: 2.125rem;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+.campo-data .mat-mdc-form-field-icon-suffix,
+.campo-data-hora .mat-mdc-form-field-icon-suffix {
+  align-self: center;
+}
+.campo-data .mat-datepicker-toggle,
+.campo-data-hora .mat-datepicker-toggle {
+  color: var(--app-accent, #0e7490);
+}
+.campo-data .mat-mdc-icon-button,
+.campo-data-hora .mat-mdc-icon-button {
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+}
+.campo-data .mdc-notched-outline__leading,
+.campo-data .mdc-notched-outline__notch,
+.campo-data .mdc-notched-outline__trailing,
+.campo-data-hora .mdc-notched-outline__leading,
+.campo-data-hora .mdc-notched-outline__notch,
+.campo-data-hora .mdc-notched-outline__trailing {
+  border-color: #000 !important;
+}
+.campo-data.campo-data--required.ng-invalid .mdc-notched-outline__leading,
+.campo-data.campo-data--required.ng-invalid .mdc-notched-outline__notch,
+.campo-data.campo-data--required.ng-invalid .mdc-notched-outline__trailing,
+.campo-data-hora.campo-data--required.ng-invalid .mdc-notched-outline__leading,
+.campo-data-hora.campo-data--required.ng-invalid .mdc-notched-outline__notch,
+.campo-data-hora.campo-data--required.ng-invalid .mdc-notched-outline__trailing {
+  border-color: #dc3545 !important;
+}
+.campo-data.campo-data--required.ng-valid .mdc-notched-outline__leading,
+.campo-data.campo-data--required.ng-valid .mdc-notched-outline__notch,
+.campo-data.campo-data--required.ng-valid .mdc-notched-outline__trailing,
+.campo-data-hora.campo-data--required.ng-valid .mdc-notched-outline__leading,
+.campo-data-hora.campo-data--required.ng-valid .mdc-notched-outline__notch,
+.campo-data-hora.campo-data--required.ng-valid .mdc-notched-outline__trailing {
+  border-color: #cbd5e1 !important;
+}
+.campo-data.campo-data--disabled .mdc-notched-outline__leading,
+.campo-data.campo-data--disabled .mdc-notched-outline__notch,
+.campo-data.campo-data--disabled .mdc-notched-outline__trailing,
+.campo-data-hora.campo-data--disabled .mdc-notched-outline__leading,
+.campo-data-hora.campo-data--disabled .mdc-notched-outline__notch,
+.campo-data-hora.campo-data--disabled .mdc-notched-outline__trailing {
+  border-color: #ddd !important;
+}
+.form-group app-campo-data input.mat-mdc-input-element,
+.form-group app-campo-data-hora input.mat-mdc-input-element,
+.campo-data input.mat-mdc-input-element,
+.campo-data-hora input.mat-mdc-input-element {
+  border: none !important;
+  box-shadow: none !important;
+  min-height: 0 !important;
+  padding: 0 4px !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  font-size: 12px !important;
+}
+.campo-data-hora__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+.campo-data-hora__row .mat-mdc-form-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.campo-data-hora__time {
+  flex: 0 0 5.25rem;
+  width: 5.25rem;
+  min-width: 5.25rem;
+  box-sizing: border-box;
+  min-height: 2.125rem;
+}
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.loading-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  padding: 24px 32px;
+  min-width: 240px;
+  max-width: 360px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--app-accent, #0e7490);
+  border-radius: 50%;
+  animation: loading-spin 0.75s linear infinite;
+}
+.loading-text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  text-align: center;
+}
+@keyframes loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.confirm-modal {
+  background: #fff;
+  border-radius: 8px;
+  padding: 18px 22px;
+  min-width: 260px;
+  max-width: 420px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+.confirm-modal p { margin: 0 0 16px; font-size: 14px; color: #0f172a; }
 

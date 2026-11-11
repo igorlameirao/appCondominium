@@ -1,0 +1,833 @@
+/* =============================================================================
+   SCO — padrão global de botões
+   Identidade pastel/tonal. Sem gradientes, sem ícones circulares sobrepostos,
+   sem sombra forte. Mapas: ver exclusões no final do arquivo.
+   ============================================================================= */
+
+:root {
+  --sco-btn-height: 40px;
+  --sco-btn-height-sm: 32px;
+  --sco-btn-height-lg: 44px;
+  --sco-btn-radius: 8px;
+  --sco-btn-pad-x: 16px;
+  --sco-btn-gap: 8px;
+  --sco-btn-icon: 18px;
+  --sco-btn-icon-sm: 16px;
+  --sco-btn-font-weight: 600;
+  --sco-btn-font-size: 14px;
+  --sco-btn-font-size-sm: 13px;
+  --sco-btn-transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+
+  /* PRIMARY */
+  --sco-btn-primary-bg: #e0f2fe;
+  --sco-btn-primary-fg: #075985;
+  --sco-btn-primary-border: #7dd3fc;
+  --sco-btn-primary-hover-bg: #bae6fd;
+  --sco-btn-primary-active-bg: #7dd3fc;
+  --sco-btn-primary-shadow: 0 1px 2px rgba(7, 89, 133, 0.12);
+  --sco-btn-primary-shadow-hover: 0 1px 3px rgba(7, 89, 133, 0.18), 0 0 0 1px rgba(125, 211, 252, 0.55);
+
+  /* SECONDARY */
+  --sco-btn-secondary-bg: #ffffff;
+  --sco-btn-secondary-fg: #334155;
+  --sco-btn-secondary-border: #cbd5e1;
+  --sco-btn-secondary-hover-bg: #f8fafc;
+  --sco-btn-secondary-active-bg: #f1f5f9;
+
+  /* TONAL */
+  --sco-btn-tonal-bg: #eff6ff;
+  --sco-btn-tonal-fg: #1e5f7a;
+  --sco-btn-tonal-border: #bfdbe8;
+  --sco-btn-tonal-hover-bg: #dbeafe;
+  --sco-btn-tonal-active-bg: #bfdbfe;
+
+  /* SUCCESS */
+  --sco-btn-success-bg: #ecfdf5;
+  --sco-btn-success-fg: #047857;
+  --sco-btn-success-border: #a7f3d0;
+  --sco-btn-success-hover-bg: #d1fae5;
+  --sco-btn-success-active-bg: #a7f3d0;
+
+  /* WARNING */
+  --sco-btn-warning-bg: #fffbeb;
+  --sco-btn-warning-fg: #b45309;
+  --sco-btn-warning-border: #fcd34d;
+  --sco-btn-warning-hover-bg: #fef3c7;
+  --sco-btn-warning-active-bg: #fde68a;
+
+  /* DANGER */
+  --sco-btn-danger-bg: #fef2f2;
+  --sco-btn-danger-fg: #dc2626;
+  --sco-btn-danger-border: #fca5a5;
+  --sco-btn-danger-hover-bg: #fee2e2;
+  --sco-btn-danger-active-bg: #fecaca;
+
+  /* NEUTRAL */
+  --sco-btn-neutral-bg: #f8fafc;
+  --sco-btn-neutral-fg: #475569;
+  --sco-btn-neutral-border: #cbd5e1;
+  --sco-btn-neutral-hover-bg: #f1f5f9;
+  --sco-btn-neutral-active-bg: #e2e8f0;
+
+  /* GHOST */
+  --sco-btn-ghost-fg: #475569;
+  --sco-btn-ghost-hover: rgba(15, 23, 42, 0.06);
+  --sco-btn-ghost-active: rgba(15, 23, 42, 0.1);
+
+  /* DISABLED (todas as variantes) */
+  --sco-btn-disabled-bg: #e8eef2;
+  --sco-btn-disabled-fg: #94a3b8;
+  --sco-btn-disabled-border: #d8e0e7;
+
+  /* FOCUS */
+  --sco-btn-focus-outline: #38bdf8;
+
+  /* Aliases legados (compatibilidade com referências antigas) */
+  --sco-btn-primary: var(--sco-btn-primary-bg);
+  --sco-btn-primary-hover: var(--sco-btn-primary-hover-bg);
+  --sco-btn-primary-active: var(--sco-btn-primary-active-bg);
+  --sco-btn-success: var(--sco-btn-success-bg);
+  --sco-btn-success-hover: var(--sco-btn-success-hover-bg);
+  --sco-btn-success-active: var(--sco-btn-success-active-bg);
+  --sco-btn-warning: var(--sco-btn-warning-bg);
+  --sco-btn-warning-hover: var(--sco-btn-warning-hover-bg);
+  --sco-btn-warning-active: var(--sco-btn-warning-active-bg);
+  --sco-btn-danger: var(--sco-btn-danger-bg);
+  --sco-btn-danger-hover: var(--sco-btn-danger-hover-bg);
+  --sco-btn-danger-active: var(--sco-btn-danger-active-bg);
+  --sco-btn-neutral-hover: var(--sco-btn-neutral-hover-bg);
+  --sco-btn-neutral-active: var(--sco-btn-neutral-active-bg);
+  --sco-btn-secondary-hover: var(--sco-btn-secondary-hover-bg);
+  --sco-btn-secondary-active: var(--sco-btn-secondary-active-bg);
+  --sco-btn-shadow: none;
+}
+
+/* -----------------------------------------------------------------------------
+   Base — API nova (.sco-btn) e aliases legados
+   ----------------------------------------------------------------------------- */
+
+.sco-btn,
+.btn-gravar,
+.btn-cancelar,
+.btn-voltar,
+.btn-excluir,
+.btn-novo,
+.btn-gerar,
+.btn-complementacao,
+.btn-inscritos,
+.btn-encerrar-inscricoes,
+.btn-filtrar,
+.btn-limpar,
+.btn-cancelar-modal,
+.btn-confirm-ok,
+.btn-confirm-danger,
+.btn-confirm-nao,
+.btn-secondary,
+.btn-primary,
+.btn-success,
+.btn-warning,
+.btn-danger,
+.btn-neutral,
+.btn-ghost,
+.btn-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sco-btn-gap);
+  box-sizing: border-box;
+  min-height: var(--sco-btn-height);
+  height: auto;
+  padding: 0 var(--sco-btn-pad-x);
+  border-radius: var(--sco-btn-radius);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: var(--sco-btn-font-size);
+  font-weight: var(--sco-btn-font-weight);
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  vertical-align: middle;
+  width: auto;
+  max-width: 100%;
+  box-shadow: var(--sco-btn-shadow);
+  transition: var(--sco-btn-transition);
+  overflow: hidden;
+  background-image: none;
+  text-align: center;
+}
+
+.sco-btn::before,
+.btn-gravar::before,
+.btn-cancelar::before,
+.btn-voltar::before,
+.btn-excluir::before,
+.btn-novo::before,
+.btn-gerar::before,
+.btn-complementacao::before,
+.btn-inscritos::before,
+.btn-encerrar-inscricoes::before,
+.btn-filtrar::before,
+.btn-limpar::before,
+.btn-cancelar-modal::before,
+.btn-confirm-ok::before,
+.btn-confirm-danger::before,
+.btn-confirm-nao::before,
+.btn-secondary::before,
+.btn-primary::before,
+.btn-success::before,
+.btn-warning::before,
+.btn-danger::before,
+.btn-neutral::before,
+.btn-ghost::before {
+  content: none;
+  display: none;
+  position: static;
+  width: 0;
+  height: 0;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  background: none;
+  transform: none;
+}
+
+/* Ícones internos via mask (Lucide-style paths, SVG data-URI) */
+.sco-btn--with-icon::before,
+.btn-gravar::before,
+.btn-cancelar::before,
+.btn-voltar::before,
+.btn-excluir::before,
+.btn-novo::before,
+.btn-gerar::before,
+.btn-complementacao::before,
+.btn-inscritos::before,
+.btn-encerrar-inscricoes::before,
+.btn-filtrar::before,
+.btn-limpar::before,
+.btn-cancelar-modal::before,
+.btn-confirm-nao::before {
+  content: '';
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--sco-btn-icon);
+  height: var(--sco-btn-icon);
+  background-color: currentColor;
+  -webkit-mask: var(--sco-btn-mask) center / contain no-repeat;
+  mask: var(--sco-btn-mask) center / contain no-repeat;
+  border: none;
+  box-shadow: none;
+  position: static;
+  transform: none;
+  left: auto;
+  top: auto;
+  z-index: auto;
+}
+
+.btn-gravar { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'/%3E%3Cpolyline points='17 21 17 13 7 13 7 21'/%3E%3Cpolyline points='7 3 7 8 15 8'/%3E%3C/svg%3E"); }
+.btn-cancelar,
+.btn-voltar { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='19' y1='12' x2='5' y2='12'/%3E%3Cpolyline points='12 19 5 12 12 5'/%3E%3C/svg%3E"); }
+.btn-excluir,
+.btn-confirm-danger { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3 6 5 6 21 6'/%3E%3Cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/%3E%3C/svg%3E"); }
+.btn-novo { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'/%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E"); }
+.btn-filtrar { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E"); }
+.btn-limpar { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E"); }
+.btn-cancelar-modal,
+.btn-confirm-nao { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E"); }
+.btn-gerar { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E"); }
+.btn-inscritos { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M23 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E"); }
+.btn-encerrar-inscricoes { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Crect x='9' y='9' width='6' height='6'/%3E%3C/svg%3E"); }
+.btn-complementacao { --sco-btn-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E"); }
+.btn-excluir::before,
+.btn-confirm-danger::before {
+  content: '';
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--sco-btn-icon);
+  height: var(--sco-btn-icon);
+  background-color: currentColor;
+  -webkit-mask: var(--sco-btn-mask) center / contain no-repeat;
+  mask: var(--sco-btn-mask) center / contain no-repeat;
+}
+
+/* Tamanhos */
+.sco-btn--sm,
+.btn-filtrar,
+.btn-limpar,
+.btn-acao,
+.btn-icon--sm {
+  min-height: var(--sco-btn-height-sm);
+  padding: 0 12px;
+  font-size: var(--sco-btn-font-size-sm);
+}
+
+.sco-btn--sm::before,
+.btn-filtrar::before,
+.btn-limpar::before {
+  width: var(--sco-btn-icon-sm);
+  height: var(--sco-btn-icon-sm);
+}
+
+.sco-btn--lg {
+  min-height: var(--sco-btn-height-lg);
+}
+
+.sco-btn--block {
+  width: 100%;
+}
+
+/* PRIMARY */
+.sco-btn--primary,
+.btn-gravar,
+.btn-novo,
+.btn-filtrar,
+.btn-gerar,
+.btn-confirm-ok,
+.btn-primary,
+.btn-complementacao,
+.btn-inscritos,
+.btn-encerrar-inscricoes {
+  background-color: var(--sco-btn-primary-bg);
+  color: var(--sco-btn-primary-fg);
+  border-color: var(--sco-btn-primary-border);
+  box-shadow: var(--sco-btn-primary-shadow);
+}
+
+.sco-btn--primary:hover:not(:disabled):not([aria-disabled='true']),
+.btn-gravar:hover:not(:disabled),
+.btn-novo:hover:not(:disabled),
+.btn-filtrar:hover:not(:disabled),
+.btn-gerar:hover:not(:disabled),
+.btn-confirm-ok:hover:not(:disabled),
+.btn-primary:hover:not(:disabled),
+.btn-complementacao:hover:not(:disabled),
+.btn-inscritos:hover:not(:disabled),
+.btn-encerrar-inscricoes:hover:not(:disabled) {
+  background-color: var(--sco-btn-primary-hover-bg);
+  border-color: var(--sco-btn-primary-border);
+  color: var(--sco-btn-primary-fg);
+  box-shadow: var(--sco-btn-primary-shadow-hover);
+}
+
+.sco-btn--primary:active:not(:disabled),
+.btn-gravar:active:not(:disabled),
+.btn-novo:active:not(:disabled),
+.btn-filtrar:active:not(:disabled),
+.btn-gerar:active:not(:disabled),
+.btn-confirm-ok:active:not(:disabled),
+.btn-primary:active:not(:disabled),
+.btn-complementacao:active:not(:disabled),
+.btn-inscritos:active:not(:disabled),
+.btn-encerrar-inscricoes:active:not(:disabled) {
+  background-color: var(--sco-btn-primary-active-bg);
+  border-color: var(--sco-btn-primary-border);
+  color: var(--sco-btn-primary-fg);
+  box-shadow: var(--sco-btn-primary-shadow);
+}
+
+/* SECONDARY */
+.sco-btn--secondary,
+.btn-cancelar,
+.btn-voltar,
+.btn-limpar,
+.btn-cancelar-modal,
+.btn-confirm-nao,
+.btn-secondary {
+  background-color: var(--sco-btn-secondary-bg);
+  color: var(--sco-btn-secondary-fg);
+  border-color: var(--sco-btn-secondary-border);
+  box-shadow: none;
+}
+
+.sco-btn--secondary:hover:not(:disabled):not([aria-disabled='true']),
+.btn-cancelar:hover:not(:disabled),
+.btn-voltar:hover:not(:disabled),
+.btn-limpar:hover:not(:disabled),
+.btn-cancelar-modal:hover:not(:disabled),
+.btn-confirm-nao:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--sco-btn-secondary-hover-bg);
+  color: var(--sco-btn-secondary-fg);
+  border-color: var(--sco-btn-secondary-border);
+}
+
+.sco-btn--secondary:active:not(:disabled),
+.btn-cancelar:active:not(:disabled),
+.btn-voltar:active:not(:disabled),
+.btn-limpar:active:not(:disabled),
+.btn-cancelar-modal:active:not(:disabled),
+.btn-confirm-nao:active:not(:disabled),
+.btn-secondary:active:not(:disabled) {
+  background-color: var(--sco-btn-secondary-active-bg);
+  border-color: var(--sco-btn-secondary-border);
+}
+
+/* TONAL */
+.sco-btn--tonal {
+  background-color: var(--sco-btn-tonal-bg);
+  color: var(--sco-btn-tonal-fg);
+  border-color: var(--sco-btn-tonal-border);
+  box-shadow: none;
+}
+
+.sco-btn--tonal:hover:not(:disabled):not([aria-disabled='true']) {
+  background-color: var(--sco-btn-tonal-hover-bg);
+  color: var(--sco-btn-tonal-fg);
+  border-color: var(--sco-btn-tonal-border);
+}
+
+.sco-btn--tonal:active:not(:disabled) {
+  background-color: var(--sco-btn-tonal-active-bg);
+  border-color: var(--sco-btn-tonal-border);
+}
+
+/* SUCCESS */
+.sco-btn--success,
+.btn-success {
+  background-color: var(--sco-btn-success-bg);
+  color: var(--sco-btn-success-fg);
+  border-color: var(--sco-btn-success-border);
+  box-shadow: none;
+}
+
+.sco-btn--success:hover:not(:disabled),
+.btn-success:hover:not(:disabled) {
+  background-color: var(--sco-btn-success-hover-bg);
+  border-color: var(--sco-btn-success-border);
+  color: var(--sco-btn-success-fg);
+}
+
+.sco-btn--success:active:not(:disabled),
+.btn-success:active:not(:disabled) {
+  background-color: var(--sco-btn-success-active-bg);
+  border-color: var(--sco-btn-success-border);
+  color: var(--sco-btn-success-fg);
+}
+
+/* WARNING */
+.sco-btn--warning,
+.btn-warning {
+  background-color: var(--sco-btn-warning-bg);
+  color: var(--sco-btn-warning-fg);
+  border-color: var(--sco-btn-warning-border);
+  box-shadow: none;
+}
+
+.sco-btn--warning:hover:not(:disabled),
+.btn-warning:hover:not(:disabled) {
+  background-color: var(--sco-btn-warning-hover-bg);
+  border-color: var(--sco-btn-warning-border);
+  color: var(--sco-btn-warning-fg);
+}
+
+.sco-btn--warning:active:not(:disabled),
+.btn-warning:active:not(:disabled) {
+  background-color: var(--sco-btn-warning-active-bg);
+  border-color: var(--sco-btn-warning-border);
+  color: var(--sco-btn-warning-fg);
+}
+
+/* DANGER */
+.sco-btn--danger,
+.btn-excluir,
+.btn-confirm-danger,
+.btn-danger,
+.btn-acao.danger {
+  background-color: var(--sco-btn-danger-bg);
+  color: var(--sco-btn-danger-fg);
+  border-color: var(--sco-btn-danger-border);
+  box-shadow: none;
+}
+
+.sco-btn--danger:hover:not(:disabled),
+.btn-excluir:hover:not(:disabled),
+.btn-confirm-danger:hover:not(:disabled),
+.btn-danger:hover:not(:disabled),
+.btn-acao.danger:hover:not(:disabled) {
+  background-color: var(--sco-btn-danger-hover-bg);
+  border-color: var(--sco-btn-danger-border);
+  color: var(--sco-btn-danger-fg);
+}
+
+.sco-btn--danger:active:not(:disabled),
+.btn-excluir:active:not(:disabled),
+.btn-confirm-danger:active:not(:disabled),
+.btn-danger:active:not(:disabled),
+.btn-acao.danger:active:not(:disabled) {
+  background-color: var(--sco-btn-danger-active-bg);
+  border-color: var(--sco-btn-danger-border);
+  color: var(--sco-btn-danger-fg);
+}
+
+/* NEUTRAL */
+.sco-btn--neutral,
+.btn-neutral {
+  background-color: var(--sco-btn-neutral-bg);
+  color: var(--sco-btn-neutral-fg);
+  border-color: var(--sco-btn-neutral-border);
+  box-shadow: none;
+}
+
+.sco-btn--neutral:hover:not(:disabled),
+.btn-neutral:hover:not(:disabled) {
+  background-color: var(--sco-btn-neutral-hover-bg);
+  color: var(--sco-btn-neutral-fg);
+  border-color: var(--sco-btn-neutral-border);
+}
+
+.sco-btn--neutral:active:not(:disabled),
+.btn-neutral:active:not(:disabled) {
+  background-color: var(--sco-btn-neutral-active-bg);
+  border-color: var(--sco-btn-neutral-border);
+}
+
+/* GHOST */
+.sco-btn--ghost,
+.btn-ghost,
+.btn-link {
+  background-color: transparent;
+  color: var(--sco-btn-ghost-fg);
+  border-color: transparent;
+  box-shadow: none;
+  min-height: var(--sco-btn-height-sm);
+  padding: 0 8px;
+  text-decoration: none;
+}
+
+.sco-btn--ghost:hover:not(:disabled),
+.btn-ghost:hover:not(:disabled),
+.btn-link:hover:not(:disabled) {
+  background-color: var(--sco-btn-ghost-hover);
+  color: var(--sco-btn-primary-fg);
+}
+
+.sco-btn--ghost:active:not(:disabled),
+.btn-ghost:active:not(:disabled),
+.btn-link:active:not(:disabled) {
+  background-color: var(--sco-btn-ghost-active);
+}
+
+/* ICON-only */
+.sco-btn--icon,
+.btn-icon {
+  width: var(--sco-btn-height);
+  min-width: var(--sco-btn-height);
+  height: var(--sco-btn-height);
+  min-height: var(--sco-btn-height);
+  padding: 0;
+  gap: 0;
+}
+
+.sco-btn--icon.sco-btn--sm,
+.btn-icon--sm {
+  width: var(--sco-btn-height-sm);
+  min-width: var(--sco-btn-height-sm);
+  height: var(--sco-btn-height-sm);
+  min-height: var(--sco-btn-height-sm);
+}
+
+/* Tabela / ações de linha */
+.btn-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--sco-btn-height-sm);
+  padding: 0 10px;
+  border-radius: var(--sco-btn-radius);
+  border: 1px solid var(--sco-btn-secondary-border);
+  background: var(--sco-btn-secondary-bg);
+  color: var(--sco-btn-secondary-fg);
+  font-size: var(--sco-btn-font-size-sm);
+  font-weight: var(--sco-btn-font-weight);
+  cursor: pointer;
+  box-shadow: none;
+  transition: var(--sco-btn-transition);
+}
+
+.btn-acao:hover:not(:disabled) {
+  background: var(--sco-btn-secondary-hover-bg);
+}
+
+.btn-acao.primary {
+  background: var(--sco-btn-primary-bg);
+  border-color: var(--sco-btn-primary-border);
+  color: var(--sco-btn-primary-fg);
+  box-shadow: var(--sco-btn-primary-shadow);
+}
+
+.btn-acao.primary:hover:not(:disabled) {
+  background: var(--sco-btn-primary-hover-bg);
+  border-color: var(--sco-btn-primary-border);
+  color: var(--sco-btn-primary-fg);
+  box-shadow: var(--sco-btn-primary-shadow-hover);
+}
+
+/* Focus */
+.sco-btn:focus,
+.btn-gravar:focus,
+.btn-cancelar:focus,
+.btn-voltar:focus,
+.btn-excluir:focus,
+.btn-novo:focus,
+.btn-filtrar:focus,
+.btn-limpar:focus,
+.btn-cancelar-modal:focus,
+.btn-confirm-ok:focus,
+.btn-confirm-danger:focus,
+.btn-primary:focus,
+.btn-secondary:focus,
+.btn-acao:focus,
+.btn-link:focus {
+  outline: none;
+}
+
+.sco-btn:focus-visible,
+.btn-gravar:focus-visible,
+.btn-cancelar:focus-visible,
+.btn-voltar:focus-visible,
+.btn-excluir:focus-visible,
+.btn-novo:focus-visible,
+.btn-filtrar:focus-visible,
+.btn-limpar:focus-visible,
+.btn-cancelar-modal:focus-visible,
+.btn-confirm-ok:focus-visible,
+.btn-confirm-danger:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-success:focus-visible,
+.btn-warning:focus-visible,
+.btn-danger:focus-visible,
+.btn-neutral:focus-visible,
+.btn-acao:focus-visible,
+.btn-link:focus-visible,
+.btn-gerar:focus-visible,
+.btn-complementacao:focus-visible,
+.btn-inscritos:focus-visible,
+.btn-encerrar-inscricoes:focus-visible {
+  outline: 2px solid var(--sco-btn-focus-outline);
+  outline-offset: 2px;
+}
+
+.sco-btn--primary:focus-visible,
+.btn-gravar:focus-visible,
+.btn-novo:focus-visible,
+.btn-filtrar:focus-visible,
+.btn-gerar:focus-visible,
+.btn-confirm-ok:focus-visible,
+.btn-primary:focus-visible,
+.btn-complementacao:focus-visible,
+.btn-inscritos:focus-visible,
+.btn-encerrar-inscricoes:focus-visible,
+.btn-acao.primary:focus-visible {
+  background-color: var(--sco-btn-primary-bg);
+  color: var(--sco-btn-primary-fg);
+  border-color: var(--sco-btn-primary-border);
+  box-shadow: var(--sco-btn-primary-shadow);
+}
+
+/* Disabled */
+.sco-btn:disabled,
+.sco-btn[aria-disabled='true'],
+.btn-gravar:disabled,
+.btn-cancelar:disabled,
+.btn-voltar:disabled,
+.btn-excluir:disabled,
+.btn-novo:disabled,
+.btn-filtrar:disabled,
+.btn-limpar:disabled,
+.btn-cancelar-modal:disabled,
+.btn-confirm-ok:disabled,
+.btn-confirm-danger:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-success:disabled,
+.btn-warning:disabled,
+.btn-danger:disabled,
+.btn-neutral:disabled,
+.btn-gerar:disabled,
+.btn-complementacao:disabled,
+.btn-inscritos:disabled,
+.btn-encerrar-inscricoes:disabled,
+.btn-acao:disabled {
+  background-color: var(--sco-btn-disabled-bg) !important;
+  color: var(--sco-btn-disabled-fg) !important;
+  border-color: var(--sco-btn-disabled-border) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 1;
+}
+
+/* Loading — cores do estado normal; ícone vira spinner; largura preservada */
+.sco-btn.is-loading,
+.btn-gravar.is-loading,
+.btn-confirm-ok.is-loading,
+.btn-novo.is-loading,
+.btn-filtrar.is-loading,
+.btn-gerar.is-loading,
+.btn-success.is-loading,
+.btn-warning.is-loading,
+.btn-danger.is-loading,
+.btn-excluir.is-loading,
+.btn-confirm-danger.is-loading,
+.btn-neutral.is-loading,
+.btn-cancelar.is-loading,
+.btn-voltar.is-loading,
+.btn-limpar.is-loading,
+.btn-cancelar-modal.is-loading,
+.btn-secondary.is-loading,
+.btn-primary.is-loading {
+  pointer-events: none;
+  color: transparent !important;
+}
+
+.sco-btn.is-loading::before,
+.btn-gravar.is-loading::before,
+.btn-confirm-ok.is-loading::before,
+.btn-novo.is-loading::before,
+.btn-filtrar.is-loading::before,
+.btn-gerar.is-loading::before,
+.btn-excluir.is-loading::before,
+.btn-confirm-danger.is-loading::before,
+.btn-cancelar.is-loading::before,
+.btn-voltar.is-loading::before,
+.btn-limpar.is-loading::before,
+.btn-cancelar-modal.is-loading::before {
+  opacity: 0;
+}
+
+.sco-btn.is-loading::after,
+.btn-gravar.is-loading::after,
+.btn-confirm-ok.is-loading::after,
+.btn-novo.is-loading::after,
+.btn-filtrar.is-loading::after,
+.btn-gerar.is-loading::after,
+.btn-success.is-loading::after,
+.btn-warning.is-loading::after,
+.btn-danger.is-loading::after,
+.btn-excluir.is-loading::after,
+.btn-confirm-danger.is-loading::after,
+.btn-neutral.is-loading::after,
+.btn-cancelar.is-loading::after,
+.btn-voltar.is-loading::after,
+.btn-limpar.is-loading::after,
+.btn-cancelar-modal.is-loading::after,
+.btn-secondary.is-loading::after,
+.btn-primary.is-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(7, 89, 133, 0.25);
+  border-top-color: var(--sco-btn-primary-fg);
+  border-radius: 50%;
+  animation: sco-btn-spin 0.7s linear infinite;
+}
+
+.sco-btn--secondary.is-loading::after,
+.btn-cancelar.is-loading::after,
+.btn-voltar.is-loading::after,
+.btn-limpar.is-loading::after,
+.btn-cancelar-modal.is-loading::after,
+.btn-secondary.is-loading::after {
+  border-color: rgba(51, 65, 85, 0.25);
+  border-top-color: var(--sco-btn-secondary-fg);
+}
+
+.sco-btn--tonal.is-loading::after {
+  border-color: rgba(30, 95, 122, 0.25);
+  border-top-color: var(--sco-btn-tonal-fg);
+}
+
+.sco-btn--success.is-loading::after,
+.btn-success.is-loading::after {
+  border-color: rgba(4, 120, 87, 0.25);
+  border-top-color: var(--sco-btn-success-fg);
+}
+
+.sco-btn--warning.is-loading::after,
+.btn-warning.is-loading::after {
+  border-color: rgba(180, 83, 9, 0.25);
+  border-top-color: var(--sco-btn-warning-fg);
+}
+
+.sco-btn--danger.is-loading::after,
+.btn-danger.is-loading::after,
+.btn-excluir.is-loading::after,
+.btn-confirm-danger.is-loading::after {
+  border-color: rgba(220, 38, 38, 0.25);
+  border-top-color: var(--sco-btn-danger-fg);
+}
+
+.sco-btn--neutral.is-loading::after,
+.btn-neutral.is-loading::after {
+  border-color: rgba(71, 85, 105, 0.25);
+  border-top-color: var(--sco-btn-neutral-fg);
+}
+
+@keyframes sco-btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Grupos de ações */
+.form-page .actions.form-actions,
+.confirm-actions,
+.sco-btn-group,
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-page .actions.form-actions {
+  justify-content: flex-end;
+}
+
+.form-page .actions.form-actions .btn-gravar,
+.form-page .actions.form-actions .btn-cancelar,
+.form-page .actions.form-actions .btn-voltar,
+.form-page .actions.form-actions .btn-excluir,
+.form-page .actions.form-actions .btn-gerar,
+.form-page .actions.form-actions .btn-complementacao,
+.form-page .actions.form-actions .btn-inscritos,
+.form-page .actions.form-actions .btn-encerrar-inscricoes {
+  /* herda o padrão; remove overrides antigos de hover cinza */
+  margin: 0;
+}
+
+.btn-novo {
+  margin-right: 0;
+}
+
+/* Responsivo */
+@media (max-width: 640px) {
+  .form-page .actions.form-actions,
+  .confirm-actions,
+  .filter-actions {
+    width: 100%;
+  }
+
+  .form-page .actions.form-actions > .btn-gravar,
+  .form-page .actions.form-actions > .btn-cancelar,
+  .form-page .actions.form-actions > .btn-voltar,
+  .form-page .actions.form-actions > .btn-excluir,
+  .confirm-actions > .btn-cancelar-modal,
+  .confirm-actions > .btn-confirm-ok,
+  .confirm-actions > .btn-confirm-danger {
+    flex: 1 1 auto;
+    min-width: min(100%, 140px);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   MAPAS — proteção contra efeitos colaterais
+   Controles MapLibre/Leaflet e toolbars (.mo-*, .btn-basemap, .btn-map-*,
+   .btn-gps, .float-panel, .tools-panel, .map-toolbar) NÃO usam as classes
+   padronizadas acima; seus estilos locais permanecem intactos.
+   Não há seletor genérico `button {…}` neste arquivo.
+   ----------------------------------------------------------------------------- */
