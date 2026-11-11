@@ -1,0 +1,528 @@
+{
+  "schema": "AppCondominium Permissoes Matriz v1",
+  "version": "1.0.0",
+  "actionLabels": {
+    "applicable": "Sim",
+    "notApplicable": "Não Aplicável"
+  },
+  "permissions": [
+    {
+      "permissionKey": "AUTH_LOGIN",
+      "displayName": "Login",
+      "permissions": {
+        "Visualizar": "Não Aplicável",
+        "Incluir": "Não Aplicável",
+        "Alterar": "Não Aplicável",
+        "Excluir": "Não Aplicável",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "HOME",
+      "displayName": "Pagina inicial",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Não Aplicável",
+        "Alterar": "Não Aplicável",
+        "Excluir": "Não Aplicável",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "PERMISSOES_GERENCIAR",
+      "displayName": "Gerenciar permissoes",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Não Aplicável",
+        "Alterar": "Sim",
+        "Excluir": "Não Aplicável",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "UF",
+      "displayName": "UF",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "MUNICIPIO",
+      "displayName": "Município",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "BAIRRO",
+      "displayName": "Bairro",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "ENDERECO",
+      "displayName": "Endereço",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "CONDOMINIO",
+      "displayName": "Condomínio",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "CONFIGURACAOCONDOMINIO",
+      "displayName": "Configuração do Condomínio",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "BLOCO",
+      "displayName": "Bloco",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "TIPOUNIDADE",
+      "displayName": "Tipo Unidade",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "UNIDADE",
+      "displayName": "Unidade",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "HIDROMETRO",
+      "displayName": "Hidrômetro",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "CONSUMOAGUA",
+      "displayName": "Consumo Água",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "PESSOAFISICA",
+      "displayName": "pessoafisica",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "PESSOAJURIDICA",
+      "displayName": "Pessoa Jurídica",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "FORNECEDOR",
+      "displayName": "Fornecedor",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "TIPOATIVIDADEECONOMICA",
+      "displayName": "Tipo de Atividade Econômica",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "ATIVIDADEECONOMICA",
+      "displayName": "Atividade Econômica",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "PESSOACONDOMINIO",
+      "displayName": "Pessoa Condominio",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "EQUIPAMENTO",
+      "displayName": "Equipamento",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "ALUGUELEQUIPAMENTO",
+      "displayName": "Aluguel de Equipamento",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "CONCORRENCIA",
+      "displayName": "Concorrência",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "TIPODESPESA",
+      "displayName": "Tipo de Despesa",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "DESPESA",
+      "displayName": "Despesa",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "OFERTACONCORRENCIA",
+      "displayName": "Oferta Concorrência",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "BANCO",
+      "displayName": "Banco",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "DADOSBANCARIOS",
+      "displayName": "Dados Bancários",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "COBRANCA",
+      "displayName": "Cobranca",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "GUARDAENCOMENDA",
+      "displayName": "Guarda Encomenda",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "LOCAL",
+      "displayName": "Local",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "TIPOMATERIAL",
+      "displayName": "Tipo de Material",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "TIPOMATERIALCONDOMINIO",
+      "displayName": "Tipo de Material - Condomínio",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "MATERIAL",
+      "displayName": "Material",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "ALOCACAOMATERIAL",
+      "displayName": "Alocação de Material",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "ESTOQUEMATERIALCONSUMO",
+      "displayName": "Estoque de Material de Consumo",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "ENTRADASAIDAMATERIALCONSUMO",
+      "displayName": "Entrada e Saída de Material de Consumo",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    }
+  ]
+}

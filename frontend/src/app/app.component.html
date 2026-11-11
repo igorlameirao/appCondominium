@@ -6,20 +6,29 @@
     <div class="app-premium-sidebar__head">
       <div class="app-premium-brand">
         <div class="app-premium-brand__title">AppCondominium</div>
-        <div class="app-premium-brand__sub" *ngIf="condominioCtx.idCondominio">Cond. #{{ condominioCtx.idCondominio }}</div>
+        <div class="app-premium-brand__sub" *ngIf="nomeCondominioAtivo">{{ nomeCondominioAtivo }}</div>
       </div>
     </div>
     <nav class="app-premium-sidebar__nav">
-      <div *ngFor="let group of menuGroups" class="sidebar-group">
+      <div *ngFor="let group of menuGroups" class="sidebar-group" [hidden]="!visibleLinks(group).length">
         <button type="button" class="sidebar-group__trigger" (click)="toggleGroup(group.label)">
           <span class="sidebar-group__title">{{ group.label }}</span>
         </button>
         <div class="sidebar-group__links" *ngIf="isGroupOpen(group.label)">
-          <a *ngFor="let link of group.links" [routerLink]="link.route" routerLinkActive="sidebar-link--active" class="sidebar-link">{{ link.label }}</a>
+          <a *ngFor="let link of visibleLinks(group)" [routerLink]="link.route" routerLinkActive="sidebar-link--active" class="sidebar-link">{{ link.label }}</a>
         </div>
       </div>
     </nav>
-    <div class="app-premium-sidebar__foot">
+    <div class="sidebar-group" *ngIf="podeGerenciar()">
+        <a routerLink="/gerenciamento-permissoes" routerLinkActive="sidebar-link--active" class="sidebar-link">Permissões</a>
+      </div>
+      <div class="app-premium-sidebar__foot">
+      <label class="tenant-switch" *ngIf="condominiosAutorizados.length > 1">
+        <span>Condomínio</span>
+        <select [ngModel]="condominioCtx.idCondominio" (ngModelChange)="trocarTenant($event)">
+          <option *ngFor="let c of condominiosAutorizados" [ngValue]="c.idCondominio">{{ c.nome }}</option>
+        </select>
+      </label>
       <button type="button" class="sidebar-logout" (click)="logout()">Sair</button>
     </div>
   </aside>
@@ -30,11 +39,14 @@
       <div class="app-premium-topstrip-brand">Administração de Condomínios</div>
     </header>
     <main class="app-premium-main">
-      <div class="content-wrapper">
-        <div class="content-card">
+      <div class="content-wrapper" [class.content-wrapper--list-hug]="hugShell()">
+        <div class="content-card"
+          [class.content-card-entity-list]="isEntityListRoute()"
+          [class.content-card-entity-form]="isEntityFormRoute()">
           <router-outlet />
         </div>
       </div>
     </main>
   </div>
 </div>
+<app-push-toast />

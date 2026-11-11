@@ -1,0 +1,302 @@
+{
+  "schema": "AppCondominium Funcionalidades Catalog v1",
+  "version": "1.0.0",
+  "functionalities": [
+    {
+      "permissionKey": "AUTH_LOGIN",
+      "displayName": "Login",
+      "module": "Geral",
+      "tipo": "Autenticacao",
+      "route": "/login",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "HOME",
+      "displayName": "Pagina inicial",
+      "module": "Geral",
+      "tipo": "Pagina",
+      "route": "/inicio",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "PERMISSOES_GERENCIAR",
+      "displayName": "Gerenciar permissoes",
+      "module": "Geral",
+      "tipo": "Administracao",
+      "route": "/gerenciamento-permissoes",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "UF",
+      "displayName": "UF",
+      "module": "Cadastros Gerais",
+      "tipo": "Tela — CRUD",
+      "route": "/uf",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "MUNICIPIO",
+      "displayName": "Município",
+      "module": "Cadastros Gerais",
+      "tipo": "Tela — CRUD",
+      "route": "/municipio",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "BAIRRO",
+      "displayName": "Bairro",
+      "module": "Cadastros Gerais",
+      "tipo": "Tela — CRUD",
+      "route": "/bairro",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "ENDERECO",
+      "displayName": "Endereço",
+      "module": "Cadastros Gerais",
+      "tipo": "Tela — CRUD",
+      "route": "/endereco",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "CONDOMINIO",
+      "displayName": "Condomínio",
+      "module": "Cadastros Gerais",
+      "tipo": "Tela — CRUD",
+      "route": "/condominio",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "CONFIGURACAOCONDOMINIO",
+      "displayName": "Configuração do Condomínio",
+      "module": "Condominio",
+      "tipo": "Tela — CRUD",
+      "route": "/configuracaocondominio",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "BLOCO",
+      "displayName": "Bloco",
+      "module": "Condominio",
+      "tipo": "Tela — CRUD",
+      "route": "/bloco",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "TIPOUNIDADE",
+      "displayName": "Tipo Unidade",
+      "module": "Condominio",
+      "tipo": "Tela — CRUD",
+      "route": "/tipounidade",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "UNIDADE",
+      "displayName": "Unidade",
+      "module": "Condominio",
+      "tipo": "Tela — CRUD",
+      "route": "/unidade",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "HIDROMETRO",
+      "displayName": "Hidrômetro",
+      "module": "Condominio",
+      "tipo": "Tela — CRUD",
+      "route": "/hidrometro",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "CONSUMOAGUA",
+      "displayName": "Consumo Água",
+      "module": "Condominio",
+      "tipo": "Tela — CRUD",
+      "route": "/consumoagua",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "PESSOAFISICA",
+      "displayName": "pessoafisica",
+      "module": "Outros",
+      "tipo": "Tela — CRUD",
+      "route": "/pessoafisica",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "PESSOAJURIDICA",
+      "displayName": "Pessoa Jurídica",
+      "module": "Pessoas",
+      "tipo": "Tela — CRUD",
+      "route": "/pessoajuridica",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "FORNECEDOR",
+      "displayName": "Fornecedor",
+      "module": "Pessoas",
+      "tipo": "Tela — CRUD",
+      "route": "/fornecedor",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "TIPOATIVIDADEECONOMICA",
+      "displayName": "Tipo de Atividade Econômica",
+      "module": "Outros",
+      "tipo": "Tela — CRUD",
+      "route": "/tipoatividadeeconomica",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "ATIVIDADEECONOMICA",
+      "displayName": "Atividade Econômica",
+      "module": "Outros",
+      "tipo": "Tela — CRUD",
+      "route": "/atividadeeconomica",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "PESSOACONDOMINIO",
+      "displayName": "Pessoa Condominio",
+      "module": "Pessoas",
+      "tipo": "Tela — CRUD",
+      "route": "/pessoacondominio",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "EQUIPAMENTO",
+      "displayName": "Equipamento",
+      "module": "Outros",
+      "tipo": "Tela — CRUD",
+      "route": "/equipamento",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "ALUGUELEQUIPAMENTO",
+      "displayName": "Aluguel de Equipamento",
+      "module": "Outros",
+      "tipo": "Tela — CRUD",
+      "route": "/aluguelequipamento",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "CONCORRENCIA",
+      "displayName": "Concorrência",
+      "module": "Licitacao",
+      "tipo": "Tela — CRUD",
+      "route": "/concorrencia",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "TIPODESPESA",
+      "displayName": "Tipo de Despesa",
+      "module": "Financeiro",
+      "tipo": "Tela — CRUD",
+      "route": "/tipodespesa",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "DESPESA",
+      "displayName": "Despesa",
+      "module": "Financeiro",
+      "tipo": "Tela — CRUD",
+      "route": "/despesa",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "OFERTACONCORRENCIA",
+      "displayName": "Oferta Concorrência",
+      "module": "Licitacao",
+      "tipo": "Tela — CRUD",
+      "route": "/ofertaconcorrencia",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "BANCO",
+      "displayName": "Banco",
+      "module": "Financeiro",
+      "tipo": "Tela — CRUD",
+      "route": "/banco",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "DADOSBANCARIOS",
+      "displayName": "Dados Bancários",
+      "module": "Financeiro",
+      "tipo": "Tela — CRUD",
+      "route": "/dadosbancarios",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "COBRANCA",
+      "displayName": "Cobranca",
+      "module": "Financeiro",
+      "tipo": "Tela — CRUD",
+      "route": "/cobranca",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "GUARDAENCOMENDA",
+      "displayName": "Guarda Encomenda",
+      "module": "Outros",
+      "tipo": "Tela — CRUD",
+      "route": "/guardaencomenda",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "LOCAL",
+      "displayName": "Local",
+      "module": "Outros",
+      "tipo": "Tela — CRUD",
+      "route": "/local",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "TIPOMATERIAL",
+      "displayName": "Tipo de Material",
+      "module": "Materiais",
+      "tipo": "Tela — CRUD",
+      "route": "/tipomaterial",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "TIPOMATERIALCONDOMINIO",
+      "displayName": "Tipo de Material - Condomínio",
+      "module": "Materiais",
+      "tipo": "Tela — CRUD",
+      "route": "/tipomaterialcondominio",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "MATERIAL",
+      "displayName": "Material",
+      "module": "Materiais",
+      "tipo": "Tela — CRUD",
+      "route": "/material",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "ALOCACAOMATERIAL",
+      "displayName": "Alocação de Material",
+      "module": "Materiais",
+      "tipo": "Tela — CRUD",
+      "route": "/alocacaomaterial",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "ESTOQUEMATERIALCONSUMO",
+      "displayName": "Estoque de Material de Consumo",
+      "module": "Materiais",
+      "tipo": "Tela — CRUD",
+      "route": "/estoquematerialconsumo",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "ENTRADASAIDAMATERIALCONSUMO",
+      "displayName": "Entrada e Saída de Material de Consumo",
+      "module": "Materiais",
+      "tipo": "Tela — CRUD",
+      "route": "/entradasaidamaterialconsumo",
+      "status": "ativo"
+    }
+  ]
+}

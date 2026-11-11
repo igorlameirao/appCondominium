@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AppCondominium.API.Authorization;
 using AppCondominium.Application.Common;
 using AppCondominium.Domain.Entities;
 using AppCondominium.Infrastructure.Repositories.Generated;
@@ -9,6 +10,7 @@ namespace AppCondominium.API.Controllers.Generated;
 [ApiController]
 [Route("api/atividadeeconomica")]
 [Authorize]
+[PermissionResource("ATIVIDADEECONOMICA")]
 public class AtividadeEconomicaController : ControllerBase
 {
     private readonly AtividadeEconomicaRepository _repo;
@@ -19,10 +21,10 @@ public class AtividadeEconomicaController : ControllerBase
     public async Task<ActionResult<PagedResult<AtividadeEconomica>>> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? filter = null, CancellationToken ct = default)
         => Ok(await _repo.GetPagedAsync(page, pageSize, filter, ct));
 
-    [HttpGet("{codigoTipoAtividadeEconomica}")]
-    public async Task<ActionResult<AtividadeEconomica>> GetById([FromRoute] uint? codigoTipoAtividadeEconomica, CancellationToken ct = default)
+    [HttpGet("{codigoAtividadeEconomica}")]
+    public async Task<ActionResult<AtividadeEconomica>> GetById([FromRoute] uint? codigoAtividadeEconomica, CancellationToken ct = default)
     {
-        var item = await _repo.GetByIdAsync(codigoTipoAtividadeEconomica, ct);
+        var item = await _repo.GetByIdAsync(codigoAtividadeEconomica, ct);
         return item == null ? NotFound() : Ok(item);
     }
 
@@ -30,17 +32,17 @@ public class AtividadeEconomicaController : ControllerBase
     public async Task<ActionResult<AtividadeEconomica>> Create([FromBody] AtividadeEconomica entity, CancellationToken ct = default)
     {
         var created = await _repo.AddAsync(entity, ct);
-        return CreatedAtAction(nameof(GetById), new { codigoTipoAtividadeEconomica = created.CodigoTipoAtividadeEconomica }, created);
+        return CreatedAtAction(nameof(GetById), new { codigoAtividadeEconomica = created.CodigoAtividadeEconomica }, created);
     }
 
-    [HttpPut("{codigoTipoAtividadeEconomica}")]
-    public async Task<IActionResult> Update([FromRoute] uint? codigoTipoAtividadeEconomica, [FromBody] AtividadeEconomica entity, CancellationToken ct = default)
+    [HttpPut("{codigoAtividadeEconomica}")]
+    public async Task<IActionResult> Update([FromRoute] uint? codigoAtividadeEconomica, [FromBody] AtividadeEconomica entity, CancellationToken ct = default)
     {
         await _repo.UpdateAsync(entity, ct);
         return NoContent();
     }
 
-    [HttpDelete("{codigoTipoAtividadeEconomica}")]
-    public async Task<IActionResult> Delete([FromRoute] uint? codigoTipoAtividadeEconomica, CancellationToken ct = default)
-        => await _repo.DeleteAsync(codigoTipoAtividadeEconomica, ct) ? NoContent() : NotFound();
+    [HttpDelete("{codigoAtividadeEconomica}")]
+    public async Task<IActionResult> Delete([FromRoute] uint? codigoAtividadeEconomica, CancellationToken ct = default)
+        => await _repo.DeleteAsync(codigoAtividadeEconomica, ct) ? NoContent() : NotFound();
 }

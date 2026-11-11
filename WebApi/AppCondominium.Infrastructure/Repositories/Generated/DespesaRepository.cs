@@ -21,8 +21,8 @@ public class DespesaRepository
 
     private IQueryable<Despesa> ApplyCondominioFilter(IQueryable<Despesa> query)
     {
-        if (_condominio.IdCondominio.HasValue)
-            query = query.Where(e => e.IdCondominio == _condominio.IdCondominio.Value);
+        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e => e.IdCondominio == tenantId);
         return query;
     }
 
@@ -46,9 +46,8 @@ public class DespesaRepository
 
     public async Task<Despesa> AddAsync(Despesa entity, CancellationToken ct = default)
     {
-
-        if (_condominio.IdCondominio.HasValue)
-            entity.IdCondominio = _condominio.IdCondominio.Value;
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
 
         await _ctx.Set<Despesa>().AddAsync(entity, ct);
         await _ctx.SaveChangesAsync(ct);
@@ -57,6 +56,8 @@ public class DespesaRepository
 
     public async Task UpdateAsync(Despesa entity, CancellationToken ct = default)
     {
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
         _ctx.Set<Despesa>().Update(entity);
         await _ctx.SaveChangesAsync(ct);
     }

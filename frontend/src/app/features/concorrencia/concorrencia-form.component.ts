@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
+import { CampoDataHoraComponent } from '../../shared/campo-data-hora/campo-data-hora.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastService } from '../../core/services/toast.service';
 import { ConcorrenciaService } from './concorrencia.service';
 import { Concorrencia } from './concorrencia.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
@@ -13,74 +15,72 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
 @Component({
   selector: 'app-concorrencia-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent],
-  host: { class: 'form-page' },
+  imports: [CommonModule, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  host: { class: 'form-page form-page--wide' },
   template: `
     <div class="form-layout">
       <h2>{{ isEdit ? 'Editar' : 'Novo' }} Concorrência</h2>
       <div class="form-scroll">
         <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
           
-          <div class="grid grid-id" *ngIf="isEdit">
-            <div class="form-group">
+          <div class="form-grid">
+            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
               <label>Id</label>
-              <input type="text" [value]="pkDisplay" readonly class="readonly" />
+              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
             </div>
-          </div>
-          <div class="grid grid-2">
-            
-          <div class="form-group">
-            <label>idTipoDespesa *</label>
-            <app-combobox-customizada
-              [options]="fk_idTipoDespesa"
-              [(value)]="model.idTipoDespesa"
-              [disabled]="fieldDisabled('idTipoDespesa')" />
-          </div>
-          <div class="form-group">
-            <label>Descricao *</label>
-            <input type="text" [(ngModel)]="model.descricao" name="descricao" [readonly]="fieldDisabled('descricao')" />
-          </div>
-          <div class="form-group">
-            <label>TipoConcorrencia *</label>
-            <select [(ngModel)]="model.tipoConcorrencia" name="tipoConcorrencia" [disabled]="fieldDisabled('tipoConcorrencia')" required>
-              <option [ngValue]="null">Selecione…</option>
-              <option [ngValue]="0">Preço</option><option [ngValue]="1">Qualidade</option><option [ngValue]="2">Prazo Entrega</option><option [ngValue]="3">Capacidade Técnica</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Fase *</label>
-            <select [(ngModel)]="model.fase" name="fase" [disabled]="fieldDisabled('fase')" required>
-              <option [ngValue]="null">Selecione…</option>
-              <option [ngValue]="0">Divulgação</option><option [ngValue]="1">Recebimento Proposta</option><option [ngValue]="2">Análise</option><option [ngValue]="3">Escolha Vencedor</option><option [ngValue]="4">Assinatura Contrato</option><option [ngValue]="5">Finalizado</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>DataAbertura *</label>
-            <input type="date" [(ngModel)]="model.dataAbertura" name="dataAbertura" [readonly]="fieldDisabled('dataAbertura')" />
-          </div>
-          <div class="form-group">
-            <label>Data Prevista Encerramento *</label>
-            <input type="date" [(ngModel)]="model.dataPrevistaEncerramento" name="dataPrevistaEncerramento" [readonly]="fieldDisabled('dataPrevistaEncerramento')" />
-          </div>
-          <div class="form-group">
-            <label>DataEncerramento</label>
-            <input type="date" [(ngModel)]="model.dataEncerramento" name="dataEncerramento" [readonly]="fieldDisabled('dataEncerramento')" />
-          </div>
+            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
+              <label>idTipoDespesa *</label>
+              <app-combobox-customizada
+                [options]="fk_idTipoDespesa"
+                [(value)]="model.idTipoDespesa"
+                [disabled]="fieldDisabled('idTipoDespesa')" [required]="true" />
+            </div>
+            <div style="grid-column: 9 / span 4; grid-row: 1" class="form-group fg-col-4">
+              <label>DataAbertura *</label>
+              <app-campo-data-hora [(ngModel)]="model.dataAbertura" name="dataAbertura" [disabled]="fieldDisabled('dataAbertura')" [required]="true" />
+            </div>
+            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
+              <label>Descricao *</label>
+              <input type="text" [(ngModel)]="model.descricao" name="descricao" [readonly]="fieldDisabled('descricao')" required />
+            </div>
+            <div style="grid-column: 1 / span 4; grid-row: 3" class="form-group fg-col-4">
+              <label>Data Prevista Encerramento *</label>
+              <app-campo-data-hora [(ngModel)]="model.dataPrevistaEncerramento" name="dataPrevistaEncerramento" [disabled]="fieldDisabled('dataPrevistaEncerramento')" [required]="true" />
+            </div>
+            <div style="grid-column: 5 / span 4; grid-row: 3" class="form-group fg-col-4">
+              <label>DataEncerramento</label>
+              <app-campo-data-hora [(ngModel)]="model.dataEncerramento" name="dataEncerramento" [disabled]="fieldDisabled('dataEncerramento')" />
+            </div>
+            <div style="grid-column: 9 / span 2; grid-row: 3" class="form-group fg-col-2">
+              <label>TipoConcorrencia *</label>
+              <select [(ngModel)]="model.tipoConcorrencia" name="tipoConcorrencia" [disabled]="fieldDisabled('tipoConcorrencia')" required>
+                <option [ngValue]="null">Selecione…</option>
+                <option [ngValue]="0">Preço</option><option [ngValue]="1">Qualidade</option><option [ngValue]="2">Prazo Entrega</option><option [ngValue]="3">Capacidade Técnica</option>
+              </select>
+            </div>
+            <div style="grid-column: 11 / span 2; grid-row: 3" class="form-group fg-col-2">
+              <label>Fase *</label>
+              <select [(ngModel)]="model.fase" name="fase" [disabled]="fieldDisabled('fase')" required>
+                <option [ngValue]="null">Selecione…</option>
+                <option [ngValue]="0">Divulgação</option><option [ngValue]="1">Recebimento Proposta</option><option [ngValue]="2">Análise</option><option [ngValue]="3">Escolha Vencedor</option><option [ngValue]="4">Assinatura Contrato</option><option [ngValue]="5">Finalizado</option>
+              </select>
+            </div>
           </div>
         </form>
       </div>
       <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !canEdit">Gravar</button>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
+        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
       </div>
-      <div class="msg-erro" *ngIf="formError">{{ formError }}</div>
     </div>
     <div class="confirm-overlay" *ngIf="showDeleteConfirm">
       <div class="confirm-modal">
         <p>Deseja realmente excluir este registro?</p>
-        <button type="button" class="btn-cancelar" (click)="showDeleteConfirm=false">Cancelar</button>
-        <button type="button" class="btn-excluir" (click)="confirmDelete()">Excluir</button>
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancelar-modal" (click)="showDeleteConfirm=false">Cancelar</button>
+          <button type="button" class="btn-confirm-danger" (click)="confirmDelete()">Excluir</button>
+        </div>
       </div>
     </div>
   `
@@ -89,8 +89,10 @@ export class ConcorrenciaFormComponent implements OnInit {
   model: Concorrencia = {} as Concorrencia;
   isEdit = false;
   saving = false;
-  formError = '';
+  private readonly toast = inject(ToastService);
+  private readonly entityTitle = 'Concorrência';
   showDeleteConfirm = false;
+  readonly permissionKey = 'CONCORRENCIA';
   canEdit = true;
   canDelete = true;
   fk_idTipoDespesa: ComboboxOption[] = [];
@@ -103,8 +105,18 @@ export class ConcorrenciaFormComponent implements OnInit {
     private condominioCtx: CondominioContextService,
     private tipoDespesaService: TipoDespesaService,
   ) {
-    this.canEdit = this.permissions.canEdit();
-    this.canDelete = this.permissions.canDelete();
+    this.refreshPermissions();
+  }
+
+  get podeGravar(): boolean {
+    return this.isEdit
+      ? this.permissions.can(this.permissionKey, 'Alterar')
+      : this.permissions.can(this.permissionKey, 'Incluir');
+  }
+
+  private refreshPermissions(): void {
+    this.canEdit = this.podeGravar;
+    this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
   get pkDisplay(): string { return String(this.model.idConcorrencia); }
@@ -121,14 +133,16 @@ export class ConcorrenciaFormComponent implements OnInit {
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
     if (isNovo) {
       this.isEdit = false;
+      this.refreshPermissions();
       this.model.idCondominio = this.condominioCtx.idCondominio!;
       return;
     }
     if (idConcorrencia) {
       this.isEdit = true;
+      this.refreshPermissions();
       this.service.getById(idConcorrencia).subscribe({
         next: (r) => this.model = r,
-        error: () => this.formError = 'Registro não encontrado.'
+        error: () => this.toast.showError('Registro não encontrado.')
       });
     }
   }
@@ -141,19 +155,18 @@ export class ConcorrenciaFormComponent implements OnInit {
   }
 
   submit(f: NgForm): void {
-    if (!f.valid) { this.formError = 'Preencha os campos obrigatórios.'; return; }
+    if (!f.valid) { this.toast.showError('Preencha os campos obrigatórios antes de gravar.'); return; }
     this.saving = true;
-    this.formError = '';
     if (this.isEdit) {
       this.service.update(this.model).subscribe({
-        next: () => this.router.navigate(['/concorrencia']),
-        error: (e: unknown) => { this.formError = (e as any)?.error?.title ?? (e as any)?.message ?? 'Erro ao gravar'; this.saving = false; },
+        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/concorrencia']); },
+        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
         complete: () => this.saving = false
       });
     } else {
       this.service.create(this.model).subscribe({
-        next: () => this.router.navigate(['/concorrencia']),
-        error: (e: unknown) => { this.formError = (e as any)?.error?.title ?? (e as any)?.message ?? 'Erro ao gravar'; this.saving = false; },
+        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/concorrencia']); },
+        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
         complete: () => this.saving = false
       });
     }
@@ -162,7 +175,7 @@ export class ConcorrenciaFormComponent implements OnInit {
   cancel(): void { this.router.navigate(['/concorrencia']); }
 
   confirmDelete(): void {
-    this.service.delete(this.model.idConcorrencia!).subscribe({ next: () => this.router.navigate(['/concorrencia']) });
+    this.service.delete(this.model.idConcorrencia!).subscribe({ next: () => this.router.navigate(['/concorrencia']), error: () => this.toast.showError('Não foi possível excluir. Tente novamente.') });
   }
 
   fkLabel_idTipoDespesa(x: any): string {

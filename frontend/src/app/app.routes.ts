@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { entityPermissionGuard } from './core/guards/permission.guard';
 
 const entityRoutes: Routes = [
   { path: 'uf', loadComponent: () => import('./features/uf/uf-list.component').then(m => m.UFListComponent) },
@@ -112,10 +113,13 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [authGuard],
+    canActivateChild: [entityPermissionGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'condominio' },
+      { path: '', pathMatch: 'full', redirectTo: 'inicio' },
+      { path: 'inicio', loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent) },
+      { path: 'gerenciamento-permissoes', loadComponent: () => import('./features/permissoes/gerenciamento-permissoes.component').then(m => m.GerenciamentoPermissoesComponent) },
       ...entityRoutes
     ]
   },
-  { path: '**', redirectTo: 'condominio' }
+  { path: '**', redirectTo: 'inicio' }
 ];

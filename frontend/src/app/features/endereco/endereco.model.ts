@@ -1,6 +1,6 @@
 export interface Endereco {
   idEndereco?: number;
-  cEP?: string;
+  cep?: string;
   logradouro?: string;
   idBairro?: number;
 }

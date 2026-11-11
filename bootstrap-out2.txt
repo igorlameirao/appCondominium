@@ -1,0 +1,152 @@
+Usando as configurações de inicialização de c:\Projetos\M7\appCondominium\WebApi\AppCondominium.API\Properties\launchSettings.json...
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (222ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`IdPerfil`, `p`.`Descricao`
+      FROM `PerfilAcesso` AS `p`
+      WHERE `p`.`Descricao` IS NOT NULL AND (LOWER(`p`.`Descricao`) = 'administrador')
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (153ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `c`.`IdCondominio`, `c`.`AreaTerreno`, `c`.`AreaTotalEdificada`, `c`.`AreaTotalUnidades`, `c`.`Ativo`, `c`.`CNPJ`, `c`.`ComplementoEndereco`, `c`.`DataInativacao`, `c`.`Dominio`, `c`.`IdEndereco`, `c`.`Nome`, `c`.`NumeroEndereco`, `c`.`QuantidadeTotalUnidades`
+      FROM `Condominio` AS `c`
+      ORDER BY `c`.`IdCondominio`
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (277ms) [Parameters=[@__email_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`IdPessoa`, `p`.`DataNascimento`, `p`.`email`, `p`.`Foto`, `p`.`FotoEmbedding`, `p`.`Senha`
+      FROM `pessoafisica` AS `p`
+      WHERE `p`.`email` IS NOT NULL AND (LOWER(`p`.`email`) = @__email_0)
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (191ms) [Parameters=[@p0='?' (Size = 4000), @p1='?' (Size = 4000), @p2='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      INSERT INTO `Pessoa` (`CPFCNPJ`, `Nome`, `Telefone`)
+      VALUES (@p0, @p1, @p2);
+      SELECT `IdPessoa`
+      FROM `Pessoa`
+      WHERE ROW_COUNT() = 1 AND `IdPessoa` = LAST_INSERT_ID();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (157ms) [Parameters=[@p0='?' (DbType = UInt32), @p1='?' (DbType = Date), @p2='?' (Size = 4000), @p3='?' (Size = 8000) (DbType = Binary), @p4='?' (Size = 4000), @p5='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      INSERT INTO `pessoafisica` (`IdPessoa`, `DataNascimento`, `email`, `Foto`, `FotoEmbedding`, `Senha`)
+      VALUES (@p0, @p1, @p2, @p3, @p4, @p5);
+info: Bootstrap[0]
+      Usuário admin criado: admin@condominium.local, IdPessoa=1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (171ms) [Parameters=[@__idPessoa_0='?' (DbType = UInt32), @__idCondominio_1='?' (DbType = UInt32)], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`IdPessoa`, `p`.`IdCondominio`, `p`.`DataFim`, `p`.`DataInicio`, `p`.`IdPerfil`, `p`.`TipoVinculo`
+      FROM `PessoaCondominio` AS `p`
+      WHERE (`p`.`IdPessoa` = @__idPessoa_0) AND (`p`.`IdCondominio` = @__idCondominio_1)
+      LIMIT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (178ms) [Parameters=[@p0='?' (DbType = UInt32), @p1='?' (DbType = UInt32), @p2='?' (DbType = Date), @p3='?' (DbType = Date), @p4='?' (DbType = UInt32), @p5='?' (DbType = Byte)], CommandType='Text', CommandTimeout='30']
+      SET AUTOCOMMIT = 1;
+      INSERT INTO `PessoaCondominio` (`IdCondominio`, `IdPessoa`, `DataFim`, `DataInicio`, `IdPerfil`, `TipoVinculo`)
+      VALUES (@p0, @p1, @p2, @p3, @p4, @p5);
+info: Bootstrap[0]
+      Vínculo PessoaCondominio admin: IdPessoa=1, IdCondominio=1, Perfil=Administrador
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (146ms) [Parameters=[@__nome_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilAcesso` AS `p`
+          WHERE `p`.`Descricao` = @__nome_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (146ms) [Parameters=[@__nome_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilAcesso` AS `p`
+          WHERE `p`.`Descricao` = @__nome_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (146ms) [Parameters=[@__nome_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilAcesso` AS `p`
+          WHERE `p`.`Descricao` = @__nome_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (146ms) [Parameters=[@__nome_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilAcesso` AS `p`
+          WHERE `p`.`Descricao` = @__nome_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (147ms) [Parameters=[@__nome_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilAcesso` AS `p`
+          WHERE `p`.`Descricao` = @__nome_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (146ms) [Parameters=[@__nome_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilAcesso` AS `p`
+          WHERE `p`.`Descricao` = @__nome_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (147ms) [Parameters=[@__nome_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilAcesso` AS `p`
+          WHERE `p`.`Descricao` = @__nome_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (159ms) [Parameters=[@__nome_0='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilAcesso` AS `p`
+          WHERE `p`.`Descricao` = @__nome_0)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (153ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`IdPermissionKey`, `p`.`Chave`, `p`.`Modulo`, `p`.`Nome`
+      FROM `PermissionKey` AS `p`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (147ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `p`.`IdPerfil`, `p`.`Descricao`
+      FROM `PerfilAcesso` AS `p`
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (151ms) [Parameters=[@__perfil_IdPerfil_0='?' (DbType = UInt32), @__idKey_1='?' (DbType = UInt32)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilPermissao` AS `p`
+          WHERE (`p`.`IdPerfil` = @__perfil_IdPerfil_0) AND (`p`.`IdPermissionKey` = @__idKey_1))
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (145ms) [Parameters=[@__perfil_IdPerfil_0='?' (DbType = UInt32), @__idKey_1='?' (DbType = UInt32)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilPermissao` AS `p`
+          WHERE (`p`.`IdPerfil` = @__perfil_IdPerfil_0) AND (`p`.`IdPermissionKey` = @__idKey_1))
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (146ms) [Parameters=[@__perfil_IdPerfil_0='?' (DbType = UInt32), @__idKey_1='?' (DbType = UInt32)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilPermissao` AS `p`
+          WHERE (`p`.`IdPerfil` = @__perfil_IdPerfil_0) AND (`p`.`IdPermissionKey` = @__idKey_1))
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (146ms) [Parameters=[@__perfil_IdPerfil_0='?' (DbType = UInt32), @__idKey_1='?' (DbType = UInt32)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilPermissao` AS `p`
+          WHERE (`p`.`IdPerfil` = @__perfil_IdPerfil_0) AND (`p`.`IdPermissionKey` = @__idKey_1))
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (149ms) [Parameters=[@__perfil_IdPerfil_0='?' (DbType = UInt32), @__idKey_1='?' (DbType = UInt32)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilPermissao` AS `p`
+          WHERE (`p`.`IdPerfil` = @__perfil_IdPerfil_0) AND (`p`.`IdPermissionKey` = @__idKey_1))
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (149ms) [Parameters=[@__perfil_IdPerfil_0='?' (DbType = UInt32), @__idKey_1='?' (DbType = UInt32)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilPermissao` AS `p`
+          WHERE (`p`.`IdPerfil` = @__perfil_IdPerfil_0) AND (`p`.`IdPermissionKey` = @__idKey_1))
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (151ms) [Parameters=[@__perfil_IdPerfil_0='?' (DbType = UInt32), @__idKey_1='?' (DbType = UInt32)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM `PerfilPermissao` AS `p`
+          WHERE (`p`.`IdPerfil` = @__perfil_IdPerfil_0) AND (`p`.`IdPermissionKey` = @__idKey_1))
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://127.0.0.1:5099
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: c:\Projetos\M7\appCondominium\WebApi\AppCondominium.API

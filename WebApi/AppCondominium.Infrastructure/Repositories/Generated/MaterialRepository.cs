@@ -21,8 +21,8 @@ public class MaterialRepository
 
     private IQueryable<Material> ApplyCondominioFilter(IQueryable<Material> query)
     {
-        if (_condominio.IdCondominio.HasValue)
-            query = query.Where(e => e.IdCondominio == _condominio.IdCondominio.Value);
+        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e => e.IdCondominio == tenantId);
         return query;
     }
 
@@ -43,9 +43,8 @@ public class MaterialRepository
 
     public async Task<Material> AddAsync(Material entity, CancellationToken ct = default)
     {
-
-        if (_condominio.IdCondominio.HasValue)
-            entity.IdCondominio = _condominio.IdCondominio.Value;
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
 
         await _ctx.Set<Material>().AddAsync(entity, ct);
         await _ctx.SaveChangesAsync(ct);
@@ -54,6 +53,8 @@ public class MaterialRepository
 
     public async Task UpdateAsync(Material entity, CancellationToken ct = default)
     {
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
         _ctx.Set<Material>().Update(entity);
         await _ctx.SaveChangesAsync(ct);
     }

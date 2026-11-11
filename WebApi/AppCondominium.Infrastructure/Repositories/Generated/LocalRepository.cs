@@ -21,8 +21,8 @@ public class LocalRepository
 
     private IQueryable<Local> ApplyCondominioFilter(IQueryable<Local> query)
     {
-        if (_condominio.IdCondominio.HasValue)
-            query = query.Where(e => e.IdCondominio == _condominio.IdCondominio.Value);
+        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e => e.IdCondominio == tenantId);
         return query;
     }
 
@@ -43,9 +43,8 @@ public class LocalRepository
 
     public async Task<Local> AddAsync(Local entity, CancellationToken ct = default)
     {
-
-        if (_condominio.IdCondominio.HasValue)
-            entity.IdCondominio = _condominio.IdCondominio.Value;
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
 
         await _ctx.Set<Local>().AddAsync(entity, ct);
         await _ctx.SaveChangesAsync(ct);
@@ -54,6 +53,8 @@ public class LocalRepository
 
     public async Task UpdateAsync(Local entity, CancellationToken ct = default)
     {
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
         _ctx.Set<Local>().Update(entity);
         await _ctx.SaveChangesAsync(ct);
     }

@@ -21,6 +21,11 @@ public class PessoafisicaRepository
 
     private IQueryable<Pessoafisica> ApplyCondominioFilter(IQueryable<Pessoafisica> query)
     {
+        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e =>
+            _ctx.Set<PessoaCondominio>().Any(v => v.IdPessoa == e.IdPessoa && v.IdCondominio == tenantId)
+            || _ctx.Set<Fornecedor>().Any(f => f.IdPessoa == e.IdPessoa && f.IdCondominio == tenantId)
+            || _ctx.Set<Unidade>().Any(u => _ctx.Set<PessoaUnidade>().Any(pu => pu.IdUnidade == u.IdUnidade && pu.IdPessoa == e.IdPessoa) && u.IdCondominio == tenantId));
         return query;
     }
 

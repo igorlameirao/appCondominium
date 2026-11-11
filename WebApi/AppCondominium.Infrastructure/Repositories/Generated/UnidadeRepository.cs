@@ -21,8 +21,8 @@ public class UnidadeRepository
 
     private IQueryable<Unidade> ApplyCondominioFilter(IQueryable<Unidade> query)
     {
-        if (_condominio.IdCondominio.HasValue)
-            query = query.Where(e => e.IdCondominio == _condominio.IdCondominio.Value);
+        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e => e.IdCondominio == tenantId);
         return query;
     }
 
@@ -43,9 +43,8 @@ public class UnidadeRepository
 
     public async Task<Unidade> AddAsync(Unidade entity, CancellationToken ct = default)
     {
-
-        if (_condominio.IdCondominio.HasValue)
-            entity.IdCondominio = _condominio.IdCondominio.Value;
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
 
         await _ctx.Set<Unidade>().AddAsync(entity, ct);
         await _ctx.SaveChangesAsync(ct);
@@ -54,6 +53,8 @@ public class UnidadeRepository
 
     public async Task UpdateAsync(Unidade entity, CancellationToken ct = default)
     {
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
         _ctx.Set<Unidade>().Update(entity);
         await _ctx.SaveChangesAsync(ct);
     }

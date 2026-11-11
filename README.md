@@ -12,7 +12,13 @@ Sistema de Administração de Condomínios gerado a partir de `MDs/md_appCondomi
 | `database/schema.sql` | MySQL | Script de criação das tabelas |
 | `tools/generate_from_spec.py` | Python | Gerador de entidades/CRUD a partir do JSON |
 
-## Regra de Ouro — RT-Gerais 12
+## Multi-tenant — RT-Gerais 12
+
+O tenant é a entidade **Condomínio** (`IdCondominio`). Cada sessão autenticada opera em um único condomínio ativo. O usuário pode trocar o tenant em `POST /api/auth/trocar-condominio` quando tiver vínculo (`PessoaCondominio` ou `PessoaUnidade`).
+
+- **API:** `ICondominioContext` (alias `TenantId`) + middleware JWT. O header `X-Id-Condominio` deve coincidir com o claim.
+- **EF:** global query filters por `CurrentTenantId` nas entidades de escopo `Condominio` e filtros indiretos (`pessoafisica`, `PessoaJuridica`, `Pessoa`, `PessoaUnidade`).
+- **Spec:** `EscopoTenant` = `Global` | `Condominio` | `Indireto` em `MDs/md_appCondominium.json`.
 
 Toda operação vinculada a `IdCondominio` usa o contexto global:
 
@@ -23,11 +29,21 @@ Toda operação vinculada a `IdCondominio` usa o contexto global:
 ## Pré-requisitos
 
 - .NET 8 SDK
-- MySQL (localhost, user `root`, senha `mysql`)
+- MySQL (mesmo servidor RDS do SCO; schema `condominium`)
 - Node.js 18+
 - Flutter 3.x (opcional, para o app)
 
 ## Backend
+
+Connection string e JWT **não** ficam no Git (mesmo modelo do SCO). Copie `WebApi/AppCondominium.API/appsettings.Example.json` e configure User Secrets:
+
+```powershell
+cd WebApi\AppCondominium.API
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=...;Port=3306;Database=condominium;User=...;Password=...;AllowLoadLocalInfile=true;"
+dotnet user-secrets set "Jwt:Key" "GERE_UMA_CHAVE_ALEATORIA_COM_NO_MINIMO_32_CHARS"
+```
+
+Produção: variáveis `ConnectionStrings__DefaultConnection` e `Jwt__Key`.
 
 ```powershell
 cd WebApi
@@ -36,10 +52,10 @@ dotnet run --project AppCondominium.API
 
 Swagger: http://localhost:5000/swagger
 
-Criar banco:
+Criar banco (ajuste o nome do schema para `condominium` se necessário):
 
 ```powershell
-mysql -u root -pmysql < database\schema.sql
+mysql -h SEU_HOST -u SEU_USER -p < database\schema.sql
 ```
 
 ## Frontend web

@@ -1,14 +1,26 @@
 using System.Text;
+using AppCondominium.API.Authorization;
 using AppCondominium.API.Middleware;
+using AppCondominium.Application.Interfaces;
 using AppCondominium.Infrastructure;
+using AppCondominium.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "AppCondominium-ChaveSecreta-JWT-Minimo32Caracteres!";
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+{
+    throw new InvalidOperationException(
+        "CONFIGURAÇÃO OBRIGATÓRIA: Jwt:Key ausente ou com menos de 32 caracteres. " +
+        "Desenvolvimento: dotnet user-secrets set \"Jwt:Key\" \"...\" (em WebApi/AppCondominium.API). " +
+        "Produção: variável de ambiente Jwt__Key. " +
+        "Modelo: appsettings.Example.json");
+}
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -27,6 +39,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHostedService<PermissionCatalogSync>();
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 10 * 1024 * 1024);
 
 builder.Services.AddControllers(options =>
@@ -67,6 +80,15 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Bootstrap");
+    await AdminBootstrapSeeder.SeedAsync(db, hasher, config, app.Environment.IsDevelopment(), logger);
+}
 
 if (app.Environment.IsDevelopment())
 {

@@ -36,16 +36,51 @@ class AuthService {
       nomeUsuario: body['nome'] as String? ?? usuario,
       idCondominioSelecionado: body['idCondominio'] as int,
       perfilUsuario: body['perfil'] as String? ?? '',
+      acessoTotalUsuario: body['acessoTotal'] == true,
+      permissoesUsuario: _permissoes(body['permissoes']),
     );
     return true;
   }
 
-  Future<List<Map<String, dynamic>>> listarCondominios(String q) async {
+  Future<bool> trocarCondominio(int idCondominio) async {
+    final token = TokenService().getUserToken();
+    final uri = Uri.parse('${baseUrl}auth/trocar-condominio');
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+        'X-Id-Condominio': '${UsuarioLogado.idCondominio}',
+      },
+      body: json.encode({'idCondominio': idCondominio}),
+    );
+    if (response.statusCode != 200) return false;
+    final body = json.decode(response.body) as Map<String, dynamic>;
+    await TokenService().setUserToken(body['token'] as String);
+    await UsuarioLogado.salvar(
+      emailUsuario: UsuarioLogado.email,
+      nomeUsuario: body['nome'] as String? ?? UsuarioLogado.nome,
+      idCondominioSelecionado: body['idCondominio'] as int,
+      perfilUsuario: body['perfil'] as String? ?? UsuarioLogado.perfil,
+      acessoTotalUsuario: body['acessoTotal'] == true,
+      permissoesUsuario: _permissoes(body['permissoes']),
+    );
+    return true;
+  }
+
+  Future<List<Map<String, dynamic>>> listarCondominios(String q, {String? usuario}) async {
     if (q.length < 3) return [];
-    final uri = Uri.parse('${baseUrl}auth/condominios').replace(queryParameters: {'q': q});
+    final params = <String, String>{'q': q};
+    if (usuario != null && usuario.isNotEmpty) params['usuario'] = usuario;
+    final uri = Uri.parse('${baseUrl}auth/condominios').replace(queryParameters: params);
     final response = await http.get(uri);
     if (response.statusCode != 200) return [];
     final list = json.decode(response.body) as List<dynamic>;
     return list.cast<Map<String, dynamic>>();
+  }
+
+  List<String> _permissoes(dynamic raw) {
+    if (raw is! List) return [];
+    return raw.map((e) => e.toString()).toList();
   }
 }

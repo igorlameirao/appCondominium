@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
+import { LIST_CARD_HUG_LAYOUT_STYLES } from '../../shared/list-card-hug-layout.styles';
+import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
 import { PagedResult } from '../../core/models/paged-result';
 import { ConfiguracaoCondominioService } from './configuracaocondominio.service';
 import { ConfiguracaoCondominio } from './configuracaocondominio.model';
@@ -10,7 +12,8 @@ import { ConfiguracaoCondominio } from './configuracaocondominio.model';
 @Component({
   selector: 'app-configuracaocondominio-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaginationComponent, ListLoadingModalComponent],
+  styles: [LIST_CARD_HUG_LAYOUT_STYLES],
   template: `
     <div class="list-page">
       <div class="list-header">
@@ -19,6 +22,7 @@ import { ConfiguracaoCondominio } from './configuracaocondominio.model';
           <label>Filtro:</label>
           <input type="text" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" />
           <button type="button" class="btn-filtrar" (click)="applyFilter()">Filtrar</button>
+          <button type="button" class="btn-limpar" (click)="clearFilter()">Limpar</button>
         </div>
         <div class="top-actions">
           <app-pagination
@@ -47,6 +51,7 @@ import { ConfiguracaoCondominio } from './configuracaocondominio.model';
           (pageChange)="loadPage($event)" [showPagination]="true" [showNovo]="false" [alignRight]="true" />
       </div>
     </div>
+    <app-list-loading-modal [visible]="loading" />
   `
 })
 export class ConfiguracaoCondominioListComponent implements OnInit {
@@ -63,6 +68,8 @@ export class ConfiguracaoCondominioListComponent implements OnInit {
   ngOnInit(): void { this.loadPage(1); }
 
   applyFilter(): void { this.page = 1; this.loadPage(1); }
+
+  clearFilter(): void { this.filterText = ''; this.applyFilter(); }
 
   loadPage(p: number): void {
     this.page = p;

@@ -1,0 +1,67 @@
+---
+description: Card branco web — padrão hug Escalas (altura e largura pelo conteúdo)
+globs: frontend/**
+alwaysApply: false
+---
+
+# Layout do card branco (padrão hug Escalas)
+
+Padrão hug do SCO aplicado no AppCondominium com duas classes genéricas, porque as telas CRUD compartilham o mesmo markup.
+
+**Tabela de rotas:** `MDs/referencias-layout/hug-escalas-rotas.referencia.md`  
+**Estilos:** `frontend/src/styles-sco.css`, `frontend/src/app/app.component.ts`, `frontend/src/styles-premium-shell.css`  
+**Host da lista:** `frontend/src/app/shared/list-card-hug-layout.styles.ts`
+
+## Quando aplicar
+
+- Criar lista ou formulário web com card branco
+- Usuário pedir «padrão hug Escalas», «card como Escalas», «não esticar o card»
+- Formulário rico (combos, checks, rádios): usar também `hug-estilo-sco.mdc`
+
+## Comportamento
+
+1. **Vertical — muitos dados:** card cresce até o teto do wrapper; scroll depois (`.table-scroll-wrapper` ou no card no form)
+2. **Vertical — poucos dados:** altura = conteúdo; página centralizada
+3. **Horizontal:** `width: max-content`; `max-width: min(100%, calc(100vw - 40px))`; scroll H só na `.table-scroll-wrapper`
+4. **Form:** `max-width: min(720px, calc(100vw - 40px))` (1040px com `form-page--wide`)
+   - Exceção: grelha `fr` / painéis absolutos → `width: 100%` + `max-width` fixo, `overflow-x: visible`
+
+## Implementação
+
+### Shell
+
+- Wrapper: `content-wrapper--list-hug` (menu visível; login e `/entrar` ficam de fora)
+- Lista: `content-card-entity-list`
+- Form, Início e Permissões: `content-card-entity-form`
+- Form largo: host `form-page form-page--wide`
+
+```css
+width: max-content;
+max-width: min(100%, calc(100vw - 40px));
+flex: 0 1 auto;
+max-height: 100%; /* NÃO 100dvh - 172px */
+align-self: center;
+padding: 24px;
+scrollbar-gutter: auto;
+```
+
+- Lista: `overflow: hidden` no card; scroll na `.table-scroll-wrapper`
+- Form: `overflow-y: auto` no card; `.form-scroll { flex: 0 0 auto; overflow: visible }`
+- Host lista: `styles: [LIST_CARD_HUG_LAYOUT_STYLES]`
+- Override global: `.content-wrapper--list-hug .form-page .form-scroll { flex: 0 0 auto; overflow: visible; }`
+
+### Checklist tela nova
+
+1. Rota entra em `isEntityListRoute` / `isEntityFormRoute` em `app.component.ts`
+2. Lista usa `LIST_CARD_HUG_LAYOUT_STYLES`; form usa `host: { class: 'form-page' }`
+3. Host `.list-page` com `max-content` (não `width: 100%`)
+4. Não usar `content-wrapper--map-shell`
+
+## Não usar
+
+- `width: 100%` no card/host da lista hug
+- `max-height: calc(100vh - 172px)` / `100dvh - 172px`
+- `.form-scroll { flex: 1; overflow-y: auto }` sem necessidade
+- Redefinir `.btn-gravar`, `.btn-cancelar`, `.btn-filtrar`, `.btn-limpar` no componente
+
+Exceção: mapas, dashboards e telas que devem preencher altura/largura de propósito.

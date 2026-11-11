@@ -1,0 +1,104 @@
+{
+  "schema": "AppCondominium Concessoes Perfil v1",
+  "version": "1.0.0",
+  "profiles": [
+    "Administrador",
+    "Síndico",
+    "Subsíndico",
+    "Conselheiro",
+    "Funcionário Administração",
+    "funcionário Manutenção",
+    "Proprietário",
+    "Morador"
+  ],
+  "grants": [
+    {
+      "perfil": "Síndico",
+      "permissionKey": "HOME",
+      "visualizar": true,
+      "incluir": false,
+      "alterar": false,
+      "excluir": false
+    },
+    {
+      "perfil": "Subsíndico",
+      "permissionKey": "HOME",
+      "visualizar": true,
+      "incluir": false,
+      "alterar": false,
+      "excluir": false
+    },
+    {
+      "perfil": "Conselheiro",
+      "permissionKey": "HOME",
+      "visualizar": true,
+      "incluir": false,
+      "alterar": false,
+      "excluir": false
+    },
+    {
+      "perfil": "Funcionário Administração",
+      "permissionKey": "HOME",
+      "visualizar": true,
+      "incluir": false,
+      "alterar": false,
+      "excluir": false
+    },
+    {
+      "perfil": "funcionário Manutenção",
+      "permissionKey": "HOME",
+      "visualizar": true,
+      "incluir": false,
+      "alterar": false,
+      "excluir": false
+    },
+    {
+      "perfil": "Proprietário",
+      "permissionKey": "HOME",
+      "visualizar": true,
+      "incluir": false,
+      "alterar": false,
+      "excluir": false
+    },
+    {
+      "perfil": "Morador",
+      "permissionKey": "HOME",
+      "visualizar": true,
+      "incluir": false,
+      "alterar": false,
+      "excluir": false
+    },
+    {
+      "perfil": "Supervisor",
+      "permissionKey": "TIPOMATERIAL",
+      "visualizar": true,
+      "incluir": true,
+      "alterar": true,
+      "excluir": true
+    },
+    {
+      "perfil": "Supervisor",
+      "permissionKey": "MATERIAL",
+      "visualizar": true,
+      "incluir": true,
+      "alterar": true,
+      "excluir": true
+    },
+    {
+      "perfil": "Supervisor",
+      "permissionKey": "ESTOQUEMATERIALCONSUMO",
+      "visualizar": true,
+      "incluir": true,
+      "alterar": true,
+      "excluir": true
+    },
+    {
+      "perfil": "Supervisor",
+      "permissionKey": "ENTRADASAIDAMATERIALCONSUMO",
+      "visualizar": true,
+      "incluir": true,
+      "alterar": true,
+      "excluir": true
+    }
+  ]
+}

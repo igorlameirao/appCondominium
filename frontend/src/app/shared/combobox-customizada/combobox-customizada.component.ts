@@ -19,9 +19,11 @@ export interface ComboboxOption {
         class="cb-input"
         [(ngModel)]="search"
         (focus)="open = true; onSearch()"
+        (blur)="onInputBlur()"
         (input)="onSearch()"
         [placeholder]="placeholder"
         [disabled]="disabled"
+        [required]="required"
         autocomplete="off" />
       <button type="button" class="cb-clear" *ngIf="value != null && !disabled" (click)="clear()" tabindex="-1">×</button>
       <div class="cb-panel" *ngIf="open && !disabled">
@@ -37,7 +39,7 @@ export interface ComboboxOption {
   `,
   styles: [`
     .cb-wrap { position: relative; width: 100%; }
-    .cb-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
+    .cb-input { width: 100%; padding: 5px 10px; min-height: 2.125rem; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
     .cb-clear { position: absolute; right: 8px; top: 8px; border: none; background: transparent; cursor: pointer; font-size: 18px; }
     .cb-panel {
       position: absolute; z-index: 50; left: 0; right: 0; max-height: 220px; overflow: auto;
@@ -54,9 +56,12 @@ export class ComboboxCustomizadaComponent implements OnChanges {
   @Input() options: ComboboxOption[] = [];
   @Input() value: number | string | null | undefined = null;
   @Input() disabled = false;
+  @Input() required = false;
   @Input() placeholder = 'Digite para filtrar...';
   @Input() pageSize = 15;
   @Output() valueChange = new EventEmitter<number | string | null>();
+  /** Disparado ao sair do campo, após tentar reconhecer o texto digitado. */
+  @Output() blurCommit = new EventEmitter<number | string | null>();
 
   search = '';
   open = false;
@@ -92,6 +97,14 @@ export class ComboboxCustomizadaComponent implements OnChanges {
     this.open = false;
   }
 
+  onInputBlur(): void {
+    setTimeout(() => {
+      this.open = false;
+      this.commitSearchToValue();
+      this.blurCommit.emit(this.value ?? null);
+    }, 0);
+  }
+
   clear(): void {
     this.value = null;
     this.search = '';
@@ -103,7 +116,37 @@ export class ComboboxCustomizadaComponent implements OnChanges {
 
   private syncSearchFromValue(): void {
     if (this.value == null) { this.search = ''; return; }
-    const found = this.options.find(o => o.value === this.value);
-    this.search = found?.label ?? String(this.value);
+    const found = this.options.find(o => o.value == this.value);
+    this.search = found?.label ?? String(this.value ?? '');
+  }
+
+  private commitSearchToValue(): void {
+    const q = this.search.trim();
+    if (!q) {
+      if (this.value != null && this.value !== '') {
+        this.value = null;
+        this.search = '';
+        this.valueChange.emit(null);
+      }
+      return;
+    }
+    const lower = q.toLowerCase();
+    let found = this.options.find(o =>
+      o.label.toLowerCase() === lower || String(o.value).toLowerCase() === lower);
+    if (!found) {
+      const partial = this.options.filter(o => o.label.toLowerCase().includes(lower));
+      if (partial.length === 1) found = partial[0];
+    }
+    if (!found) {
+      this.syncSearchFromValue();
+      return;
+    }
+    if (found.value != this.value) {
+      this.value = found.value;
+      this.search = found.label;
+      this.valueChange.emit(found.value);
+      return;
+    }
+    this.search = found.label;
   }
 }

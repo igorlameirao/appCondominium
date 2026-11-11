@@ -9,4 +9,7 @@ export interface Condominio {
   areaTotalUnidades?: number;
   quantidadeTotalUnidades?: number;
   cNPJ?: string;
+  dominio?: string;
+  ativo?: number;
+  dataInativacao?: string;
 }

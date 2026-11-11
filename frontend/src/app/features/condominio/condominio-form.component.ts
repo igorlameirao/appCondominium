@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
+import { CampoDataHoraComponent } from '../../shared/campo-data-hora/campo-data-hora.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastService } from '../../core/services/toast.service';
 import { CondominioService } from './condominio.service';
 import { Condominio } from './condominio.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
@@ -13,66 +15,76 @@ import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-w
 @Component({
   selector: 'app-condominio-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent, EnderecoWidgetComponent],
-  host: { class: 'form-page' },
+  imports: [CommonModule, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent, EnderecoWidgetComponent],
+  host: { class: 'form-page form-page--wide' },
   template: `
     <div class="form-layout">
       <h2>{{ isEdit ? 'Editar' : 'Novo' }} Condomínio</h2>
       <div class="form-scroll">
         <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
           
-          <div class="grid grid-id" *ngIf="isEdit">
-            <div class="form-group">
+          <div class="form-grid">
+            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
               <label>Id</label>
-              <input type="text" [value]="pkDisplay" readonly class="readonly" />
+              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
             </div>
-          </div>
-          <div class="grid grid-2">
-                      <app-endereco-widget
-            [(idEndereco)]="model.idEndereco"
-            [(numero)]="model.numeroEndereco"
-            [(complemento)]="model.complementoEndereco"
-            [readonly]="isEdit && !canEdit" />
-
-          <div class="form-group">
-            <label>Nome *</label>
-            <input type="text" [(ngModel)]="model.nome" name="nome" maxlength="255" [readonly]="fieldDisabled('nome')" />
-          </div>
-          <div class="form-group">
-            <label>Área Terreno *</label>
-            <input type="number" [(ngModel)]="model.areaTerreno" name="areaTerreno" step="0.001" [readonly]="fieldDisabled('areaTerreno')" />
-          </div>
-          <div class="form-group">
-            <label>Área Total Edificada *</label>
-            <input type="number" [(ngModel)]="model.areaTotalEdificada" name="areaTotalEdificada" step="0.001" [readonly]="fieldDisabled('areaTotalEdificada')" />
-          </div>
-          <div class="form-group">
-            <label>Área Total Unidades</label>
-            <input type="number" [(ngModel)]="model.areaTotalUnidades" name="areaTotalUnidades" step="0.001" [readonly]="fieldDisabled('areaTotalUnidades')" />
-          </div>
-          <div class="form-group">
-            <label>Quantidade Total Unidades</label>
-            <input type="number" [(ngModel)]="model.quantidadeTotalUnidades" name="quantidadeTotalUnidades" [readonly]="fieldDisabled('quantidadeTotalUnidades')" />
-          </div>
-          <div class="form-group">
-            <label>CNPJ</label>
-            <app-documento-input [(ngModel)]="model.cNPJ" name="cNPJ" tipo="cnpj" [disabled]="fieldDisabled('cNPJ')" />
-          </div>
+            <div style="grid-column: 3 / span 4; grid-row: 1" class="form-group fg-col-4">
+              <label>Data Inativação</label>
+              <app-campo-data-hora [(ngModel)]="model.dataInativacao" name="dataInativacao" [disabled]="fieldDisabled('dataInativacao')" />
+            </div>
+            <div style="grid-column: 7 / span 2; grid-row: 1" class="form-group fg-col-2">
+              <label>Área Total Unidades</label>
+              <input type="number" [(ngModel)]="model.areaTotalUnidades" name="areaTotalUnidades" step="0.001" [readonly]="fieldDisabled('areaTotalUnidades')" />
+            </div>
+            <div style="grid-column: 9 / span 2; grid-row: 1" class="form-group fg-col-2">
+              <label>Quantidade Total Unidades</label>
+              <input type="number" [(ngModel)]="model.quantidadeTotalUnidades" name="quantidadeTotalUnidades" [readonly]="fieldDisabled('quantidadeTotalUnidades')" />
+            </div>
+            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
+              <label>Nome *</label>
+              <input type="text" [(ngModel)]="model.nome" name="nome" maxlength="255" [readonly]="fieldDisabled('nome')" required />
+            </div>
+            <app-endereco-widget style="grid-column: 1 / span 12; grid-row: 3" class="fg-col-12"
+              [(idEndereco)]="model.idEndereco"
+              [(numero)]="model.numeroEndereco"
+              [(complemento)]="model.complementoEndereco"
+              [readonly]="isEdit && !canEdit" />
+            <div style="grid-column: 1 / span 3; grid-row: 4" class="form-group fg-col-3">
+              <label>CNPJ</label>
+              <app-documento-input [(ngModel)]="model.cNPJ" name="cNPJ" tipo="cnpj" [disabled]="fieldDisabled('cNPJ')" />
+            </div>
+            <div style="grid-column: 4 / span 2; grid-row: 4" class="form-group fg-col-2">
+              <label>Área Terreno *</label>
+              <input type="number" [(ngModel)]="model.areaTerreno" name="areaTerreno" step="0.001" [readonly]="fieldDisabled('areaTerreno')" required />
+            </div>
+            <div style="grid-column: 6 / span 2; grid-row: 4" class="form-group fg-col-2">
+              <label>Área Total Edificada *</label>
+              <input type="number" [(ngModel)]="model.areaTotalEdificada" name="areaTotalEdificada" step="0.001" [readonly]="fieldDisabled('areaTotalEdificada')" required />
+            </div>
+            <div style="grid-column: 8 / span 2; grid-row: 4" class="form-group fg-col-2">
+              <label>Ativo *</label>
+              <input type="number" [(ngModel)]="model.ativo" name="ativo" [readonly]="fieldDisabled('ativo')" required />
+            </div>
+            <div style="grid-column: 1 / span 12; grid-row: 5" class="form-group fg-col-12">
+              <label>Domínio *</label>
+              <input type="text" [(ngModel)]="model.dominio" name="dominio" maxlength="255" [readonly]="fieldDisabled('dominio')" required />
+            </div>
           </div>
         </form>
       </div>
       <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !canEdit">Gravar</button>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
+        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
       </div>
-      <div class="msg-erro" *ngIf="formError">{{ formError }}</div>
     </div>
     <div class="confirm-overlay" *ngIf="showDeleteConfirm">
       <div class="confirm-modal">
         <p>Deseja realmente excluir este registro?</p>
-        <button type="button" class="btn-cancelar" (click)="showDeleteConfirm=false">Cancelar</button>
-        <button type="button" class="btn-excluir" (click)="confirmDelete()">Excluir</button>
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancelar-modal" (click)="showDeleteConfirm=false">Cancelar</button>
+          <button type="button" class="btn-confirm-danger" (click)="confirmDelete()">Excluir</button>
+        </div>
       </div>
     </div>
   `
@@ -81,8 +93,10 @@ export class CondominioFormComponent implements OnInit {
   model: Condominio = {} as Condominio;
   isEdit = false;
   saving = false;
-  formError = '';
+  private readonly toast = inject(ToastService);
+  private readonly entityTitle = 'Condomínio';
   showDeleteConfirm = false;
+  readonly permissionKey = 'CONDOMINIO';
   canEdit = true;
   canDelete = true;
   
@@ -95,8 +109,18 @@ export class CondominioFormComponent implements OnInit {
     private condominioCtx: CondominioContextService
     
   ) {
-    this.canEdit = this.permissions.canEdit();
-    this.canDelete = this.permissions.canDelete();
+    this.refreshPermissions();
+  }
+
+  get podeGravar(): boolean {
+    return this.isEdit
+      ? this.permissions.can(this.permissionKey, 'Alterar')
+      : this.permissions.can(this.permissionKey, 'Incluir');
+  }
+
+  private refreshPermissions(): void {
+    this.canEdit = this.podeGravar;
+    this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
   get pkDisplay(): string { return String(this.model.idCondominio); }
@@ -107,14 +131,16 @@ export class CondominioFormComponent implements OnInit {
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
     if (isNovo) {
       this.isEdit = false;
-      
+      this.refreshPermissions();
+      this.model.idCondominio = this.condominioCtx.idCondominio!;
       return;
     }
     if (idCondominio) {
       this.isEdit = true;
+      this.refreshPermissions();
       this.service.getById(idCondominio).subscribe({
         next: (r) => this.model = r,
-        error: () => this.formError = 'Registro não encontrado.'
+        error: () => this.toast.showError('Registro não encontrado.')
       });
     }
   }
@@ -122,24 +148,23 @@ export class CondominioFormComponent implements OnInit {
   fieldDisabled(field: string): boolean {
     if (!this.canEdit) return true;
     if (!this.isEdit) return false;
-    const roFields: string[] = ['areaTotalUnidades','quantidadeTotalUnidades','cNPJ'];
+    const roFields: string[] = ['areaTotalUnidades','quantidadeTotalUnidades','cNPJ','dominio','ativo'];
     return roFields.includes(field);
   }
 
   submit(f: NgForm): void {
-    if (!f.valid) { this.formError = 'Preencha os campos obrigatórios.'; return; }
+    if (!f.valid) { this.toast.showError('Preencha os campos obrigatórios antes de gravar.'); return; }
     this.saving = true;
-    this.formError = '';
     if (this.isEdit) {
       this.service.update(this.model).subscribe({
-        next: () => this.router.navigate(['/condominio']),
-        error: (e: unknown) => { this.formError = (e as any)?.error?.title ?? (e as any)?.message ?? 'Erro ao gravar'; this.saving = false; },
+        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/condominio']); },
+        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
         complete: () => this.saving = false
       });
     } else {
       this.service.create(this.model).subscribe({
-        next: () => this.router.navigate(['/condominio']),
-        error: (e: unknown) => { this.formError = (e as any)?.error?.title ?? (e as any)?.message ?? 'Erro ao gravar'; this.saving = false; },
+        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/condominio']); },
+        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
         complete: () => this.saving = false
       });
     }
@@ -148,7 +173,7 @@ export class CondominioFormComponent implements OnInit {
   cancel(): void { this.router.navigate(['/condominio']); }
 
   confirmDelete(): void {
-    this.service.delete(this.model.idCondominio!).subscribe({ next: () => this.router.navigate(['/condominio']) });
+    this.service.delete(this.model.idCondominio!).subscribe({ next: () => this.router.navigate(['/condominio']), error: () => this.toast.showError('Não foi possível excluir. Tente novamente.') });
   }
 
 }

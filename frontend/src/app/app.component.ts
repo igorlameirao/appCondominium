@@ -1,19 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
+import { PushToastComponent } from './shared/push-toast/push-toast.component';
 import { CondominioContextService } from './core/services/condominio-context.service';
+import { PermissionService } from './core/services/permission.service';
 
 interface MenuLink { label: string; route: string; }
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterOutlet, RouterLink, RouterLinkActive, PushToastComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   mobileMenuOpen = false;
   sidebarCollapsed = false;
 
@@ -51,15 +55,68 @@ export class AppComponent {
   ];
 
   openGroups = new Set(this.menuGroups.map(g => g.label));
+  condominiosAutorizados: { idCondominio: number; nome: string }[] = [];
 
   constructor(
     public auth: AuthService,
     public condominioCtx: CondominioContextService,
+    public permissions: PermissionService,
     private router: Router
   ) {}
 
+  ngOnInit(): void {
+    this.carregarSeNecessario();
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd)
+    ).subscribe(() => this.carregarSeNecessario());
+  }
+
+  private carregarSeNecessario(): void {
+    if (this.auth.isLoggedIn && !this.condominiosAutorizados.length) this.carregarCondominios();
+  }
+
+  get nomeCondominioAtivo(): string {
+    const id = this.condominioCtx.idCondominio;
+    return this.condominiosAutorizados.find(c => c.idCondominio === id)?.nome ?? '';
+  }
+
+  carregarCondominios(): void {
+    this.auth.listCondominios().subscribe({
+      next: items => this.condominiosAutorizados = items,
+      error: () => this.condominiosAutorizados = []
+    });
+  }
+
+  trocarTenant(id: number): void {
+    if (!id || id === this.condominioCtx.idCondominio) return;
+    this.auth.trocarCondominio(id).subscribe({
+      next: () => this.router.navigate(['/inicio']).then(() => window.location.reload()),
+      error: () => this.carregarCondominios()
+    });
+  }
+
   shouldShowMenu(): boolean {
     return this.auth.isLoggedIn && !this.router.url.startsWith('/login');
+  }
+
+  hugShell(): boolean {
+    const path = this.routePath();
+    return this.auth.isLoggedIn && !path.startsWith('/login') && !path.startsWith('/entrar');
+  }
+
+  isEntityListRoute(): boolean {
+    if (!this.hugShell()) return false;
+    const segs = this.routePath().split('/').filter(Boolean);
+    if (segs.length !== 1) return false;
+    return segs[0] !== 'inicio' && segs[0] !== 'gerenciamento-permissoes';
+  }
+
+  isEntityFormRoute(): boolean {
+    return this.hugShell() && !this.isEntityListRoute();
+  }
+
+  private routePath(): string {
+    return this.router.url.split('?')[0].split('#')[0];
   }
 
   toggleGroup(label: string): void {
@@ -68,6 +125,19 @@ export class AppComponent {
   }
 
   isGroupOpen(label: string): boolean { return this.openGroups.has(label); }
+
+  visibleLinks(group: { links: MenuLink[] }): MenuLink[] {
+    return group.links.filter(link => this.permissions.can(this.keyOf(link.route), 'Visualizar'));
+  }
+
+  private keyOf(route: string): string {
+    const segment = route.replace(/^\//, '').split('/')[0];
+    return segment.toUpperCase();
+  }
+
+  podeGerenciar(): boolean {
+    return this.permissions.can('PERMISSOES_GERENCIAR', 'Visualizar');
+  }
 
   logout(): void { this.auth.logout(); }
 }

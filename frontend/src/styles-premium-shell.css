@@ -491,6 +491,14 @@ app-root {
   justify-content: flex-start;
 }
 
+/* Listas/forms hug: card baixo centralizado; teto vertical = 100% desta área útil. */
+.app-premium-main .content-wrapper.content-wrapper--list-hug {
+  align-items: center;
+  justify-content: safe center;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .app-premium-main .content-card {
   margin-top: 0;
   border-radius: var(--app-radius-xl);
@@ -520,6 +528,16 @@ app-root {
 
   .app-premium-main .content-wrapper {
     padding-top: 16px;
+  }
+
+  .app-premium-shell:not(.app-premium-shell--authed) {
+    max-height: 100svh;
+  }
+
+  .app-premium-shell:not(.app-premium-shell--authed) .content-wrapper.content-wrapper--list-hug {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Valida MDs/md_appCondominium.json contra o JSON Schema e regras cruzadas."""
+"""Valida MDs/md_appCondominium.json contra o JSON Schema e regras cruzadas.
+
+Antes de validar, campo sem ``Indice`` é tratado como ``\"Indice\": \"\"`` (cópia em memória).
+"""
 from __future__ import annotations
 
+import copy
 import json
 import sys
 from pathlib import Path
@@ -14,6 +18,43 @@ SCHEMA_PATH = ROOT / "MDs" / "md_appCondominium.schema.json"
 def load_json(path: Path) -> dict:
     with path.open(encoding="utf-8") as f:
         return json.load(f)
+
+
+def is_primary_key_field(campo: dict) -> bool:
+    idx = (campo.get("Indice") or "").lower()
+    return "primary" in idx or "primay" in idx
+
+
+def primary_key_fields(entity: dict) -> list[dict]:
+    return [c for c in entity.get("Campos", []) if is_primary_key_field(c)]
+
+
+def has_id_condominio(entity: dict) -> bool:
+    return any(c.get("Campo") == "IdCondominio" for c in entity.get("Campos", []))
+
+
+def infer_escopo_tenant(entity: dict) -> str:
+    if entity.get("EscopoTenant"):
+        return entity["EscopoTenant"]
+    if has_id_condominio(entity):
+        return "Condominio"
+    return "Global"
+
+
+def normalize_spec(spec: dict) -> dict:
+    """Aplica defaults de validação sem alterar o arquivo em disco.
+
+    Campo sem ``Indice`` equivale a ``\"Indice\": \"\"``.
+    Entidade sem ``EscopoTenant``: ``Condominio`` se tiver ``IdCondominio``, senão ``Global``.
+    """
+    spec = copy.deepcopy(spec)
+    for entity in spec["EspecificacaoSistema"]["Entidades"]:
+        for campo in entity.get("Campos", []):
+            if "Indice" not in campo:
+                campo["Indice"] = ""
+        if "EscopoTenant" not in entity:
+            entity["EscopoTenant"] = infer_escopo_tenant(entity)
+    return spec
 
 
 def validate_cross_rules(spec: dict) -> list[str]:
@@ -29,11 +70,10 @@ def validate_cross_rules(spec: dict) -> list[str]:
         if dupes:
             errors.append(f"{ent}: campos duplicados: {', '.join(sorted(dupes))}")
 
-        pks = [c for c in entity.get("Campos", []) if "primary" in (c.get("Indice") or "").lower() or "primay" in (c.get("Indice") or "").lower()]
+        pks = primary_key_fields(entity)
         if not pks:
             errors.append(f"{ent}: nenhuma Primary Key definida")
-        elif len(pks) > 1:
-            errors.append(f"{ent}: mais de uma Primary Key: {[c['Campo'] for c in pks]}")
+        # Vários campos com Primary Key = PK composta (ex.: IdPessoa + IdCondominio).
 
         for c in entity.get("Campos", []):
             fk_ent = c.get("EntidadeForeignKey")
@@ -48,6 +88,18 @@ def validate_cross_rules(spec: dict) -> list[str]:
         if entity.get("Gerar CRUD") == "Sim" and not entity.get("PerfisAcesso"):
             errors.append(f"{ent}: Gerar CRUD=Sim sem PerfisAcesso")
 
+        escopo = entity.get("EscopoTenant") or infer_escopo_tenant(entity)
+        if escopo == "Condominio" and not has_id_condominio(entity):
+            errors.append(f"{ent}: EscopoTenant=Condominio exige campo IdCondominio")
+        if escopo == "Global" and has_id_condominio(entity) and ent != "Condominio":
+            errors.append(f"{ent}: EscopoTenant=Global não deve ter IdCondominio")
+        if escopo == "Indireto":
+            vinculo = entity.get("VinculoTenant")
+            if not vinculo:
+                errors.append(f"{ent}: EscopoTenant=Indireto exige VinculoTenant")
+            elif vinculo not in names:
+                errors.append(f"{ent}: VinculoTenant '{vinculo}' não existe")
+
     return errors
 
 
@@ -58,7 +110,7 @@ def main() -> int:
         print("Instale: pip install jsonschema", file=sys.stderr)
         return 2
 
-    spec = load_json(SPEC_PATH)
+    spec = normalize_spec(load_json(SPEC_PATH))
     schema = load_json(SCHEMA_PATH)
 
     validator = jsonschema.Draft202012Validator(schema)

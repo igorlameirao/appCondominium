@@ -81,10 +81,12 @@ export function mascaraCnpj(v: string): string {
   return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
 }
 
+/** Máscara de exibição 99.999-999. No banco o CEP fica só com os dígitos. */
 export function mascaraCep(v: string): string {
   const d = v.replace(/\D/g, '').slice(0, 8);
-  if (d.length <= 5) return d;
-  return `${d.slice(0, 5)}-${d.slice(5)}`;
+  if (d.length <= 2) return d;
+  if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
+  return `${d.slice(0, 2)}.${d.slice(2, 5)}-${d.slice(5)}`;
 }
 
 export function somenteDigitos(v: string): string {

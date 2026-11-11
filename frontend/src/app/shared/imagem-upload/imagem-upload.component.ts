@@ -22,6 +22,7 @@ import { CommonModule } from '@angular/common';
     </div>
   `,
   styles: [`
+    :host { display: block; min-width: 0; width: 100%; }
     .img-upload { display: flex; flex-direction: column; gap: 8px; }
     .img-upload__label { font-weight: 600; font-size: 13px; color: #334155; }
     .img-upload__preview {

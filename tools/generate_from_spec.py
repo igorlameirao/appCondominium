@@ -46,6 +46,46 @@ def has_id_condominio(entity):
     return any(c["Campo"] == "IdCondominio" for c in entity.get("Campos", []))
 
 
+def escopo_tenant(entity):
+    if entity.get("EscopoTenant"):
+        return entity["EscopoTenant"]
+    return "Condominio" if has_id_condominio(entity) else "Global"
+
+
+def tenant_filter_csharp(entity):
+    """Corpo de ApplyCondominioFilter. Vazio = catálogo global."""
+    escopo = escopo_tenant(entity)
+    if escopo == "Global":
+        return ""
+    if escopo == "Condominio":
+        return """        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e => e.IdCondominio == tenantId);
+"""
+    vinculo = entity.get("VinculoTenant") or ""
+    if vinculo == "Unidade":
+        return """        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e => _ctx.Set<Unidade>().Any(u => u.IdUnidade == e.IdUnidade && u.IdCondominio == tenantId));
+"""
+    if vinculo == "Fornecedor":
+        return """        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e => _ctx.Set<Fornecedor>().Any(f => f.IdPessoa == e.IdPessoa && f.IdCondominio == tenantId));
+"""
+    if vinculo == "Cobranca":
+        return """        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e => _ctx.Set<Cobranca>().Any(c => c.IdCobranca == e.IdCobranca && c.IdCondominio == tenantId));
+"""
+    return """        var tenantId = _condominio.RequireTenantId();
+        query = query.Where(e =>
+            _ctx.Set<PessoaCondominio>().Any(v => v.IdPessoa == e.IdPessoa && v.IdCondominio == tenantId)
+            || _ctx.Set<Fornecedor>().Any(f => f.IdPessoa == e.IdPessoa && f.IdCondominio == tenantId)
+            || _ctx.Set<Unidade>().Any(u => _ctx.Set<PessoaUnidade>().Any(pu => pu.IdUnidade == u.IdUnidade && pu.IdPessoa == e.IdPessoa) && u.IdCondominio == tenantId));
+"""
+
+
+def assigns_tenant_id(entity):
+    return escopo_tenant(entity) == "Condominio" and has_id_condominio(entity)
+
+
 def hide_id_condominio_ui(entity):
     for r in entity.get("Regras", []):
         if "RT-Gerais 12" in r.get("Descricao", "") or "IdCondominio não deve ser exibido" in r.get("Descricao", ""):
@@ -121,7 +161,7 @@ def mysql_type(campo):
         return "JSON NULL"
     if "TINYINT" in t:
         return "TINYINT UNSIGNED" + (" NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL")
-    if "INT" in t:
+    if "INT" in t and "BIGINT" not in t and "MEDIUMINT" not in t and "TINYINT" not in t and "SMALLINT" not in t:
         return "INT UNSIGNED" + (" NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL")
     return "VARCHAR(255) NULL"
 
@@ -153,6 +193,8 @@ def list_columns(entity):
 
 
 def uses_endereco_widget(entity):
+    if entity["Entidade"] == "Endereco":
+        return False
     names = {c["Campo"] for c in entity["Campos"]}
     return "IdEndereco" in names
 
@@ -182,6 +224,60 @@ def readonly_on_edit(entity, c):
         if c["Campo"] in d and ("somente leitura" in d.lower() or "não editável" in d.lower() or "nao editavel" in d.lower()):
             return True
     return False
+
+
+def field_grid_class(campo):
+    """Espelha frontend/src/app/shared/form-layout/form-field-span.ts."""
+    label = campo.get("RotuloCampo") or campo.get("Campo") or ""
+    name = campo.get("Campo") or ""
+    blob = f"{label} {name}"
+    td = (campo.get("TipoDado") or "").upper()
+    if is_pk(campo):
+        return "fg-col-2"
+    if re.search(r"nome|descri", blob, re.I):
+        return "fg-col-12"
+    if "DATETIME" in td or "TIMESTAMP" in td:
+        return "fg-col-4"
+    if "DATE" in td:
+        return "fg-col-2"
+    if documento_tipo(campo):
+        return "fg-col-3"
+    if "TEXT" in td:
+        return "fg-col-12"
+    m = re.search(r"(?:VAR)?CHAR\((\d+)\)", td)
+    if m:
+        n = int(m.group(1))
+        if n <= 25:
+            return "fg-col-2"
+        if n <= 50:
+            return "fg-col-3"
+        if n <= 100:
+            return "fg-col-6"
+        return "fg-col-12"
+    if is_fk(campo) and not is_pk(campo):
+        return "fg-col-6"
+    if any(tok in td for tok in ("INT", "DECIMAL", "NUMERIC", "BOOL", "TINYINT", "FLOAT", "DOUBLE")):
+        return "fg-col-2"
+    return "fg-col-6"
+
+
+def _span(campo, html):
+    cls = field_grid_class(campo)
+    return html.replace('<div class="form-group">', f'<div class="form-group {cls}">', 1)
+
+
+def _rank_form_html(html, pk_names):
+    if html.lstrip().startswith("<app-"):
+        return 2
+    names = re.findall(r'(?:name="|model\.)(\w+)', html)
+    label_m = re.search(r"<label>([^<]*)", html)
+    label = label_m.group(1) if label_m else ""
+    identifier = "pkDisplay" in html or any(n in pk_names for n in names)
+    if identifier:
+        return 0
+    if re.search(r"nome|descri", f"{label} {' '.join(names)}", re.I):
+        return 1
+    return 2
 
 
 def documento_tipo(campo):
@@ -264,12 +360,6 @@ def gen_entity(entity):
 def gen_repository(entity):
     name = pascal(entity["Entidade"])
     route = camel(entity["Entidade"])
-    filter_cond = ""
-    if has_id_condominio(entity) and entity["Entidade"] != "Condominio":
-        filter_cond = """
-        if (_condominio.IdCondominio.HasValue)
-            query = query.Where(e => e.IdCondominio == _condominio.IdCondominio.Value);
-"""
     filt_fields = []
     seen_f = set()
     for c in entity["Campos"]:
@@ -294,18 +384,11 @@ def gen_repository(entity):
     pk_types = ", ".join(csharp_type(c) for c in pk)
     pk_names = ", ".join(pascal(c["Campo"]) for c in pk)
     set_cond = ""
-    if has_id_condominio(entity) and entity["Entidade"] != "Condominio":
-        set_cond = """
-        if (_condominio.IdCondominio.HasValue)
-            entity.IdCondominio = _condominio.IdCondominio.Value;
+    if assigns_tenant_id(entity):
+        set_cond = """        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
 """
-
-    if has_id_condominio(entity) and entity["Entidade"] != "Condominio":
-        apply_filter = """        if (_condominio.IdCondominio.HasValue)
-            query = query.Where(e => e.IdCondominio == _condominio.IdCondominio.Value);
-"""
-    else:
-        apply_filter = ""
+    apply_filter = tenant_filter_csharp(entity)
 
     content = f"""using Microsoft.EntityFrameworkCore;
 using AppCondominium.Application.Common;
@@ -358,7 +441,7 @@ public class {name}Repository
 
     public async Task UpdateAsync({name} entity, CancellationToken ct = default)
     {{
-        _ctx.Set<{name}>().Update(entity);
+{set_cond}        _ctx.Set<{name}>().Update(entity);
         await _ctx.SaveChangesAsync(ct);
     }}
 
@@ -384,6 +467,7 @@ def gen_controller(entity):
 
     content = f"""using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AppCondominium.API.Authorization;
 using AppCondominium.Application.Common;
 using AppCondominium.Domain.Entities;
 using AppCondominium.Infrastructure.Repositories.Generated;
@@ -393,6 +477,7 @@ namespace AppCondominium.API.Controllers.Generated;
 [ApiController]
 [Route("api/{route}")]
 [Authorize]
+[PermissionResource("{entity['Entidade'].upper()}")]
 public class {name}Controller : ControllerBase
 {{
     private readonly {name}Repository _repo;
@@ -450,6 +535,7 @@ import {{ CommonModule }} from '@angular/common';
 import {{ FormsModule }} from '@angular/forms';
 import {{ Router }} from '@angular/router';
 import {{ PaginationComponent }} from '../../shared/pagination/pagination.component';
+import {{ ListLoadingModalComponent }} from '../../shared/list-loading-modal/list-loading-modal.component';
 import {{ PagedResult }} from '../../core/models/paged-result';
 import {{ {name}Service }} from './{folder}.service';
 import {{ {name} }} from './{folder}.model';
@@ -457,7 +543,7 @@ import {{ {name} }} from './{folder}.model';
 @Component({{
   selector: 'app-{folder}-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaginationComponent, ListLoadingModalComponent],
   template: `
     <div class="list-page">
       <div class="list-header">
@@ -494,6 +580,7 @@ import {{ {name} }} from './{folder}.model';
           (pageChange)="loadPage($event)" [showPagination]="true" [showNovo]="false" [alignRight]="true" />
       </div>
     </div>
+    <app-list-loading-modal [visible]="loading" />
   `
 }})
 export class {name}ListComponent implements OnInit {{
@@ -604,7 +691,8 @@ def gen_angular_model(entity):
 
 
 SQL_EXTRA_TABLES = frozenset(
-    {"PessoaEndereco", "PessoaUnidade", "FornecedorAtividade", "CobrancaDetalhe"}
+    {"PessoaEndereco", "PessoaUnidade", "FornecedorAtividade", "CobrancaDetalhe",
+     "PermissionKey", "PerfilPermissao", "PessoaPermissaoExcecao"}
 )
 
 FK_ENTITY_ALIASES = {
@@ -694,6 +782,40 @@ def mysql_col_type(campo, pk_names):
     return mysql_type(campo)
 
 
+def mysql_fk_storage_type(ref_campo, fk_campo):
+    """Same storage class as referenced column, without AUTO_INCREMENT on the FK side."""
+    fake = dict(ref_campo)
+    td = (fake.get("TipoDado") or "").upper()
+    if "AUTO INCREMENTAL" in td:
+        fake["TipoDado"] = (
+            td.replace(" - AUTO INCREMENTAL", "")
+            .replace("AUTO INCREMENTAL", "")
+            .strip()
+        )
+    sql = mysql_type(fake)
+    sql = re.sub(r"\s+(NOT NULL|NULL)\s*$", "", sql.strip())
+    if fk_campo.get("Obrigatorio") == "Sim":
+        return f"{sql} NOT NULL"
+    return f"{sql} NULL"
+
+
+def mysql_col_type_for_table(campo, pk_names, entities_by_name):
+    """FK columns use the same MySQL type as the referenced primary key (avoids error 3780)."""
+    ref_ent = campo.get("EntidadeForeignKey")
+    if ref_ent and is_sql_fk(campo) and campo["Campo"] not in pk_names:
+        ref_table = resolve_fk_table(ref_ent)
+        ref = entities_by_name.get(ref_ent) or entities_by_name.get(ref_table)
+        if ref:
+            ref_pk = pk_field_names(ref)
+            ref_cols = dedupe_campos(ref)
+            ref_campo = next((c for c in ref_cols if c["Campo"] == campo["Campo"]), None)
+            if ref_campo is None and ref_pk:
+                ref_campo = next((c for c in ref_cols if c["Campo"] == ref_pk[0]), None)
+            if ref_campo is not None:
+                return mysql_fk_storage_type(ref_campo, campo)
+    return mysql_col_type(campo, pk_names)
+
+
 def fk_ref_columns(ref_entity, entities_by_name):
     resolved = resolve_fk_table(ref_entity)
     ref = entities_by_name.get(ref_entity) or entities_by_name.get(resolved)
@@ -702,14 +824,84 @@ def fk_ref_columns(ref_entity, entities_by_name):
     return pk_field_names(ref) or [dedupe_campos(ref)[0]["Campo"]]
 
 
+def fk_local_columns(fk_campo, ref_cols, entity_col_names):
+    """Maps referencing columns for simple and composite foreign keys."""
+    if len(ref_cols) <= 1:
+        return [fk_campo["Campo"]]
+    fk_col = fk_campo["Campo"]
+    local = []
+    for ref_col in ref_cols:
+        if ref_col in entity_col_names:
+            local.append(ref_col)
+        elif ref_col.startswith("Id") and fk_col.startswith("Id") and ref_col[2:] in fk_col:
+            local.append(fk_col)
+        elif ref_col.startswith("Codigo") and fk_col == ref_col:
+            local.append(fk_col)
+        elif fk_col == ref_col:
+            local.append(fk_col)
+        else:
+            raise ValueError(
+                f"FK {fk_col} -> ({', '.join(ref_cols)}): cannot map referenced column `{ref_col}`"
+            )
+    return local
+
+
+def table_fk_dependencies(entity, entities_by_name):
+    deps = set()
+    for c in dedupe_campos(entity):
+        ref_ent = c.get("EntidadeForeignKey")
+        if ref_ent and is_sql_fk(c):
+            deps.add(resolve_fk_table(ref_ent))
+    deps.discard(entity["Entidade"])
+    return deps
+
+
+def sort_tables_for_fk(tables, entities_by_name):
+    """Referenced tables appear before dependents (e.g. Local before GuardaEncomenda)."""
+    by_name = {e["Entidade"]: e for e in tables}
+    order_index = {e["Entidade"]: i for i, e in enumerate(tables)}
+    in_degree = {e["Entidade"]: 0 for e in tables}
+    graph = {e["Entidade"]: set() for e in tables}
+
+    for e in tables:
+        tn = e["Entidade"]
+        for dep in table_fk_dependencies(e, entities_by_name):
+            if dep in by_name and dep != tn:
+                graph[dep].add(tn)
+                in_degree[tn] += 1
+
+    queue = sorted(
+        (n for n, deg in in_degree.items() if deg == 0),
+        key=lambda n: order_index[n],
+    )
+    sorted_names = []
+    while queue:
+        n = queue.pop(0)
+        sorted_names.append(n)
+        for m in sorted(graph[n], key=lambda x: order_index[x]):
+            in_degree[m] -= 1
+            if in_degree[m] == 0:
+                queue.append(m)
+                queue.sort(key=lambda x: order_index[x])
+
+    for e in tables:
+        if e["Entidade"] not in sorted_names:
+            sorted_names.append(e["Entidade"])
+
+    return [by_name[n] for n in sorted_names]
+
+
 def gen_sql(entities):
-    tables = [e for e in entities if should_include_sql_table(e)]
     entities_by_name = {e["Entidade"]: e for e in entities}
+    tables = sort_tables_for_fk(
+        [e for e in entities if should_include_sql_table(e)],
+        entities_by_name,
+    )
 
     lines = [
         "-- AppCondominium schema gerado (PK, FK, UNIQUE, INDEX)",
-        "CREATE DATABASE IF NOT EXISTS appcondominium CHARACTER SET utf8mb4;",
-        "USE appcondominium;",
+        "CREATE DATABASE IF NOT EXISTS condominium CHARACTER SET utf8mb4;",
+        "USE condominium;",
         "",
         "SET FOREIGN_KEY_CHECKS = 0;",
         "",
@@ -725,7 +917,9 @@ def gen_sql(entities):
         fks = []
 
         for c in cols:
-            col_defs.append(f"  `{c['Campo']}` {mysql_col_type(c, pk_names)}")
+            col_defs.append(
+                f"  `{c['Campo']}` {mysql_col_type_for_table(c, pk_names, entities_by_name)}"
+            )
 
         if pk_names:
             col_defs.append(f"  PRIMARY KEY ({', '.join('`'+p+'`' for p in pk_names)})")
@@ -752,6 +946,7 @@ def gen_sql(entities):
                 iname = f"idx_{tn}_{c['Campo']}"[:64]
                 indexes.append(f"  KEY `{iname}` (`{c['Campo']}`)")
 
+        entity_col_names = {c["Campo"] for c in cols}
         for c in cols:
             ref_ent = c.get("EntidadeForeignKey")
             if not ref_ent or not is_sql_fk(c):
@@ -760,13 +955,15 @@ def gen_sql(entities):
             ref_cols = fk_ref_columns(ref_ent, entities_by_name)
             if not ref_cols:
                 continue
+            local_cols = fk_local_columns(c, ref_cols, entity_col_names)
             if len(ref_cols) == 1:
                 ref_sql = f"`{ref_table}` (`{ref_cols[0]}`)"
             else:
                 ref_sql = f"`{ref_table}` ({', '.join('`'+x+'`' for x in ref_cols)})"
             fk_name = f"fk_{tn}_{c['Campo']}"[:64]
+            local_sql = ", ".join(f"`{x}`" for x in local_cols)
             fks.append(
-                f"  CONSTRAINT `{fk_name}` FOREIGN KEY (`{c['Campo']}`) REFERENCES {ref_sql}"
+                f"  CONSTRAINT `{fk_name}` FOREIGN KEY ({local_sql}) REFERENCES {ref_sql}"
                 f" ON UPDATE CASCADE ON DELETE RESTRICT"
             )
 
@@ -804,6 +1001,75 @@ public partial class AppDbContext : DbContext
 }}
 """
     write(SRC / "AppCondominium.Infrastructure" / "Persistence" / "AppDbContext.Generated.cs", content)
+    gen_entity_keys(entities)
+    gen_tenant_filters(entities)
+
+
+def gen_entity_keys(entities):
+    lines = []
+    for e in entities:
+        if e.get("Gerar CRUD") != "Sim":
+            continue
+        name = pascal(e["Entidade"])
+        pks = pk_fields(e)
+        if len(pks) == 1:
+            lines.append(f"        modelBuilder.Entity<{name}>().HasKey(e => e.{pascal(pks[0]['Campo'])});")
+        else:
+            cols = ", ".join(f"e.{pascal(c['Campo'])}" for c in pks)
+            lines.append(f"        modelBuilder.Entity<{name}>().HasKey(e => new {{ {cols} }});")
+    body = "\n".join(lines)
+    content = f"""using Microsoft.EntityFrameworkCore;
+using AppCondominium.Domain.Entities;
+
+namespace AppCondominium.Infrastructure.Persistence;
+
+public partial class AppDbContext
+{{
+    partial void ConfigureEntityKeys(ModelBuilder modelBuilder)
+    {{
+{body}
+    }}
+}}
+"""
+    write(SRC / "AppCondominium.Infrastructure" / "Persistence" / "AppDbContext.Keys.Generated.cs", content)
+
+
+def gen_tenant_filters(entities):
+    lines = []
+    for e in entities:
+        if e.get("Gerar CRUD") != "Sim":
+            continue
+        name = pascal(e["Entidade"])
+        escopo = escopo_tenant(e)
+        if escopo == "Condominio" and has_id_condominio(e):
+            lines.append(f"        modelBuilder.Entity<{name}>().HasQueryFilter(e => e.IdCondominio == CurrentTenantId);")
+        elif escopo == "Indireto" and (e.get("VinculoTenant") or "") == "PessoaCondominio":
+            lines.append(
+                f"        modelBuilder.Entity<{name}>().HasQueryFilter(e =>"
+                f" Set<PessoaCondominio>().Any(v => v.IdPessoa == e.IdPessoa && v.IdCondominio == CurrentTenantId)"
+                f" || Set<Fornecedor>().Any(f => f.IdPessoa == e.IdPessoa && f.IdCondominio == CurrentTenantId)"
+                f" || Set<Unidade>().Any(u => Set<PessoaUnidade>().Any(pu => pu.IdUnidade == u.IdUnidade && pu.IdPessoa == e.IdPessoa) && u.IdCondominio == CurrentTenantId));"
+            )
+        elif escopo == "Indireto" and e.get("VinculoTenant") == "Fornecedor":
+            lines.append(
+                f"        modelBuilder.Entity<{name}>().HasQueryFilter(e =>"
+                f" Set<Fornecedor>().Any(f => f.IdPessoa == e.IdPessoa && f.IdCondominio == CurrentTenantId));"
+            )
+    body = "\n".join(lines)
+    content = f"""using Microsoft.EntityFrameworkCore;
+using AppCondominium.Domain.Entities;
+
+namespace AppCondominium.Infrastructure.Persistence;
+
+public partial class AppDbContext
+{{
+    partial void ConfigureTenantQueryFilters(ModelBuilder modelBuilder)
+    {{
+{body}
+    }}
+}}
+"""
+    write(SRC / "AppCondominium.Infrastructure" / "Persistence" / "AppDbContext.TenantFilters.Generated.cs", content)
 
 
 def gen_di(entities):
@@ -835,6 +1101,7 @@ def gen_angular_form(entity):
     fields = form_fields_for_entity(entity)
     fk_entities = []
     fk_services_added = set()
+    perfil_lookup = False
     imports_extra = []
     load_fk_lines = []
     form_html = []
@@ -844,7 +1111,7 @@ def gen_angular_form(entity):
     if uses_endereco_widget(entity):
         imports_extra.append("import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-widget.component';")
         ent_fields = {c["Campo"] for c in entity["Campos"]}
-        widget_lines = ['          <app-endereco-widget', '            [(idEndereco)]="model.idEndereco"']
+        widget_lines = ['          <app-endereco-widget class="fg-col-12"', '            [(idEndereco)]="model.idEndereco"']
         if "NumeroEndereco" in ent_fields:
             widget_lines.append('            [(numero)]="model.numeroEndereco"')
         if "ComplementoEndereco" in ent_fields:
@@ -864,14 +1131,14 @@ def gen_angular_form(entity):
 
         if c.get("Enum"):
             opts = "".join(f'<option [ngValue]="{i}">{e}</option>' for i, e in enumerate(c["Enum"]))
-            form_html.append(f"""
+            form_html.append(_span(c, f"""
           <div class="form-group">
             <label>{label}{req}</label>
             <select [(ngModel)]="model.{cn}" name="{cn}" [disabled]="fieldDisabled('{cn}')" required>
               <option [ngValue]="null">Selecione…</option>
               {opts}
             </select>
-          </div>""")
+          </div>"""))
             continue
 
         if is_fk(c) and c.get("EntidadeForeignKey") and not is_pk(c):
@@ -880,68 +1147,82 @@ def gen_angular_form(entity):
             fk_folder = fk_service_folder(fk_raw)
             if fk_folder == folder:
                 continue
-            fk_entities.append((fk, fk_folder, cn))
-            form_html.append(f"""
+            if fk_raw == "PerfilAcesso":
+                perfil_lookup = True
+                form_html.append(_span(c, f"""
           <div class="form-group">
             <label>{label}{req}</label>
             <app-combobox-customizada
               [options]="fk_{cn}"
               [(value)]="model.{cn}"
               [disabled]="fieldDisabled('{cn}')" />
-          </div>""")
+          </div>"""))
+                continue
+            fk_entities.append((fk, fk_folder, cn))
+            form_html.append(_span(c, f"""
+          <div class="form-group">
+            <label>{label}{req}</label>
+            <app-combobox-customizada
+              [options]="fk_{cn}"
+              [(value)]="model.{cn}"
+              [disabled]="fieldDisabled('{cn}')" />
+          </div>"""))
             continue
 
         if doc_t:
-            form_html.append(f"""
+            form_html.append(_span(c, f"""
           <div class="form-group">
             <label>{label}{req}</label>
             <app-documento-input [(ngModel)]="model.{cn}" name="{cn}" tipo="{doc_t}" [disabled]="fieldDisabled('{cn}')" />
-          </div>""")
+          </div>"""))
             continue
 
-        if "DATE" in (c.get("TipoDado") or "").upper():
-            form_html.append(f"""
+        td_up = (c.get("TipoDado") or "").upper()
+        if "DATE" in td_up:
+            tag = "app-campo-data-hora" if ("DATETIME" in td_up or "TIMESTAMP" in td_up) else "app-campo-data"
+            req_attr = ' [required]="true"' if c.get("Obrigatorio") == "Sim" else ""
+            form_html.append(_span(c, f"""
           <div class="form-group">
             <label>{label}{req}</label>
-            <input type="date" [(ngModel)]="model.{cn}" name="{cn}" [readonly]="fieldDisabled('{cn}')" />
-          </div>""")
+            <{tag} [(ngModel)]="model.{cn}" name="{cn}" [disabled]="fieldDisabled('{cn}')"{req_attr} />
+          </div>"""))
             continue
 
         if "DECIMAL" in (c.get("TipoDado") or "").upper() or ("INT" in (c.get("TipoDado") or "").upper()):
             inp = "number"
             step = ' step="0.001"' if "DECIMAL" in (c.get("TipoDado") or "").upper() else ""
-            form_html.append(f"""
+            form_html.append(_span(c, f"""
           <div class="form-group">
             <label>{label}{req}</label>
             <input type="{inp}" [(ngModel)]="model.{cn}" name="{cn}"{step} [readonly]="fieldDisabled('{cn}')" />
-          </div>""")
+          </div>"""))
             continue
 
         if c["Campo"] == "CorPadrao":
-            form_html.append(f"""
+            form_html.append(_span(c, f"""
           <div class="form-group">
             <label>{label}</label>
             <input type="color" [(ngModel)]="model.{cn}" name="{cn}" />
-          </div>""")
+          </div>"""))
             continue
 
         if c["Campo"] == "Senha":
-            form_html.append(f"""
+            form_html.append(_span(c, f"""
           <div class="form-group">
             <label>{label}</label>
             <input type="password" [(ngModel)]="model.{cn}" name="{cn}" autocomplete="new-password" />
-          </div>""")
+          </div>"""))
             continue
 
         maxlen = ""
         m = re.search(r"VARCHAR\((\d+)\)", c.get("TipoDado", ""), re.I)
         if m:
             maxlen = f' maxlength="{m.group(1)}"'
-        form_html.append(f"""
+        form_html.append(_span(c, f"""
           <div class="form-group">
             <label>{label}{req}</label>
             <input type="text" [(ngModel)]="model.{cn}" name="{cn}"{maxlen} [readonly]="fieldDisabled('{cn}')" />
-          </div>""")
+          </div>"""))
 
     for fk, fk_folder, cn in fk_entities:
         svc_key = fk_folder
@@ -961,12 +1242,27 @@ def gen_angular_form(entity):
     pk_display = ""
     if any(is_auto_inc(c) for c in pk_list):
         pk_display = """
-          <div class="grid grid-id" *ngIf="isEdit">
-            <div class="form-group">
-              <label>Id</label>
-              <input type="text" [value]="pkDisplay" readonly class="readonly" />
-            </div>
+          <div class="form-group fg-col-2">
+            <label>Id</label>
+            <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
           </div>"""
+    if pk_display:
+        form_html.insert(0, pk_display)
+    pk_names = {camel(c["Campo"]) for c in pk_list}
+    form_body = "".join(
+        html for _, html in sorted(enumerate(form_html), key=lambda iv: (_rank_form_html(iv[1], pk_names), iv[0]))
+    )
+    date_imports = []
+    date_symbols = []
+    if "app-campo-data-hora" in form_body:
+        date_imports.append("import { CampoDataHoraComponent } from '../../shared/campo-data-hora/campo-data-hora.component';")
+        date_symbols.append("CampoDataHoraComponent")
+    if re.search(r"app-campo-data(?!-hora)", form_body):
+        date_imports.append("import { CampoDataComponent } from '../../shared/campo-data/campo-data.component';")
+        date_symbols.append("CampoDataComponent")
+    date_import_block = ("\n".join(date_imports) + "\n") if date_imports else ""
+    date_symbol_list = (", " + ", ".join(date_symbols)) if date_symbols else ""
+    host_class = "form-page form-page--wide" if (len(fields) > 6 or "app-campo-data-hora" in form_body) else "form-page"
 
     route_read = "\n    ".join(
         f"const {camel(c['Campo'])} = this.route.snapshot.paramMap.get('{camel(c['Campo'])}');"
@@ -987,6 +1283,13 @@ def gen_angular_form(entity):
   }}""")
 
     fk_option_decls = "\n  ".join(f"fk_{cn}: ComboboxOption[] = [];" for _, _, cn in fk_entities)
+    if perfil_lookup:
+        fk_option_decls = (fk_option_decls + "\n  " if fk_option_decls else "") + "fk_idPerfil: ComboboxOption[] = [];"
+        imports_extra.append("import { PerfilAcessoLookupService } from '../../core/services/perfil-acesso-lookup.service';")
+        load_fk_lines.append("""
+    this.perfilAcessoLookup.listar().subscribe(r => {
+      this.fk_idPerfil = r.map(x => ({ value: x.idPerfil, label: x.descricao }));
+    });""")
     fk_ctor_seen = set()
     fk_ctor_lines = []
     for fk, fk_folder, _ in fk_entities:
@@ -994,6 +1297,8 @@ def gen_angular_form(entity):
             continue
         fk_ctor_seen.add(fk_folder)
         fk_ctor_lines.append(f"private {camel(fk)}Service: {fk}Service,")
+    if perfil_lookup:
+        fk_ctor_lines.append("private perfilAcessoLookup: PerfilAcessoLookupService,")
     fk_service_decls = "\n    ".join(fk_ctor_lines)
 
     hide_cond = has_id_condominio(entity) and hide_id_condominio_ui(entity)
@@ -1008,26 +1313,25 @@ import {{ ComboboxCustomizadaComponent, ComboboxOption }} from '../../shared/com
 import {{ DocumentoInputComponent }} from '../../shared/documento-input/documento-input.component';
 import {{ PermissionService }} from '../../core/services/permission.service';
 import {{ CondominioContextService }} from '../../core/services/condominio-context.service';
-{chr(10).join(imports_extra)}
+{date_import_block}{chr(10).join(imports_extra)}
 
 @Component({{
   selector: 'app-{folder}-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent{', EnderecoWidgetComponent' if uses_endereco_widget(entity) else ''}],
-  host: {{ class: 'form-page' }},
+  imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent{date_symbol_list}{', EnderecoWidgetComponent' if uses_endereco_widget(entity) else ''}],
+  host: {{ class: '{host_class}' }},
   template: `
     <div class="form-layout">
       <h2>{{{{ isEdit ? 'Editar' : 'Novo' }}}} {entity.get("RotuloEntidade", name)}</h2>
       <div class="form-scroll">
         <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
-          {pk_display}
-          <div class="grid grid-2">
-            {''.join(form_html)}
+          <div class="form-grid">
+            {form_body}
           </div>
         </form>
       </div>
       <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !canEdit">Gravar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
         <button type="button" class="btn-cancelar" (click)="cancel()">Cancelar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
       </div>
@@ -1048,6 +1352,7 @@ export class {name}FormComponent implements OnInit {{
   saving = false;
   formError = '';
   showDeleteConfirm = false;
+  readonly permissionKey = '{entity["Entidade"].upper()}';
   canEdit = true;
   canDelete = true;
   {fk_option_decls}
@@ -1060,8 +1365,18 @@ export class {name}FormComponent implements OnInit {{
     private condominioCtx: CondominioContextService{',' if fk_service_decls else ''}
     {fk_service_decls}
   ) {{
-    this.canEdit = this.permissions.canEdit();
-    this.canDelete = this.permissions.canDelete();
+    this.refreshPermissions();
+  }}
+
+  get podeGravar(): boolean {{
+    return this.isEdit
+      ? this.permissions.can(this.permissionKey, 'Alterar')
+      : this.permissions.can(this.permissionKey, 'Incluir');
+  }}
+
+  private refreshPermissions(): void {{
+    this.canEdit = this.podeGravar;
+    this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }}
 
   get pkDisplay(): string {{ return {pk_display_get}; }}
@@ -1072,11 +1387,13 @@ export class {name}FormComponent implements OnInit {{
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
     if (isNovo) {{
       this.isEdit = false;
+      this.refreshPermissions();
       {"this.model.idCondominio = this.condominioCtx.idCondominio!;" if hide_cond else ""}
       return;
     }}
     if ({' && '.join(camel(c['Campo']) for c in pk_list)}) {{
       this.isEdit = true;
+      this.refreshPermissions();
       {get_by_id_call}.subscribe({{
         next: (r) => this.model = r,
         error: () => this.formError = 'Registro não encontrado.'
@@ -1146,7 +1463,7 @@ def main():
         gen_angular_model(e)
         gen_angular_service(e)
         gen_angular_list(e)
-        if e["Entidade"] not in ("UF", "Municipio", "ConfiguracaoCondominio"):
+        if e["Entidade"] not in ("UF", "Municipio", "Endereco", "ConfiguracaoCondominio"):
             gen_angular_form(e)
     gen_dbcontext(crud_entities)
     gen_di(crud_entities)

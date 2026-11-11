@@ -6,9 +6,10 @@ Widget customTile(
   String texto,
   Widget child, {
   String routeName = '',
+  VoidCallback? onTap,
 }) {
   return GestureDetector(
-    onTap: () => Navigator.pushNamed(context, routeName),
+    onTap: onTap ?? () => Navigator.pushNamed(context, routeName),
     child: SizedBox(
       height: 100,
       width: 75,
