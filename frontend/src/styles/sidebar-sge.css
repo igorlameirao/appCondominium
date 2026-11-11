@@ -1,0 +1,290 @@
+/* Menu lateral — estrutura e estados base (visual Clean Premium em sidebar-clean-premium.css). */
+
+app-icone.sidebar-icon {
+  flex-shrink: 0;
+  color: #64748b;
+  transition: color 0.15s ease;
+}
+
+.sidebar-group__trigger:hover app-icone.sidebar-icon {
+  color: #475569;
+}
+
+.sidebar-group__trigger--open app-icone.sidebar-icon,
+.sidebar-group__trigger--open:hover app-icone.sidebar-icon {
+  color: #64748b;
+}
+
+app-icone.sidebar-chevron {
+  flex-shrink: 0;
+  color: #94a3b8;
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+app-icone.sidebar-chevron.sidebar-chevron--open {
+  transform: rotate(180deg);
+  color: #64748b;
+}
+
+app-icone.sidebar-link__icon {
+  flex-shrink: 0;
+  color: #94a3b8;
+  transition: color 0.15s ease;
+}
+
+.sidebar-link:hover app-icone.sidebar-link__icon,
+.sidebar-link.sidebar-link--active app-icone.sidebar-link__icon {
+  color: var(--app-accent);
+}
+
+.sidebar-group {
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 0;
+}
+
+.sidebar-group:has(.sidebar-group__panel--open) {
+  z-index: 2;
+}
+
+.sidebar-group__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-group__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-group__trigger:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.sidebar-group__trigger:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+}
+
+.sidebar-group__trigger--open {
+  background: transparent;
+  box-shadow: none;
+}
+
+.sidebar-group__trigger--open .sidebar-group__title {
+  color: #334155;
+}
+
+.sidebar-group__trigger--open .sidebar-icon {
+  color: #64748b;
+}
+
+.sidebar-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: #64748b;
+  transition: color 0.15s ease;
+}
+
+.sidebar-group__trigger:hover .sidebar-icon {
+  color: #475569;
+}
+
+.sidebar-group__trigger--open:hover .sidebar-icon {
+  color: var(--app-accent);
+}
+
+.sidebar-chevron {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+  transition: transform 0.2s ease, color 0.15s ease;
+}
+
+.sidebar-chevron--open {
+  transform: rotate(180deg);
+  color: #64748b;
+}
+
+.sidebar-group__panel {
+  display: none;
+}
+
+.sidebar-group__panel--open {
+  display: block;
+}
+
+.sidebar-group__panel-inner {
+  margin: 2px 0 0;
+  padding: 0 0 2px 22px;
+}
+
+.sidebar-block {
+  margin-top: var(--app-sidebar-group-gap);
+  min-width: 0;
+}
+
+.sidebar-block:first-child {
+  margin-top: 0;
+}
+
+.sidebar-block__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-sidebar-item-gap);
+  min-width: 0;
+  min-height: 0;
+  padding-top: 1px;
+}
+
+.sidebar-link,
+.sidebar-disabled,
+.sidebar-busy-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0 10px 0 12px;
+  min-height: 36px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--app-text-sidebar-item);
+  text-decoration: none;
+  border: none;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  position: relative;
+  z-index: 1;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-link__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-link:hover {
+  background: rgba(15, 23, 42, 0.04);
+  color: #334155;
+}
+
+.sidebar-link:focus-visible,
+.sidebar-busy-btn:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+}
+
+.sidebar-link.sidebar-link--active:not(.sidebar-link--nested)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: var(--app-sidebar-active-bar);
+  border-radius: 0 2px 2px 0;
+  background: var(--app-accent);
+}
+
+.sidebar-link.sidebar-link--nested,
+.sidebar-busy-btn.sidebar-link--nested,
+.sidebar-disabled.sidebar-link--nested {
+  margin-left: 0;
+  padding-left: calc(8px + var(--app-sidebar-indent));
+  width: 100%;
+  min-height: 34px;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #64748b;
+}
+
+.sidebar-link.sidebar-link--nested.sidebar-link--active {
+  font-weight: 600;
+}
+
+.sidebar-link.sidebar-link--leaf {
+  margin: 0;
+  padding-left: 8px;
+  width: 100%;
+}
+
+.sidebar-link.sidebar-link--standalone {
+  margin-top: 0;
+  margin-bottom: 6px;
+  padding: 8px 10px 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.sidebar-link.sidebar-link--standalone:hover {
+  background: rgba(15, 23, 42, 0.04);
+  color: #0f172a;
+}
+
+.sidebar-link.sidebar-link--standalone.sidebar-link--active {
+  color: var(--app-accent);
+}
+
+.sidebar-disabled {
+  color: rgba(100, 116, 139, 0.5);
+  cursor: not-allowed;
+}
+
+.sidebar-sep {
+  height: 1px;
+  margin: 6px 12px;
+  padding: 0;
+  border: none;
+  background: var(--app-sidebar-sep);
+  overflow: hidden;
+}
+
+/* Rodapé: troca de condomínio (equivalente à unidade no SGE) */
+.tenant-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.tenant-switch__rotulo {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-text-muted);
+}

@@ -74,15 +74,20 @@ public class PermissaoController : ControllerBase
     {
         if (_tenant.IdCondominio is not uint idCondominio)
             return Unauthorized();
-        var vinculos = await _db.PessoaCondominio.AsNoTracking()
-            .Where(v => v.IdCondominio == idCondominio && v.IdPessoa != null)
-            .Select(v => v.IdPessoa!.Value)
-            .Distinct()
-            .ToListAsync(ct);
-        var pessoas = await _db.Pessoa.IgnoreQueryFilters().AsNoTracking()
-            .Where(p => p.IdPessoa != null && vinculos.Contains(p.IdPessoa.Value))
-            .Select(p => new { idPessoa = p.IdPessoa, nome = p.Nome })
-            .ToListAsync(ct);
+        var pessoas = await (
+            from v in _db.PessoaCondominio.AsNoTracking()
+            join p in _db.Pessoa.IgnoreQueryFilters().AsNoTracking() on v.IdPessoa equals p.IdPessoa
+            join pf in _db.PerfilAcesso.AsNoTracking() on v.IdPerfil equals pf.IdPerfil into perfis
+            from pf in perfis.DefaultIfEmpty()
+            where v.IdCondominio == idCondominio && v.IdPessoa != null
+            orderby p.Nome
+            select new
+            {
+                idPessoa = v.IdPessoa!.Value,
+                nome = p.Nome,
+                idPerfil = v.IdPerfil,
+                perfilDescricao = pf != null ? pf.Descricao : null
+            }).ToListAsync(ct);
         return Ok(pessoas);
     }
 

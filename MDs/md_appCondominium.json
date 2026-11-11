@@ -551,20 +551,6 @@
             "TipoDado": "CHAR(7)",
             "Obrigatorio": "Não",
             "Indice": ""
-          },
-          {
-            "Campo": "ImagemLogin",
-            "RotuloCampo": "Imagem Tela de Login",
-            "TipoDado": "MEDIUMBLOB",
-            "Obrigatorio": "Não",
-            "Indice": ""
-          },
-          {
-            "Campo": "ImagemIcone",
-            "RotuloCampo": "Ícone",
-            "TipoDado": "BLOB",
-            "Obrigatorio": "Não",
-            "Indice": ""
           }
         ],
         "Regras": [
@@ -1114,13 +1100,6 @@
             "Indice": ""
           },
           {
-            "Campo": "Foto",
-            "RotuloCampo": "Foto",
-            "TipoDado": "MEDIUMBLOB",
-            "Obrigatorio": "Não",
-            "Indice": ""
-          },
-          {
             "Campo": "FotoEmbedding",
             "RotuloCampo": "Incorporação Foto",
             "TipoDado": "JSON",
@@ -1137,7 +1116,7 @@
           {
             "Regra": "RN - Pessoa Física 02",
             "Tipo": "Regra de Negócio",
-            "Descricao": "O campo FotoEmbedding não deve ser exibido no CRUD, mas deve ser calculado toda vez que a Foto mudar. O objetivo desse campo servirá para busca do reconhecimento facial, que deverá utilizar InsightFace + ONNX para gerar o conteúdo desse campo e as funções de busca e reconhecimento."
+            "Descricao": "O campo FotoEmbedding não deve ser exibido no CRUD, mas deve ser recalculado toda vez que a foto de perfil mudar no S3. O objetivo desse campo servirá para busca do reconhecimento facial, que deverá utilizar InsightFace + ONNX para gerar o conteúdo desse campo e as funções de busca e reconhecimento."
           },
           {
             "Regra": "RN - Pessoa Física 03",
@@ -1642,13 +1621,6 @@
             "TipoDado": "BOOLEAN",
             "Obrigatorio": "Sim",
             "Indice": ""
-          },
-          {
-            "Campo": "Procuracao",
-            "RotuloCampo": "Procuração",
-            "TipoDado": "LONGBLOB",
-            "Obrigatorio": "Não",
-            "Indice": ""
           }
         ],
         "Regras": [
@@ -1959,13 +1931,6 @@
             "TipoDado": "TEXT",
             "Filtro": "Sim",
             "Obrigatorio": "Sim",
-            "Indice": ""
-          },
-          {
-            "Campo": "DocumentoComprobatorio",
-            "RotuloCampo": "Documento Comprobatório",
-            "TipoDado": "LONGBLOB",
-            "Obrigatorio": "Não",
             "Indice": ""
           },
           {

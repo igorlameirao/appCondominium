@@ -5,48 +5,119 @@
   <aside *ngIf="shouldShowMenu()" class="app-premium-sidebar" [class.app-premium-sidebar--open]="mobileMenuOpen">
     <div class="app-premium-sidebar__head">
       <div class="app-premium-brand">
-        <div class="app-premium-brand__title">AppCondominium</div>
-        <div class="app-premium-brand__sub" *ngIf="nomeCondominioAtivo">{{ nomeCondominioAtivo }}</div>
-      </div>
-    </div>
-    <nav class="app-premium-sidebar__nav">
-      <div *ngFor="let group of menuGroups" class="sidebar-group" [hidden]="!visibleLinks(group).length">
-        <button type="button" class="sidebar-group__trigger" (click)="toggleGroup(group.label)">
-          <span class="sidebar-group__title">{{ group.label }}</span>
-        </button>
-        <div class="sidebar-group__links" *ngIf="isGroupOpen(group.label)">
-          <a *ngFor="let link of visibleLinks(group)" [routerLink]="link.route" routerLinkActive="sidebar-link--active" class="sidebar-link">{{ link.label }}</a>
+        <img
+          class="app-premium-brand__logo"
+          src="/assets/login/LogoAppCondominium_trans.png"
+          alt="AppCondominium"
+          width="44"
+          height="44"
+          decoding="async" />
+        <div>
+          <div class="app-premium-brand__title">AppCondominium</div>
+          <div class="app-premium-brand__sub" *ngIf="nomeCondominioAtivo">{{ nomeCondominioAtivo }}</div>
         </div>
       </div>
-    </nav>
-    <div class="sidebar-group" *ngIf="podeGerenciar()">
-        <a routerLink="/gerenciamento-permissoes" routerLinkActive="sidebar-link--active" class="sidebar-link">Permissões</a>
+      <button type="button" class="app-premium-sidebar-collapse" (click)="collapseSidebarDesktop()" title="Recolher menu" aria-label="Recolher menu lateral">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6"></path>
+        </svg>
+      </button>
+      <button type="button" class="app-premium-sidebar-close" (click)="closeMobileMenu()" aria-label="Fechar menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <nav class="app-premium-sidebar__nav" aria-label="Principal">
+      <a
+        class="sidebar-link sidebar-link--leaf sidebar-link--standalone"
+        routerLink="/inicio"
+        routerLinkActive="sidebar-link--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        title="Início"
+        (click)="onSidebarNavClick()">
+        <app-icone class="sidebar-link__icon" nome="home" [tamanho]="20" />
+        <span class="sidebar-link__label">Início</span>
+      </a>
+
+      <div *ngFor="let group of menuGroups" class="sidebar-group" [hidden]="!visibleLinks(group).length">
+        <button
+          type="button"
+          class="sidebar-group__trigger"
+          [class.sidebar-group__trigger--open]="isGroupOpen(group.label)"
+          [attr.aria-expanded]="isGroupOpen(group.label)"
+          [attr.aria-label]="group.label"
+          (click)="toggleGroup(group.label)">
+          <app-icone class="sidebar-icon" [nome]="group.icon" [tamanho]="20" />
+          <span class="sidebar-group__title">{{ group.label }}</span>
+          <app-icone
+            class="sidebar-chevron"
+            [class.sidebar-chevron--open]="isGroupOpen(group.label)"
+            nome="chevron-down"
+            [tamanho]="18" />
+        </button>
+        <div class="sidebar-group__panel" [class.sidebar-group__panel--open]="isGroupOpen(group.label)">
+          <div class="sidebar-group__panel-inner" *ngIf="isGroupOpen(group.label)">
+            <div class="sidebar-block">
+              <div class="sidebar-block__items">
+                <a
+                  *ngFor="let link of visibleLinks(group)"
+                  class="sidebar-link sidebar-link--nested"
+                  [routerLink]="link.route"
+                  routerLinkActive="sidebar-link--active"
+                  [attr.title]="link.label"
+                  (click)="onSidebarNavClick()">
+                  <span class="sidebar-link__label">{{ link.label }}</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="app-premium-sidebar__foot">
+
+    </nav>
+    <div class="app-premium-sidebar__foot">
+      <app-sidebar-usuario />
       <label class="tenant-switch" *ngIf="condominiosAutorizados.length > 1">
-        <span>Condomínio</span>
-        <select [ngModel]="condominioCtx.idCondominio" (ngModelChange)="trocarTenant($event)">
-          <option *ngFor="let c of condominiosAutorizados" [ngValue]="c.idCondominio">{{ c.nome }}</option>
-        </select>
+        <span class="tenant-switch__rotulo">Condomínio</span>
+        <app-combobox-customizada
+          [options]="tenantOptions"
+          [value]="condominioCtx.idCondominio"
+          (valueChange)="onTenantChange($event)"
+          placeholder="Selecione o condomínio" />
       </label>
-      <button type="button" class="sidebar-logout" (click)="logout()">Sair</button>
+      <button type="button" class="app-premium-btn-logout" (click)="logout()">
+        <svg class="app-premium-btn-logout__icone" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2v10"></path>
+          <path d="M18.4 6.6a9 9 0 1 1-12.77.04"></path>
+        </svg>
+        <span>Sair</span>
+      </button>
     </div>
   </aside>
 
+  <div class="app-premium-backdrop" *ngIf="shouldShowMenu() && mobileMenuOpen" (click)="closeMobileMenu()"></div>
+
   <div class="app-premium-stage">
     <header *ngIf="shouldShowMenu()" class="app-premium-topstrip">
-      <button type="button" class="app-premium-burger" (click)="mobileMenuOpen = !mobileMenuOpen" aria-label="Menu">☰</button>
-      <div class="app-premium-topstrip-brand">Administração de Condomínios</div>
+      <button type="button" class="app-premium-burger" (click)="onTopstripMenuToggle()" [attr.aria-label]="topstripMenuAriaLabel()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" x2="20" y1="6" y2="6"></line>
+          <line x1="4" x2="20" y1="12" y2="12"></line>
+          <line x1="4" x2="20" y1="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="app-premium-topstrip-brand" *ngIf="showTopstripBrand()">Administração de Condomínios</div>
     </header>
     <main class="app-premium-main">
-      <div class="content-wrapper" [class.content-wrapper--list-hug]="hugShell()">
-        <div class="content-card"
-          [class.content-card-entity-list]="isEntityListRoute()"
-          [class.content-card-entity-form]="isEntityFormRoute()">
-          <router-outlet />
-        </div>
-      </div>
+      <router-outlet />
     </main>
+
+    <footer class="app-premium-footer">
+      <p class="footer-copy">&copy; 2026 AppCondominium. Todos os direitos reservados para 3<i>L</i>7 Tecnologia.</p>
+      <p class="footer-versao">Versão {{ versao }}</p>
+    </footer>
   </div>
 </div>
 <app-push-toast />

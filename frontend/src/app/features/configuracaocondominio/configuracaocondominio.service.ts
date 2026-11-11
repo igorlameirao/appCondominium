@@ -32,4 +32,22 @@ export class ConfiguracaoCondominioService {
   delete(idConfiguracao: number | string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${idConfiguracao}`);
   }
+
+  private arquivoUrl(idCondominio: number, tipo: 'imagem-login' | 'imagem-icone'): string {
+    return `${environment.apiUrl}/configuracao-condominio/${idCondominio}/${tipo}`;
+  }
+
+  baixarImagem(idCondominio: number, tipo: 'imagem-login' | 'imagem-icone'): Observable<Blob> {
+    return this.http.get(this.arquivoUrl(idCondominio, tipo), { responseType: 'blob' });
+  }
+
+  enviarImagem(idCondominio: number, tipo: 'imagem-login' | 'imagem-icone', arquivo: File): Observable<void> {
+    const dados = new FormData();
+    dados.append('arquivo', arquivo, arquivo.name);
+    return this.http.put<void>(this.arquivoUrl(idCondominio, tipo), dados);
+  }
+
+  removerImagem(idCondominio: number, tipo: 'imagem-login' | 'imagem-icone'): Observable<void> {
+    return this.http.delete<void>(this.arquivoUrl(idCondominio, tipo));
+  }
 }

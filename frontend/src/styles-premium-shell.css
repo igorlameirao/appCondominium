@@ -2,22 +2,50 @@
  * Shell SaaS premium (Linear / Vercel / Stripe / Notion vibes).
  * Estrutura: app-premium-shell > aside.app-premium-sidebar + div.app-premium-stage > ...
  */
+@import './styles/sidebar-sge.css';
+@import './styles/sidebar-clean-premium.css';
+
 :root {
   /* Tema principal claro (área útil SaaS tipo Stripe/Notion) */
   --app-shell-bg: #f4f7fb;
   --app-shell-elevated: #ffffff;
   --app-shell-border: rgba(15, 23, 42, 0.08);
   --app-accent: #0e7490;
-  --app-accent-soft: rgba(14, 116, 144, 0.12);
+  --app-accent-soft: rgba(14, 116, 144, 0.09);
+  --app-accent-hover: rgba(14, 116, 144, 0.06);
+  --app-accent-active-bg: rgba(14, 116, 144, 0.09);
   --app-text: #0f172a;
   --app-text-muted: #64748b;
+  --app-text-sidebar-group: #64748b;
+  --app-text-sidebar-item: #475569;
   --app-radius-lg: 12px;
   --app-radius-xl: 16px;
   --app-transition: cubic-bezier(0.4, 0.14, 0.32, 1);
   --app-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
   --app-shadow-md: 0 10px 40px rgba(15, 23, 42, 0.07);
   --app-shadow-card: 0 1px 0 rgba(255, 255, 255, 0.95) inset, var(--app-shadow-md);
-  --app-sidebar-width: 280px;
+  --app-sidebar-width: 300px;
+  --app-sidebar-group-gap: 6px;
+  --app-sidebar-item-gap: 4px;
+  --app-sidebar-indent: 22px;
+  --app-sidebar-active-bar: 4px;
+  --app-sidebar-sep: rgba(148, 163, 184, 0.22);
+  --app-sidebar-radius: 10px;
+  --app-sidebar-active-bg: #e8f6fc;
+  --app-sidebar-group-open-bg: #f0f8fc;
+  --app-sidebar-tree-line: #b8ccd9;
+  --app-sidebar-tree-dot: #8fa8b8;
+  --app-sidebar-icon: #5f7d8f;
+  --app-sidebar-icon-active: #0e7490;
+  --app-sidebar-nested-row: 38px;
+  /* Árvore dos subitens; outer-x = centro do ícone do grupo (padding 12px + metade do ícone 20px) */
+  --app-sidebar-tree-outer-x: 22px;
+  --app-sidebar-tree-dot-x: 40px;
+  --app-sidebar-tree-text-x: 50px;
+  --app-sidebar-tree-pad-y: 2px;
+  --app-sidebar-tree-radius: 10px;
+  --app-sidebar-user-stroke: #38bdf8;
+  --app-sidebar-row: 44px;
 }
 
 /* --- Shell layout --- */
@@ -119,38 +147,46 @@ app-root {
   flex-direction: column;
   min-height: 0;
   border-right: 1px solid var(--app-shell-border);
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow:
-    inset -1px 0 0 rgba(255, 255, 255, 0.9),
-    4px 0 28px rgba(15, 23, 42, 0.05);
+  background: #ffffff;
+  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.06);
 }
 
 .app-premium-sidebar__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 20px 16px;
+  gap: 8px;
+  padding: 18px 14px 16px;
   flex-shrink: 0;
 }
 
 .app-premium-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
+}
+
+.app-premium-brand > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
   min-width: 0;
 }
 
 .app-premium-brand__logo {
   flex-shrink: 0;
-  color: var(--app-accent);
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 0 10px rgba(14, 116, 144, 0.2));
 }
 
 .app-premium-brand__title {
-  font-size: 1.05rem;
+  font-size: calc(1.05rem - 3px);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--app-text);
@@ -190,14 +226,14 @@ app-root {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   margin-left: auto;
   border: none;
-  border-radius: var(--app-radius-lg);
-  background: rgba(15, 23, 42, 0.06);
-  color: var(--app-text-muted);
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #64748b;
   cursor: pointer;
   transition:
     background 0.2s var(--app-transition),
@@ -210,7 +246,7 @@ app-root {
 }
 
 .app-premium-sidebar-collapse:hover {
-  background: rgba(15, 23, 42, 0.1);
+  background: #e8eef4;
   color: var(--app-text);
 }
 
@@ -228,18 +264,18 @@ app-root {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px 10px 12px;
+  padding: 8px 12px 14px;
   scrollbar-gutter: stable;
 }
 
 .app-premium-sidebar__foot {
   flex-shrink: 0;
-  padding: 14px 14px 18px;
-  border-top: 1px solid var(--app-shell-border);
+  padding: 12px 12px 14px;
+  border-top: 1px solid var(--app-sidebar-sep);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: rgba(248, 250, 252, 0.92);
+  gap: 10px;
+  background: #ffffff;
 }
 
 .app-premium-user {
@@ -252,187 +288,27 @@ app-root {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid rgba(244, 63, 94, 0.38);
-  border-radius: var(--app-radius-lg);
-  background: rgba(255, 241, 242, 0.95);
-  color: #be123c;
-  font-weight: 600;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  transition:
-    border-color 0.2s var(--app-transition),
-    background 0.2s ease,
-    transform 0.15s ease;
-}
-
-.app-premium-btn-logout:hover {
-  border-color: rgba(244, 63, 94, 0.55);
-  background: rgba(255, 228, 230, 0.98);
-}
-
-.app-premium-btn-logout:active {
-  transform: scale(0.99);
-}
-
-.sidebar-group__title {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.sidebar-group__trigger {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: none;
-  border-radius: var(--app-radius-lg);
-  background: transparent;
-  color: var(--app-text);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background 0.2s var(--app-transition),
-    color 0.2s ease;
-}
-
-.sidebar-group__trigger:hover {
-  background: rgba(15, 23, 42, 0.04);
-}
-
-.sidebar-group__trigger:focus-visible {
-  outline: 2px solid var(--app-accent);
-  outline-offset: 2px;
-}
-
-.sidebar-icon {
-  flex-shrink: 0;
-  color: var(--app-text-muted);
-  transition: color 0.2s ease;
-}
-
-.sidebar-group__trigger:hover .sidebar-icon {
-  color: var(--app-accent);
-}
-
-.sidebar-group__trigger span.label {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.sidebar-chevron {
-  flex-shrink: 0;
-  color: var(--app-text-muted);
-  transition:
-    transform 0.35s var(--app-transition),
-    color 0.2s ease;
-}
-
-.sidebar-chevron--open {
-  transform: rotate(180deg);
-  color: var(--app-accent);
-}
-
-.sidebar-group__panel {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.45s var(--app-transition);
-}
-
-/* Cadastros tem muitos blocos; 1200px cortava Materiais (só Tipo/Material visíveis). */
-.sidebar-group__panel--open {
-  max-height: min(72vh, 8000px);
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-  -webkit-overflow-scrolling: touch;
-}
-
-.sidebar-subtitle {
-  display: block;
-  padding: 8px 12px 4px 40px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--app-text-muted);
-  user-select: none;
-}
-
-.sidebar-subtitle.sidebar-subtitle--active {
-  color: var(--app-accent);
-}
-
-.sidebar-link,
-.sidebar-disabled,
-.sidebar-busy-btn {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  margin: 2px 0 2px 8px;
-  padding: 8px 12px;
-  padding-left: 28px;
-  border-radius: var(--app-radius-lg);
-  font-size: 0.8125rem;
-  color: #334155;
-  text-decoration: none;
-  border: none;
-  width: calc(100% - 16px);
-  box-sizing: border-box;
-  text-align: left;
-  cursor: pointer;
-  background: transparent;
-  transition:
-    background 0.2s var(--app-transition),
-    color 0.2s ease,
-    transform 0.15s ease;
-}
-
-.sidebar-link:hover {
-  background: rgba(14, 116, 144, 0.08);
-  transform: translateX(2px);
-}
-
-.sidebar-link.sidebar-link--active {
-  background: rgba(14, 116, 144, 0.12);
-  color: var(--app-accent);
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid var(--app-shell-border);
+  border-radius: var(--app-sidebar-radius);
+  background: #f1f5f9;
+  color: var(--app-text);
   font-weight: 600;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
 
-.sidebar-link.sidebar-link--nested,
-.sidebar-busy-btn.sidebar-link--nested,
-.sidebar-disabled.sidebar-link--nested {
-  margin-left: 12px;
-  padding-left: 40px;
-  width: calc(100% - 24px);
+.app-premium-btn-logout:hover:not(:disabled) {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: #e8eef4;
 }
 
-.sidebar-link.sidebar-link--leaf,
-.sidebar-disabled.sidebar-link--leaf,
-.sidebar-busy-btn.sidebar-link--leaf {
-  margin-left: 12px;
-  padding-left: 16px;
-  width: calc(100% - 24px);
-}
-
-.sidebar-busy-btn:hover:not(:disabled) {
-  background: rgba(14, 116, 144, 0.08);
-}
-
-.sidebar-disabled {
-  color: rgba(100, 116, 139, 0.55);
-  cursor: not-allowed;
-}
-
-.sidebar-sep {
-  height: 1px;
-  margin: 10px 12px;
-  background: rgba(15, 23, 42, 0.07);
+.app-premium-btn-logout:active:not(:disabled) {
+  transform: scale(0.99);
 }
 
 .app-premium-backdrop {
@@ -482,6 +358,23 @@ app-root {
   z-index: 1;
   overflow: visible;
   align-self: stretch;
+}
+
+/*
+ * O componente da rota é irmão do router-outlet e, sem altura definida,
+ * encolhe no conteúdo. Aí o lst-wrapper / cad-wrapper não tem área livre
+ * para centralizar, e o cadastro alto vaza da viewport (body com overflow
+ * hidden) sem barra de rolagem.
+ */
+.app-premium-main > router-outlet + *:has(> .lst-wrapper),
+.app-premium-main > router-outlet + *:has(> .cad-wrapper) {
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Área útil em coluna (mapas, listas, relatório agentes-ac, dashboard até ao rodapé) */
@@ -543,14 +436,44 @@ app-root {
 
 /* Footer */
 footer.app-premium-footer {
+  position: relative;
   flex-shrink: 0;
-  padding: 16px 24px calc(14px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 14px 24px calc(14px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--app-shell-border);
   background: rgba(255, 255, 255, 0.76);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   color: var(--app-text-muted);
   font-size: 0.8125rem;
+}
+
+.app-premium-footer .footer-copy {
+  margin: 0;
+  text-align: center;
+}
+
+.app-premium-footer .footer-versao {
+  position: absolute;
+  right: 24px;
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  footer.app-premium-footer {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .app-premium-footer .footer-versao {
+    position: static;
+  }
 }
 
 .app-premium-footer .footer-content {

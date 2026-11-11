@@ -8,7 +8,7 @@ const entityRoutes: Routes = [
   { path: 'uf/:siglaUF', loadComponent: () => import('./features/uf/uf-form.component').then(m => m.UFFormComponent) },
   { path: 'municipio', loadComponent: () => import('./features/municipio/municipio-list.component').then(m => m.MunicipioListComponent) },
   { path: 'municipio/novo', loadComponent: () => import('./features/municipio/municipio-form.component').then(m => m.MunicipioFormComponent) },
-  { path: 'municipio/:codigoIbGEMunicipio', loadComponent: () => import('./features/municipio/municipio-form.component').then(m => m.MunicipioFormComponent) },
+  { path: 'municipio/:codigoIBGEMunicipio', loadComponent: () => import('./features/municipio/municipio-form.component').then(m => m.MunicipioFormComponent) },
   { path: 'bairro', loadComponent: () => import('./features/bairro/bairro-list.component').then(m => m.BairroListComponent) },
   { path: 'bairro/novo', loadComponent: () => import('./features/bairro/bairro-form.component').then(m => m.BairroFormComponent) },
   { path: 'bairro/:idBairro', loadComponent: () => import('./features/bairro/bairro-form.component').then(m => m.BairroFormComponent) },
@@ -117,7 +117,12 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'inicio' },
       { path: 'inicio', loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent) },
-      { path: 'gerenciamento-permissoes', loadComponent: () => import('./features/permissoes/gerenciamento-permissoes.component').then(m => m.GerenciamentoPermissoesComponent) },
+      { path: 'minha-conta', loadComponent: () => import('./features/conta/minha-conta.component').then(m => m.MinhaContaComponent) },
+      { path: 'gerenciamento-permissoes', pathMatch: 'full', redirectTo: 'gerenciamento-permissoes/perfil' },
+      { path: 'gerenciamento-permissoes/perfil', loadComponent: () => import('./features/permissoes/permissoes-perfil-lista.component').then(m => m.PermissoesPerfilListaComponent) },
+      { path: 'gerenciamento-permissoes/perfil/:id', loadComponent: () => import('./features/permissoes/permissoes-perfil-edit.component').then(m => m.PermissoesPerfilEditComponent) },
+      { path: 'gerenciamento-permissoes/pessoa', loadComponent: () => import('./features/permissoes/permissoes-pessoa-lista.component').then(m => m.PermissoesPessoaListaComponent) },
+      { path: 'gerenciamento-permissoes/pessoa/:id', loadComponent: () => import('./features/permissoes/permissoes-pessoa-edit.component').then(m => m.PermissoesPessoaEditComponent) },
       ...entityRoutes
     ]
   },
