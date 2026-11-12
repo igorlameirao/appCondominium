@@ -41,6 +41,7 @@ const MIN_ESPACO_ABAIXO = 180;
         <input
           type="text"
           class="combo-input"
+          [id]="inputId || null"
           [(ngModel)]="search"
           (focus)="abrir()"
           (blur)="onInputBlur()"
@@ -48,6 +49,7 @@ const MIN_ESPACO_ABAIXO = 180;
           [placeholder]="placeholder"
           [disabled]="disabled"
           [required]="required"
+          [attr.aria-label]="ariaLabel || null"
           autocomplete="off" />
         <button
           type="button"
@@ -70,7 +72,7 @@ const MIN_ESPACO_ABAIXO = 180;
                 (mousedown)="$event.preventDefault(); select(o)">{{ o.label }}</button>
             }
             @if (!visibleOptions.length) {
-              <div class="combo-vazio">Nenhum registro</div>
+              <div class="combo-vazio">{{ mensagemListaVazia }}</div>
             }
           </div>
           @if (totalPages > 1) {
@@ -95,8 +97,17 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   @Input() required = false;
   @Input() placeholder = 'Selecione...';
   @Input() pageSize = 15;
+  /** Quando true, não filtra localmente; `options` vêm do pai (ex.: busca na API). */
+  @Input() remoteSearch = false;
+  /** Com `remoteSearch`, só exibe a lista após esta quantidade de caracteres digitados. */
+  @Input() minSearchLength = 0;
+  @Input() inputId = '';
+  @Input() ariaLabel = '';
+  @Input() emptyMessage = 'Nenhum registro';
+  @Input() minLengthMessage = 'Digite ao menos {n} letras.';
   @Output() valueChange = new EventEmitter<number | string | null>();
   @Output() blurCommit = new EventEmitter<number | string | null>();
+  @Output() searchChange = new EventEmitter<string>();
 
   @ViewChild('display') display?: ElementRef<HTMLElement>;
   @ViewChild('painel') painel?: ElementRef<HTMLElement>;
@@ -127,9 +138,17 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
     return this.required && vazio;
   }
 
+  get mensagemListaVazia(): string {
+    const q = this.search.trim();
+    if (this.minSearchLength > 0 && q.length > 0 && q.length < this.minSearchLength) {
+      return this.minLengthMessage.replace('{n}', String(this.minSearchLength));
+    }
+    return this.emptyMessage;
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['options'] || changes['value']) this.syncSearchFromValue();
-    if (changes['options']) this.onSearch();
+    if (changes['value']) this.syncSearchFromValue();
+    if (changes['options']) this.aplicarFiltroOpcoes();
   }
 
   ngOnDestroy(): void {
@@ -165,11 +184,15 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   }
 
   onSearch(): void {
-    const q = this.search.trim().toLowerCase();
-    this.filtered = !q
-      ? [...this.options]
-      : this.options.filter(o => o.label.toLowerCase().includes(q));
-    this.page = 1;
+    this.aplicarFiltroOpcoes();
+    this.searchChange.emit(this.search);
+    if (this.value != null && this.value !== '') {
+      const found = this.options.find(o => o.value == this.value);
+      if (!found || found.label !== this.search) {
+        this.value = null;
+        this.valueChange.emit(null);
+      }
+    }
     if (this.open) {
       this.cd.detectChanges();
       this.posicionarPainel();
@@ -247,6 +270,21 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
     window.removeEventListener('scroll', this.aoReposicionar, true);
   }
 
+  private aplicarFiltroOpcoes(): void {
+    const q = this.search.trim();
+    const qLower = q.toLowerCase();
+    if (this.minSearchLength > 0 && q.length < this.minSearchLength) {
+      this.filtered = [];
+    } else if (this.remoteSearch) {
+      this.filtered = [...this.options];
+    } else {
+      this.filtered = !q
+        ? [...this.options]
+        : this.options.filter(o => o.label.toLowerCase().includes(qLower));
+    }
+    this.page = 1;
+  }
+
   private syncSearchFromValue(): void {
     if (this.value == null || this.value === '') {
       this.search = '';
@@ -274,7 +312,7 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
       if (partial.length === 1) found = partial[0];
     }
     if (!found) {
-      this.syncSearchFromValue();
+      if (!this.remoteSearch) this.syncSearchFromValue();
       return;
     }
     if (found.value != this.value) {
