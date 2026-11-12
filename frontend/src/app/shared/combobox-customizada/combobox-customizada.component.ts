@@ -148,7 +148,10 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['value']) this.syncSearchFromValue();
-    if (changes['options']) this.aplicarFiltroOpcoes();
+    if (changes['options']) {
+      this.atualizarRotuloDaSelecao();
+      this.aplicarFiltroOpcoes();
+    }
   }
 
   ngOnDestroy(): void {
@@ -292,6 +295,13 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
     }
     const found = this.options.find(o => o.value == this.value);
     this.search = found?.label ?? String(this.value ?? '');
+  }
+
+  /** A lista chega depois do valor. Com o campo fechado, o texto passa a ser o nome. */
+  private atualizarRotuloDaSelecao(): void {
+    if (this.open || this.value == null || this.value === '') return;
+    const found = this.options.find(o => o.value == this.value);
+    if (found) this.search = found.label;
   }
 
   private commitSearchToValue(): void {

@@ -188,6 +188,67 @@
 .cad-blocos { display: flex; flex-direction: column; gap: 16px; }
 .cad-secao--apos { margin-top: 20px; }
 
+/* Cadastro de condomínio e de endereço: o card cad-* é o shell. O miolo não ganha a caixa interna do form-scroll. */
+app-condominio-form .cad-card.form-page .cad-form-scroll,
+app-endereco-form .cad-card.form-page .cad-form-scroll {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding-right: 0;
+  margin-bottom: 0;
+  box-shadow: none;
+}
+
+app-condominio-form .cad-card.form-page .cad-form-scroll form,
+app-endereco-form .cad-card.form-page .cad-form-scroll form {
+  padding: 0;
+}
+
+app-condominio-form .cad-form-scroll app-endereco-widget {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+app-condominio-form .cad-form-scroll app-endereco-widget .form-grid {
+  margin-top: 0;
+}
+
+app-endereco-form .cad-form-scroll .form-grid {
+  margin-top: 0;
+}
+
+app-endereco-form .cad-form-scroll app-endereco-widget {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 16px;
+}
+
+app-endereco-form app-endereco-widget .form-grid > .form-group:last-child {
+  grid-column: 1 / -1 !important;
+}
+
+/* Campos opcionais globais trazem sombra. Nestas telas a borda fica chapada; o anel de foco permanece. */
+app-condominio-form .cad-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(:focus):not(.doc-input--invalid),
+app-condominio-form .cad-card .form-group select:not(:focus),
+app-condominio-form .cad-card .form-group textarea:not(:focus),
+app-endereco-form .cad-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(:focus):not(.doc-input--invalid),
+app-endereco-form .cad-card .form-group select:not(:focus),
+app-endereco-form .cad-card .form-group textarea:not(:focus) {
+  box-shadow: none !important;
+}
+
+/* Número, complemento, UF e município são opcionais: a borda preta global fica fora do padrão. */
+app-endereco-widget .form-group input:not([required]):not([disabled]):not([type="checkbox"]):not([type="radio"]) {
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: none !important;
+}
+app-endereco-widget .form-group input:not([required]):not([disabled]):not([type="checkbox"]):not([type="radio"]):focus {
+  border-color: var(--cad-primary) !important;
+  box-shadow: var(--cad-focus-ring) !important;
+}
+
 .cad-secao--com-acao {
   align-items: center;
   flex-wrap: wrap;

@@ -1,0 +1,122 @@
+---
+description: Layout de lista (lst-*) e cadastro (cad-*), controles de formulário e botões. Aplicar ao criar ou alterar telas.
+globs: frontend/src/app/**/*-list.component.ts,frontend/src/app/**/*-form.component.ts,frontend/src/styles/cadastro.css,frontend/src/styles/lista-sge.css,frontend/src/styles/form-acoes.css,frontend/src/styles/modal-sge.css,frontend/src/styles-buttons.css,frontend/src/styles-sco.css,frontend/src/app/shared/paginacao.ts,frontend/src/app/shared/icone.ts
+alwaysApply: false
+---
+
+# Estilo AppCondominium
+
+Layout de página das entidades (lista e cadastro), controles de formulário e botões. O shell da aplicação (`app-premium-main`) só contém o `router-outlet`; cada tela traz o próprio wrapper.
+
+## Referências
+
+| Camada | Arquivos |
+|--------|----------|
+| Cadastro | `frontend/src/styles/cadastro.css` (classes `cad-*`, tokens `--cad-*`) |
+| Listagem | `frontend/src/styles/lista-sge.css` (classes `lst-*`) |
+| Ações, rodapé e modais | `frontend/src/styles/form-acoes.css` + `frontend/src/styles/modal-sge.css` |
+| Botões | `frontend/src/styles-buttons.css` |
+| Borda de obrigatório | `frontend/src/styles-sco.css` e `frontend/src/styles/cadastro.css` |
+| Ícones | `frontend/src/app/shared/icone.ts` (`app-icone`) |
+| Paginação | `frontend/src/app/shared/paginacao.ts`, `modo="sge"`, atributo `rotulo="..."` (string, não binding) |
+| Viewport da lista | `frontend/src/app/shared/lista-sge/lista-sge-viewport.directive.ts`, `TAMANHO_PAGINA_LISTA_PADRAO` |
+| Aguarde na edição | `FormInitialLoad` + `app-list-loading-modal` |
+
+Cor de destaque: `--app-accent`.
+
+Modelos: `banco-list.component.ts`, `banco-form.component.ts`, `municipio-form.component.ts`.
+
+## Listagem (`lst-*`)
+
+- Wrapper: `content-wrapper lst-wrapper` + `lstSgeViewport`.
+- Cabeçalho fora do card: breadcrumb, `lst-titulo`, `lst-subtitulo`, `btn-novo` (“Novo …”).
+- Card único `lst-card lst-painel`: filtros recolhíveis, `lst-tabela__scroll`, `lst-rodape` com `app-paginacao`.
+- Abrir registro: **duplo clique** na linha ou ícone lápis (`lst-acao--editar`); clique simples na linha não navega.
+- `pageSize = TAMANHO_PAGINA_LISTA_PADRAO`; `aplicarTamanhoPagina()` com `ajustarTamanhoPaginaLista`.
+- Filtros: `.btn-filtrar` (primary) + `.btn-limpar` (secondary).
+
+## Cadastro (`cad-*`)
+
+- Wrapper: `content-wrapper cad-wrapper` > `cad-page` > `cad-cabecalho` (breadcrumb, título, subtítulo).
+- Card `cad-card form-page`: `cad-abas`, `cad-conteudo`, `cad-secao`, campos em `form-grid`, `actions form-actions cad-acoes`.
+- Condomínio: aba **Dados do Condomínio** e aba **Endereço**. Salvar, Voltar e Excluir ficam abaixo do conteúdo, visíveis nas duas abas.
+- Breadcrumb: Início → rota plural da entidade → Novo/Editar.
+- Botão principal: **Salvar** (`.btn-gravar`); **Voltar** (`.btn-cancelar`).
+- Carga inicial: `FormInitialLoad` + modal “Aguarde, carregando...”.
+
+## Controles
+
+- `.form-group` + `label` dentro de `.form-grid`.
+- Campo obrigatório: atributo HTML `required` em input, select e textarea (não em checkbox). Vazio fica com borda vermelha; a borda some ao preencher.
+- No cadastro de condomínio e de endereço, input, select e textarea não usam a sombra de repouso dos campos opcionais. Número, complemento, UF e município usam a borda `#cbd5e1`, a mesma dos outros inputs. O anel de foco permanece, exceto na data e na hora, que mantêm a borda do estado. O card `cad-*` é o shell: o miolo não ganha a caixa interna do `form-scroll`.
+- Combo: `app-combobox-customizada` com `[required]="true"` quando o campo é obrigatório.
+- Erro de campo: `.field-error`. Textarea: `.input-textarea`.
+
+### Datas
+
+Padrão aplicado na data de inativação do condomínio com `[feedbackVisual]="true"` em `app-campo-data-hora`. Nas demais datas, repetir o mesmo contrato: `[feedbackVisual]="true"` e, em data de nascimento, `[nascimento]="true"`. Uma única borda envolve o texto e o ícone do calendário; o texto começa junto dessa borda, sem caixa interna. A data e a hora ficam lado a lado, com 38px de altura, a mesma dos outros inputs do cadastro. Nenhuma das duas usa sombra de repouso. No foco, a borda permanece a do estado atual, sem anel de foco.
+
+- Obrigatório vazio: borda vermelha de 1px, sem mensagem. Vale para a data e para a hora.
+- Vazio não obrigatório, e preenchido: borda `#cbd5e1`, a mesma dos outros inputs, sem mensagem. Vale para a data e para a hora.
+- Data inválida, ao completar a data ou ao sair do campo: borda vermelha de 2px, ícone de alerta de 12px dentro do campo (à esquerda do calendário) e o texto "Data inválida" abaixo, fonte 10px, a 2px da borda. Não aumenta a altura do campo nem o vão entre as linhas.
+- Hora inválida, ao sair do campo: borda vermelha de 2px e o texto "Hora inválida" abaixo, fonte 10px, a 2px da borda, sem ícone dentro do campo. Não aumenta a altura nem o vão.
+- Os ícones do calendário e do relógio permanecem na cor do ícone ao lado do título (`--cad-primary`) em todos os estados.
+- Desabilitado: borda `#ddd`, sem sombra, na data e na hora.
+- Máscara `dd/mm/aaaa` entra conforme os números: `1` → `12` → `12/0` → `12/03` → `12/03/2024`. Letras não entram. Apagar, colar só os números e o calendário continuam funcionando.
+- Digitação incompleta não mostra erro. Data ou hora válida remove alerta e mensagem na hora.
+- Data inexistente (ex.: 31/02) é inválida. Data de nascimento (`[nascimento]="true"`) também não pode ser futura.
+- Não mudar os outros campos da tela.
+
+## Botões
+
+Fonte única: `frontend/src/styles-buttons.css`. Não recriar estilos locais de `.btn-gravar`, `.btn-cancelar`, `.btn-filtrar`, `.btn-limpar`, `.btn-cancelar-modal`, `.btn-confirm-ok`.
+
+- Altura 40px (32px compacto em tabela e filtro). `border-radius: 8px`, padding horizontal 16px, font-weight 600.
+- Ícone 18px à esquerda do texto, gap 8px. Sem gradiente, sem sombra forte, sem pill (`border-radius: 999px`) e sem deslocamento no hover.
+- Loading: classe `.is-loading` (spinner, bloqueia clique, preserva largura).
+
+| Variante | Classes | Uso |
+|----------|---------|-----|
+| Primary | `.btn-gravar`, `.btn-novo`, `.btn-filtrar` | Salvar, Novo, Filtrar |
+| Secondary | `.btn-cancelar`, `.btn-limpar`, `.btn-cancelar-modal` | Voltar, Limpar, Cancelar modal |
+| Danger | `.btn-excluir`, `.btn-confirm-danger` | Excluir |
+
+Um único botão visualmente primary por grupo de ações. Vermelho só para ação destrutiva.
+
+```html
+<div class="actions form-actions cad-acoes">
+  <button type="submit" class="btn-gravar" form="…" [disabled]="saving">Salvar</button>
+  <span class="cad-acoes__espaco"></span>
+  <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
+  <button type="button" class="btn-excluir" *ngIf="isEdit" (click)="showDeleteConfirm=true">Excluir</button>
+</div>
+```
+
+Modal de exclusão:
+
+```html
+<div class="confirm-overlay" *ngIf="showDeleteConfirm">
+  <div class="confirm-modal">
+    <p>Deseja realmente excluir este registro?</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn-cancelar-modal" (click)="showDeleteConfirm=false">Cancelar</button>
+      <button type="button" class="btn-confirm-danger" (click)="confirmDelete()">Excluir</button>
+    </div>
+  </div>
+</div>
+```
+
+### Voltar × Cancelar
+
+1. **Voltar** (`.btn-cancelar`) quando só navega ou abandona a tela (`cancel()`, `voltar()`, `routerLink`, listagem). Preservar a navegação existente.
+2. **Cancelar** (`.btn-cancelar-modal`) quando fecha modal ou interrompe um fluxo sem destruir o registro.
+3. **Excluir** (`.btn-excluir` / `.btn-confirm-danger`) quando remove um registro já existente.
+
+Não alterar `type`, `(click)`, `routerLink`, `*ngIf`/`@if`, permissões, disabled ou loading ao ajustar classes de botão.
+
+## Não fazer
+
+- Não reativar `content-card-entity-list` / `content-card-entity-form` no `app.component.html`. As telas trazem o próprio wrapper.
+- Não usar `[rotulo]="texto com espaços"` na paginação — usar `rotulo="texto com espaços"`.
+- Não redefinir `cad-*`, `lst-*` nem classes de botão no `styles:` do componente.
+- Não usar pill, gradiente ou ícone circular sobreposto nos botões.
