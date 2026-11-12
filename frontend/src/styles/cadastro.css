@@ -411,10 +411,10 @@
 
 .cad-obrigatorio { color: #dc2626; }
 
-.cad-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(.combo-input),
+.cad-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(.combo-input):not(.campo-data-sge-input),
 .cad-card .form-group select:not([multiple]),
 .cad-card .combo .combo-input,
-.cad-painel-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(.combo-input),
+.cad-painel-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(.combo-input):not(.campo-data-sge-input),
 .cad-painel-card .form-group select:not([multiple]),
 .cad-painel-card .combo .combo-input {
   min-height: 38px;
@@ -442,9 +442,9 @@
   border: 1px solid #cbd5e1;
 }
 
-.cad-card .form-group input:disabled:not([type="checkbox"]):not([type="radio"]),
+.cad-card .form-group input:disabled:not([type="checkbox"]):not([type="radio"]):not(.campo-data-sge-input),
 .cad-card .form-group select:disabled,
-.cad-painel-card .form-group input:disabled:not([type="checkbox"]):not([type="radio"]),
+.cad-painel-card .form-group input:disabled:not([type="checkbox"]):not([type="radio"]):not(.campo-data-sge-input),
 .cad-painel-card .form-group select:disabled {
   border: 1px solid var(--color-border, #e2e8f0) !important;
   background-color: #f1f5f9 !important;
@@ -456,10 +456,10 @@
   border-radius: 6px;
 }
 
-.cad-card .form-group input:not([type="checkbox"]):not([type="radio"]):focus,
+.cad-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(.campo-data-sge-input):focus,
 .cad-card .form-group select:focus,
 .cad-card .form-group textarea:focus,
-.cad-painel-card .form-group input:not([type="checkbox"]):not([type="radio"]):focus,
+.cad-painel-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(.campo-data-sge-input):focus,
 .cad-painel-card .form-group select:focus,
 .cad-painel-card .form-group textarea:focus {
   outline: none;
@@ -467,16 +467,16 @@
   box-shadow: var(--cad-focus-ring) !important;
 }
 
-.cad-card .form-group input[readonly]:not([type="checkbox"]):not([type="radio"]):not(.combo-input),
-.cad-painel-card .form-group input[readonly]:not([type="checkbox"]):not([type="radio"]):not(.combo-input) {
+.cad-card .form-group input[readonly]:not([type="checkbox"]):not([type="radio"]):not(.combo-input):not(.campo-data-sge-input),
+.cad-painel-card .form-group input[readonly]:not([type="checkbox"]):not([type="radio"]):not(.combo-input):not(.campo-data-sge-input) {
   border: 1px solid var(--color-border, #e2e8f0) !important;
   background-color: #f1f5f9 !important;
   color: #334155;
   cursor: default;
 }
 
-.cad-card .form-group input[readonly]:focus:not(.combo-input),
-.cad-painel-card .form-group input[readonly]:focus:not(.combo-input) {
+.cad-card .form-group input[readonly]:focus:not(.combo-input):not(.campo-data-sge-input),
+.cad-painel-card .form-group input[readonly]:focus:not(.combo-input):not(.campo-data-sge-input) {
   border-color: var(--color-border, #e2e8f0) !important;
   box-shadow: none !important;
 }

@@ -11,6 +11,7 @@
 @import './styles/cadastro.css';
 @import './styles/lista-sge.css';
 @import './styles/combobox-sge.css';
+@import './styles/campo-data-sge.css';
 @import './styles/liberacao-acesso.css';
 @import './styles/inicio-dashboard.css';
 @import './styles/foto-perfil.css';
@@ -98,7 +99,7 @@ select {
 }
 
 /* Campos obrigatórios: vazio vermelho, preenchido slate, sem sombra (hug SCO). */
-input[required]:not([type="checkbox"]):not([type="radio"]),
+input[required]:not([type="checkbox"]):not([type="radio"]):not(.mat-mdc-input-element):not(.campo-data-sge-input),
 select[required],
 textarea[required] {
   border: 1px solid #dc3545 !important;
@@ -106,8 +107,8 @@ textarea[required] {
   box-shadow: none !important;
 }
 
-input[required]:not([type="checkbox"]):not([type="radio"]).ng-valid,
-input[required]:not([type="checkbox"]):not([type="radio"]):valid,
+input[required]:not([type="checkbox"]):not([type="radio"]):not(.mat-mdc-input-element):not(.campo-data-sge-input).ng-valid,
+input[required]:not([type="checkbox"]):not([type="radio"]):not(.mat-mdc-input-element):not(.campo-data-sge-input):valid,
 select[required].ng-valid,
 select[required]:valid,
 textarea[required].ng-valid,
@@ -116,8 +117,8 @@ textarea[required]:valid {
   box-shadow: none !important;
 }
 
-input[required]:not([type="checkbox"]):not([type="radio"]).ng-invalid,
-input[required]:not([type="checkbox"]):not([type="radio"]):invalid,
+input[required]:not([type="checkbox"]):not([type="radio"]):not(.mat-mdc-input-element):not(.campo-data-sge-input).ng-invalid,
+input[required]:not([type="checkbox"]):not([type="radio"]):not(.mat-mdc-input-element):not(.campo-data-sge-input):invalid,
 select[required].ng-invalid,
 select[required]:invalid,
 textarea[required].ng-invalid,
@@ -127,7 +128,7 @@ select[required]:has(> option.opt-placeholder:checked) {
   box-shadow: none !important;
 }
 
-input:not([required]):not(.readonly):not([disabled]):not([type="checkbox"]):not([type="radio"]),
+input:not([required]):not(.readonly):not([disabled]):not([type="checkbox"]):not([type="radio"]):not(.mat-mdc-input-element):not(.campo-data-sge-input),
 select:not([required]),
 textarea:not([required]) {
   border: 1px solid #000 !important;
@@ -136,7 +137,7 @@ textarea:not([required]) {
 }
 
 input.readonly,
-input[disabled],
+input[disabled]:not(.campo-data-sge-input),
 select[disabled],
 textarea[disabled] {
   border-color: #ddd !important;
@@ -1493,8 +1494,8 @@ app-ocorrencia-list .checkin-filtros-panel .filtro-periodo .periodo-inputs input
 }
 .form-group .combo .combo-input,
 .form-group select:not([multiple]),
-.form-group input:not([type]),
-.form-group input[type="text"],
+.form-group input:not([type]):not(.campo-data-sge-input),
+.form-group input[type="text"]:not(.campo-data-sge-input),
 .form-group input[type="number"],
 .form-group input[type="password"],
 .form-group input[type="datetime-local"],
@@ -1524,105 +1525,3 @@ app-ocorrencia-list .checkin-filtros-panel .filtro-periodo .periodo-inputs input
   }
 }
 
-/* Data / data-hora (Angular Material) compactos, alinhados ao hug SCO */
-.form-group app-campo-data,
-.form-group app-campo-data-hora,
-.form-grid > app-campo-data,
-.form-grid > app-campo-data-hora {
-  display: block;
-  min-width: 0;
-  width: 100%;
-}
-.campo-data .mat-mdc-form-field,
-.campo-data-hora .mat-mdc-form-field {
-  width: 100%;
-  font-size: 12px;
-}
-.campo-data .mat-mdc-text-field-wrapper,
-.campo-data-hora .mat-mdc-text-field-wrapper {
-  height: 2.125rem;
-  padding-bottom: 0;
-}
-.campo-data .mat-mdc-form-field-infix,
-.campo-data-hora .mat-mdc-form-field-infix {
-  min-height: 2.125rem;
-  padding-top: 6px !important;
-  padding-bottom: 6px !important;
-}
-.campo-data .mat-mdc-form-field-icon-suffix,
-.campo-data-hora .mat-mdc-form-field-icon-suffix {
-  align-self: center;
-}
-.campo-data .mat-datepicker-toggle,
-.campo-data-hora .mat-datepicker-toggle {
-  color: var(--app-accent, #0e7490);
-}
-.campo-data .mat-mdc-icon-button,
-.campo-data-hora .mat-mdc-icon-button {
-  width: 28px;
-  height: 28px;
-  padding: 2px;
-}
-.campo-data .mdc-notched-outline__leading,
-.campo-data .mdc-notched-outline__notch,
-.campo-data .mdc-notched-outline__trailing,
-.campo-data-hora .mdc-notched-outline__leading,
-.campo-data-hora .mdc-notched-outline__notch,
-.campo-data-hora .mdc-notched-outline__trailing {
-  border-color: #000 !important;
-}
-.campo-data.campo-data--required.ng-invalid .mdc-notched-outline__leading,
-.campo-data.campo-data--required.ng-invalid .mdc-notched-outline__notch,
-.campo-data.campo-data--required.ng-invalid .mdc-notched-outline__trailing,
-.campo-data-hora.campo-data--required.ng-invalid .mdc-notched-outline__leading,
-.campo-data-hora.campo-data--required.ng-invalid .mdc-notched-outline__notch,
-.campo-data-hora.campo-data--required.ng-invalid .mdc-notched-outline__trailing {
-  border-color: #dc3545 !important;
-}
-.campo-data.campo-data--required.ng-valid .mdc-notched-outline__leading,
-.campo-data.campo-data--required.ng-valid .mdc-notched-outline__notch,
-.campo-data.campo-data--required.ng-valid .mdc-notched-outline__trailing,
-.campo-data-hora.campo-data--required.ng-valid .mdc-notched-outline__leading,
-.campo-data-hora.campo-data--required.ng-valid .mdc-notched-outline__notch,
-.campo-data-hora.campo-data--required.ng-valid .mdc-notched-outline__trailing {
-  border-color: #cbd5e1 !important;
-}
-.campo-data.campo-data--disabled .mdc-notched-outline__leading,
-.campo-data.campo-data--disabled .mdc-notched-outline__notch,
-.campo-data.campo-data--disabled .mdc-notched-outline__trailing,
-.campo-data-hora.campo-data--disabled .mdc-notched-outline__leading,
-.campo-data-hora.campo-data--disabled .mdc-notched-outline__notch,
-.campo-data-hora.campo-data--disabled .mdc-notched-outline__trailing {
-  border-color: #ddd !important;
-}
-.form-group app-campo-data input.mat-mdc-input-element,
-.form-group app-campo-data-hora input.mat-mdc-input-element,
-.campo-data input.mat-mdc-input-element,
-.campo-data-hora input.mat-mdc-input-element {
-  border: none !important;
-  box-shadow: none !important;
-  min-height: 0 !important;
-  padding: 0 4px !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-  font-size: 12px !important;
-}
-.campo-data-hora__row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  width: 100%;
-}
-.campo-data-hora__row .mat-mdc-form-field {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.campo-data-hora__time {
-  flex: 0 0 5.25rem;
-  width: 5.25rem;
-  min-width: 5.25rem;
-  box-sizing: border-box;
-  min-height: 2.125rem;
-}

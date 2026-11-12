@@ -56,11 +56,11 @@ import { CondominioContextService } from '../../core/services/condominio-context
               <label>IdPessoa *</label>
               <input type="number" [(ngModel)]="model.idPessoa" name="idPessoa" [readonly]="fieldDisabled('idPessoa')" required />
             </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
+            <div style="grid-column: 3 / span 5; grid-row: 1" class="form-group fg-col-6">
               <label>Senha</label>
               <input type="password" [(ngModel)]="model.senha" name="senha" autocomplete="new-password" />
             </div>
-            <div style="grid-column: 9 / span 2; grid-row: 1" class="form-group fg-col-2">
+            <div style="grid-column: 8 / span 3; grid-row: 1" class="form-group fg-col-3">
               <label>Data de Nascimento *</label>
               <app-campo-data [(ngModel)]="model.dataNascimento" name="dataNascimento" [disabled]="fieldDisabled('dataNascimento')" [required]="true" />
             </div>

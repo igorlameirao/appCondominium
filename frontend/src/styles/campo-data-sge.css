@@ -1,0 +1,241 @@
+/* app-campo-data / app-campo-data-hora — uma borda externa (SGE); digitação no .campo-data-sge-input */
+
+.form-group app-campo-data,
+.form-group app-campo-data-hora,
+.form-grid > app-campo-data,
+.form-grid > app-campo-data-hora,
+.cad-card .form-group app-campo-data,
+.cad-card .form-group app-campo-data-hora {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+
+.campo-data .mat-mdc-form-field,
+.campo-data-hora .mat-mdc-form-field {
+  width: 100%;
+  font-size: 13px;
+}
+
+/* Contorno nativo do Material — borda fica só no wrapper */
+.campo-data .mdc-notched-outline,
+.campo-data-hora .mdc-notched-outline,
+.campo-data .mat-mdc-form-field-focus-overlay,
+.campo-data-hora .mat-mdc-form-field-focus-overlay {
+  display: none;
+}
+
+.campo-data .mat-mdc-text-field-wrapper,
+.campo-data-hora .mat-mdc-text-field-wrapper {
+  box-sizing: border-box;
+  height: 38px;
+  padding: 0 4px 0 12px;
+  background-color: #fff;
+  border: 1px solid #000;
+  border-radius: 6px;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.campo-data .mat-mdc-form-field-flex,
+.campo-data-hora .mat-mdc-form-field-flex {
+  align-items: center;
+  height: 100%;
+}
+
+.campo-data .mat-mdc-form-field-infix,
+.campo-data-hora .mat-mdc-form-field-infix {
+  display: flex;
+  align-items: center;
+  min-height: 0;
+  width: auto;
+  flex: 1 1 auto;
+  padding-top: 0;
+  padding-bottom: 0;
+  border: none;
+  background: transparent;
+}
+
+.campo-data .mat-mdc-form-field-icon-suffix,
+.campo-data-hora .mat-mdc-form-field-icon-suffix {
+  align-self: center;
+  padding: 0;
+}
+
+.campo-data .mat-datepicker-toggle,
+.campo-data-hora .mat-datepicker-toggle {
+  color: var(--app-accent, #0e7490);
+}
+
+.campo-data .mat-mdc-icon-button,
+.campo-data-hora .mat-mdc-icon-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.campo-data .mat-mdc-form-field-subscript-wrapper,
+.campo-data-hora .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+/* Input de digitação: sem caixa própria (cadastro.css já não aplica :focus aqui) */
+.campo-data .campo-data-sge-input,
+.campo-data-hora .campo-data-sge-input {
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1.2;
+  color: #0f172a;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.campo-data .campo-data-sge-input:hover,
+.campo-data .campo-data-sge-input:focus,
+.campo-data .campo-data-sge-input:focus-visible,
+.campo-data .campo-data-sge-input:active,
+.campo-data-hora .campo-data-sge-input:hover,
+.campo-data-hora .campo-data-sge-input:focus,
+.campo-data-hora .campo-data-sge-input:focus-visible,
+.campo-data-hora .campo-data-sge-input:active {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* Contêiner SGE (app-campo-data e parte data do app-campo-data-hora) */
+.campo-data-sge-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.campo-data-sge-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 38px;
+  padding: 0 2px 0 12px;
+  background-color: #fff;
+  border: 1px solid #000;
+  border-radius: 6px;
+}
+
+.campo-data__picker-anchor {
+  position: absolute;
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.campo-data-sge-wrap > mat-datepicker {
+  display: none;
+}
+
+.campo-data-hora__row .campo-data-hora__data {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.campo-data--digitar-manual .campo-data-sge-shell {
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* Validação detalhada (Pessoa Física): texto + ícone de alerta + calendário na mesma linha */
+.campo-data--validacao-visual .campo-data-sge-shell {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 4px;
+  padding: 0 6px 0 12px;
+  overflow: visible;
+}
+
+.campo-data--validacao-visual .campo-data-sge-alerta {
+  display: inline-flex;
+  align-items: center;
+  color: #dc3545;
+  flex-shrink: 0;
+}
+
+.campo-data--digitar-manual .campo-data-sge-shell .campo-data__texto {
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.campo-data--digitar-manual .campo-data-sge-shell .mat-mdc-icon-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* Opcional: borda preta */
+.campo-data--digitar-manual:not(.campo-data--required) .campo-data-sge-shell {
+  border-color: #000;
+  box-shadow: none;
+}
+
+/* Obrigatório vazio / inválido (exceto feedback visual detalhado no próprio componente) */
+.campo-data--digitar-manual.campo-data--required.ng-invalid:not(.campo-data--validacao-visual) .campo-data-sge-shell,
+.campo-data--digitar-manual.campo-data--texto-invalido .campo-data-sge-shell {
+  border-color: #dc3545;
+  box-shadow: none;
+}
+
+/* Obrigatório preenchido */
+.campo-data--digitar-manual.campo-data--required.ng-valid:not(.campo-data--validacao-visual) .campo-data-sge-shell {
+  border-color: #cbd5e1;
+  box-shadow: none;
+}
+
+.campo-data--digitar-manual.campo-data--disabled .campo-data-sge-shell {
+  border-color: #ddd;
+  background-color: #f1f5f9;
+}
+
+/* Foco só no contêiner externo */
+.campo-data--digitar-manual .campo-data-sge-shell:focus-within {
+  border-color: var(--cad-primary, #0d6efd);
+  box-shadow: var(--cad-focus-ring, 0 0 0 3px rgba(13, 110, 253, 0.15));
+}
+
+.campo-data-hora__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.campo-data-hora__row .mat-mdc-form-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.campo-data-hora__time {
+  flex: 0 0 5.5rem;
+  width: 5.5rem;
+  min-width: 5.5rem;
+  box-sizing: border-box;
+  min-height: 38px;
+  padding: 6px 10px;
+  font-size: 13px;
+  line-height: 1.2;
+  border-radius: 6px;
+  background: #fff;
+}
