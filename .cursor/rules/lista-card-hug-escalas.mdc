@@ -16,7 +16,7 @@ Padrão hug do SCO aplicado no AppCondominium com duas classes genéricas, porqu
 
 - Criar lista ou formulário web com card branco
 - Usuário pedir «padrão hug Escalas», «card como Escalas», «não esticar o card»
-- Formulário rico (combos, checks, rádios): usar também `hug-estilo-sco.mdc`
+- Formulário rico (combos, checks, rádios): usar também `hug-estilo-AppCondominium.mdc`
 
 ## Comportamento
 

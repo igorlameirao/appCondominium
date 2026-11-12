@@ -36,72 +36,86 @@ import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-w
 
         <section class="cad-card form-page">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
-            <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
+            <button type="button" role="tab" class="cad-aba" [class.cad-aba--ativa]="aba === 'dados'" [attr.aria-selected]="aba === 'dados'" (click)="aba = 'dados'">
               <app-icone nome="building" [tamanho]="16" />
-              <span>Dados de Condomínio</span>
+              <span>Dados do Condomínio</span>
+            </button>
+            <button type="button" role="tab" class="cad-aba" [class.cad-aba--ativa]="aba === 'endereco'" [attr.aria-selected]="aba === 'endereco'" (click)="aba = 'endereco'">
+              <app-icone nome="map-pin" [tamanho]="16" />
+              <span>Endereço</span>
             </button>
           </div>
-          <div class="cad-conteudo" role="tabpanel">
+          <div class="cad-conteudo">
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
+          <div role="tabpanel" [hidden]="aba !== 'dados'">
             <div class="cad-secao">
               <app-icone class="cad-secao__icone" nome="building" [tamanho]="26" />
               <div>
-                <h2 class="cad-secao__titulo">Dados de Condomínio</h2>
+                <h2 class="cad-secao__titulo">Dados do Condomínio</h2>
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
-          
           <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
+            <div class="form-group fg-col-2">
               <label>Id</label>
               <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
             </div>
-            <div style="grid-column: 3 / span 4; grid-row: 1" class="form-group fg-col-4">
+            <div class="form-group fg-col-4">
               <label>Data Inativação</label>
-              <app-campo-data-hora [(ngModel)]="model.dataInativacao" name="dataInativacao" [disabled]="fieldDisabled('dataInativacao')" />
+              <app-campo-data-hora [(ngModel)]="model.dataInativacao" name="dataInativacao" [disabled]="fieldDisabled('dataInativacao')" [feedbackVisual]="true" />
             </div>
-            <div style="grid-column: 7 / span 2; grid-row: 1" class="form-group fg-col-2">
+            <div class="form-group fg-col-3">
               <label>Área Total Unidades</label>
               <input type="number" [(ngModel)]="model.areaTotalUnidades" name="areaTotalUnidades" step="0.001" [readonly]="fieldDisabled('areaTotalUnidades')" />
             </div>
-            <div style="grid-column: 9 / span 2; grid-row: 1" class="form-group fg-col-2">
+            <div class="form-group fg-col-3">
               <label>Quantidade Total Unidades</label>
               <input type="number" [(ngModel)]="model.quantidadeTotalUnidades" name="quantidadeTotalUnidades" [readonly]="fieldDisabled('quantidadeTotalUnidades')" />
             </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
+            <div class="form-group fg-col-12">
               <label>Nome *</label>
               <input type="text" [(ngModel)]="model.nome" name="nome" maxlength="255" [readonly]="fieldDisabled('nome')" required />
             </div>
-            <app-endereco-widget style="grid-column: 1 / span 12; grid-row: 3" class="fg-col-12"
-              [(idEndereco)]="model.idEndereco"
-              [(numero)]="model.numeroEndereco"
-              [(complemento)]="model.complementoEndereco"
-              [readonly]="isEdit && !canEdit" />
-            <div style="grid-column: 1 / span 3; grid-row: 4" class="form-group fg-col-3">
+            <div class="form-group fg-col-3">
               <label>CNPJ</label>
               <app-documento-input [(ngModel)]="model.cNPJ" name="cNPJ" tipo="cnpj" [disabled]="fieldDisabled('cNPJ')" />
             </div>
-            <div style="grid-column: 4 / span 2; grid-row: 4" class="form-group fg-col-2">
+            <div class="form-group fg-col-3">
               <label>Área Terreno *</label>
               <input type="number" [(ngModel)]="model.areaTerreno" name="areaTerreno" step="0.001" [readonly]="fieldDisabled('areaTerreno')" required />
             </div>
-            <div style="grid-column: 6 / span 2; grid-row: 4" class="form-group fg-col-2">
+            <div class="form-group fg-col-3">
               <label>Área Total Edificada *</label>
               <input type="number" [(ngModel)]="model.areaTotalEdificada" name="areaTotalEdificada" step="0.001" [readonly]="fieldDisabled('areaTotalEdificada')" required />
             </div>
-            <div style="grid-column: 8 / span 2; grid-row: 4" class="form-group fg-col-2">
+            <div class="form-group fg-col-3">
               <label>Ativo *</label>
               <input type="number" [(ngModel)]="model.ativo" name="ativo" [readonly]="fieldDisabled('ativo')" required />
             </div>
-            <div style="grid-column: 1 / span 12; grid-row: 5" class="form-group fg-col-12">
+            <div class="form-group fg-col-12">
               <label>Domínio *</label>
               <input type="text" [(ngModel)]="model.dominio" name="dominio" maxlength="255" [readonly]="fieldDisabled('dominio')" required />
             </div>
           </div>
+          </div>
+          <div role="tabpanel" [hidden]="aba !== 'endereco'">
+            <div class="cad-secao">
+              <app-icone class="cad-secao__icone" nome="map-pin" [tamanho]="26" />
+              <div>
+                <h2 class="cad-secao__titulo">Endereço</h2>
+                <p class="cad-secao__texto">Informe o endereço do condomínio</p>
+              </div>
+            </div>
+            <app-endereco-widget
+              [(idEndereco)]="model.idEndereco"
+              [(numero)]="model.numeroEndereco"
+              [(complemento)]="model.complementoEndereco"
+              [readonly]="isEdit && !canEdit" />
+          </div>
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
         <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
@@ -132,6 +146,11 @@ export class CondominioFormComponent implements OnInit {
   readonly permissionKey = 'CONDOMINIO';
   canEdit = true;
   canDelete = true;
+  aba: 'dados' | 'endereco' = 'dados';
+  private readonly camposDados = new Set([
+    'dataInativacao', 'areaTotalUnidades', 'quantidadeTotalUnidades', 'nome', 'cNPJ',
+    'areaTerreno', 'areaTotalEdificada', 'ativo', 'dominio'
+  ]);
   
 
   constructor(
@@ -186,7 +205,11 @@ export class CondominioFormComponent implements OnInit {
   }
 
   submit(f: NgForm): void {
-    if (!f.valid) { this.toast.showError('Preencha os campos obrigatórios antes de gravar.'); return; }
+    if (!f.valid) {
+      this.aba = this.abaDoErro(f);
+      this.toast.showError('Preencha os campos obrigatórios antes de gravar.');
+      return;
+    }
     this.saving = true;
     if (this.isEdit) {
       this.service.update(this.model).subscribe({
@@ -201,6 +224,14 @@ export class CondominioFormComponent implements OnInit {
         complete: () => this.saving = false
       });
     }
+  }
+
+  private abaDoErro(f: NgForm): 'dados' | 'endereco' {
+    const nomes = Object.keys(f.controls);
+    const dadosInvalido = nomes.some(nome => this.camposDados.has(nome) && f.controls[nome].invalid);
+    if (dadosInvalido) return 'dados';
+    const enderecoInvalido = nomes.some(nome => !this.camposDados.has(nome) && f.controls[nome].invalid);
+    return enderecoInvalido ? 'endereco' : 'dados';
   }
 
   cancel(): void { this.router.navigate(['/condominio']); }

@@ -1626,3 +1626,107 @@ app-ocorrencia-list .checkin-filtros-panel .filtro-periodo .periodo-inputs input
   box-sizing: border-box;
   min-height: 2.125rem;
 }
+
+/* Data de inativação do condomínio: uma borda só, texto junto dela, validação visual local. */
+app-condominio-form .cad-card .form-group app-campo-data-hora.campo-data--feedback input.mat-mdc-input-element:not([type="checkbox"]):not([type="radio"]) {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  min-height: 0 !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+app-condominio-form app-campo-data-hora.campo-data--feedback .mat-mdc-form-field {
+  height: 38px;
+  margin: 0;
+  --mat-form-field-container-height: 38px;
+  --mdc-outlined-text-field-container-height: 38px;
+}
+app-condominio-form app-campo-data-hora.campo-data--feedback .mat-mdc-text-field-wrapper {
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  margin: 0;
+  padding: 0 0 0 8px !important;
+}
+app-condominio-form app-campo-data-hora.campo-data--feedback .mat-mdc-form-field-flex {
+  align-items: center;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  padding-left: 8px !important;
+  padding-right: 0 !important;
+}
+app-condominio-form app-campo-data-hora.campo-data--feedback .mat-mdc-form-field-infix {
+  min-height: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  border-top: 0 !important;
+}
+app-condominio-form app-campo-data-hora.campo-data--feedback .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+app-condominio-form app-campo-data-hora.campo-data--feedback .mdc-notched-outline__leading,
+app-condominio-form app-campo-data-hora.campo-data--feedback .mdc-notched-outline__notch,
+app-condominio-form app-campo-data-hora.campo-data--feedback .mdc-notched-outline__trailing {
+  border-color: #cbd5e1 !important;
+  border-width: 1px !important;
+}
+app-condominio-form app-campo-data-hora.campo-data--feedback .mat-datepicker-toggle,
+app-condominio-form app-campo-data-hora.campo-data--feedback .mat-datepicker-toggle .mat-mdc-icon-button {
+  color: var(--cad-primary) !important;
+}
+app-condominio-form app-campo-data-hora.campo-data--feedback.campo-data--required.ng-invalid:not(.campo-data--invalida) .mdc-notched-outline__leading,
+app-condominio-form app-campo-data-hora.campo-data--feedback.campo-data--required.ng-invalid:not(.campo-data--invalida) .mdc-notched-outline__notch,
+app-condominio-form app-campo-data-hora.campo-data--feedback.campo-data--required.ng-invalid:not(.campo-data--invalida) .mdc-notched-outline__trailing {
+  border-color: #dc3545 !important;
+  border-width: 1px !important;
+}
+app-condominio-form app-campo-data-hora.campo-data--feedback.campo-data--invalida .mdc-notched-outline__leading,
+app-condominio-form app-campo-data-hora.campo-data--feedback.campo-data--invalida .mdc-notched-outline__notch,
+app-condominio-form app-campo-data-hora.campo-data--feedback.campo-data--invalida .mdc-notched-outline__trailing {
+  border-color: #dc3545 !important;
+  border-width: 2px !important;
+}
+
+/* Hora ao lado da data: mesmas cores e as mesmas regras de preenchimento. */
+app-condominio-form .cad-card .form-group app-campo-data-hora.campo-data--feedback input.campo-data-hora__time:not([disabled]):not([type="checkbox"]):not([type="radio"]) {
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  box-sizing: border-box;
+  padding: 0 6px;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px;
+  box-shadow: none !important;
+  font-size: 12px;
+  accent-color: var(--cad-primary);
+}
+app-condominio-form .cad-card .form-group app-campo-data-hora.campo-data--feedback input.campo-data-hora__time:not([disabled]):not([type="checkbox"]):not([type="radio"]):focus {
+  border-color: #cbd5e1 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+app-condominio-form .cad-card .form-group app-campo-data-hora.campo-data--feedback.campo-data--required input.campo-data-hora__time:invalid:not([disabled]):not(.campo-data-hora__time--invalida):not([type="checkbox"]):not([type="radio"]),
+app-condominio-form .cad-card .form-group app-campo-data-hora.campo-data--feedback.campo-data--required input.campo-data-hora__time:invalid:not([disabled]):not(.campo-data-hora__time--invalida):not([type="checkbox"]):not([type="radio"]):focus {
+  border: 1px solid #dc3545 !important;
+  box-shadow: none !important;
+}
+app-condominio-form .cad-card .form-group app-campo-data-hora.campo-data--feedback input.campo-data-hora__time.campo-data-hora__time--invalida:not([disabled]):not([type="checkbox"]):not([type="radio"]),
+app-condominio-form .cad-card .form-group app-campo-data-hora.campo-data--feedback input.campo-data-hora__time.campo-data-hora__time--invalida:not([disabled]):not([type="checkbox"]):not([type="radio"]):focus {
+  border: 2px solid #dc3545 !important;
+  box-shadow: none !important;
+}
+app-condominio-form .cad-card .form-group app-campo-data-hora.campo-data--feedback input.campo-data-hora__time[disabled]:not([type="checkbox"]):not([type="radio"]) {
+  border: 1px solid #ddd !important;
+  box-shadow: none !important;
+}
+app-condominio-form app-campo-data-hora.campo-data--feedback input.campo-data-hora__time::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 1;
+  filter: invert(32%) sepia(51%) saturate(747%) hue-rotate(146deg) brightness(96%) contrast(97%);
+}
