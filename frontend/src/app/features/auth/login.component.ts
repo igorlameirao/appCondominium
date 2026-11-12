@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { TenantHostService } from '../../core/services/tenant-host.service';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
 
 @Component({
@@ -39,25 +40,25 @@ import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combo
                 <form (ngSubmit)="entrar()">
                   <div class="form-group">
                     <label for="usuario">Usuário (e-mail)</label>
-                    <input id="usuario" name="usuario" type="text" [(ngModel)]="usuario" (input)="buscarCondominios()" placeholder="E-mail" required autocomplete="username" />
-                  </div>
-                  <div class="form-group">
-                    <label for="condominio">Condomínio</label>
-                    <input id="condominio" name="condominio" type="text" [(ngModel)]="condominioBusca" (input)="buscarCondominios()" placeholder="Digite 3+ letras do nome" autocomplete="organization" />
-                    <p class="login-hint" *ngIf="condominioBusca.trim().length > 0 && condominioBusca.trim().length < 3">Digite ao menos 3 letras.</p>
-                  </div>
-                  <div class="form-group" *ngIf="condominios.length">
-                    <label for="idCondominio">Selecione o condomínio</label>
-                    <app-combobox-customizada
-                      id="idCondominio"
-                      [options]="condominioOptions"
-                      [(value)]="idCondominio"
-                      placeholder="Digite para filtrar..."
-                      [required]="true" />
+                    <input id="usuario" name="usuario" type="text" [(ngModel)]="usuario" (input)="onUsuarioAlterado()" placeholder="E-mail" required autocomplete="username" />
                   </div>
                   <div class="form-group">
                     <label for="senha">Senha</label>
                     <input id="senha" name="senha" type="password" [(ngModel)]="senha" placeholder="••••••••" required autocomplete="current-password" />
+                  </div>
+                  <div class="form-group">
+                    <label for="condominio">Condomínio</label>
+                    <app-combobox-customizada
+                      inputId="condominio"
+                      [options]="condominioOptions"
+                      [(value)]="idCondominio"
+                      placeholder="Digite 3+ letras do nome"
+                      [required]="true"
+                      [remoteSearch]="true"
+                      [minSearchLength]="3"
+                      minLengthMessage="Digite ao menos 3 letras."
+                      (searchChange)="onCondominioBusca($event)" />
+                    <p class="login-hint" *ngIf="condominioBusca.trim().length > 0 && condominioBusca.trim().length < 3">Digite ao menos 3 letras.</p>
                   </div>
                   <div class="actions">
                     <button class="btn-entrar" type="submit" [disabled]="!idCondominio">Entrar</button>
@@ -81,26 +82,43 @@ export class LoginComponent implements OnInit {
   senha = '';
   idCondominio: number | null = null;
   condominioBusca = '';
-  condominios: { idCondominio: number; nome: string }[] = [];
+  condominioOptions: ComboboxOption[] = [];
 
-  get condominioOptions(): ComboboxOption[] {
-    return this.condominios.map(c => ({ value: c.idCondominio, label: c.nome }));
-  }
-
-  constructor(private auth: AuthService, private router: Router, private toast: ToastService) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private toast: ToastService,
+    private tenantHost: TenantHostService
+  ) {}
 
   ngOnInit(): void {
-    if (this.auth.isLoggedIn) this.router.navigate(['/']);
+    if (this.auth.isLoggedIn) {
+      void this.router.navigate(['/']);
+      return;
+    }
+    if (this.tenantHost.isTenantHost) {
+      void this.router.navigate(['/entrar'], { replaceUrl: true });
+    }
+  }
+
+  onCondominioBusca(termo: string): void {
+    this.condominioBusca = termo;
+    this.buscarCondominios();
+  }
+
+  onUsuarioAlterado(): void {
+    this.idCondominio = null;
+    this.buscarCondominios();
   }
 
   buscarCondominios(): void {
     if (!this.usuario.trim() || this.condominioBusca.trim().length < 3) {
-      this.condominios = [];
+      this.condominioOptions = [];
       return;
     }
     this.auth.listCondominios(this.condominioBusca.trim(), this.usuario.trim()).subscribe({
-      next: r => this.condominios = r,
-      error: () => this.condominios = []
+      next: r => (this.condominioOptions = r.map(c => ({ value: c.idCondominio, label: c.nome }))),
+      error: () => (this.condominioOptions = [])
     });
   }
 

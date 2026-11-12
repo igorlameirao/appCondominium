@@ -247,6 +247,22 @@
   line-height: 1.35;
 }
 
+.login-card-form .login-footer-link {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 12px;
+}
+
+.login-card-form .login-footer-link a {
+  color: #64748b;
+  text-decoration: none;
+}
+
+.login-card-form .login-footer-link a:hover {
+  color: #0891b2;
+  text-decoration: underline;
+}
+
 .login-card-form .actions {
   margin-top: 32px;
 }

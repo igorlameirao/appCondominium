@@ -5,6 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CondominioContextService } from './condominio-context.service';
 import { PermissionService } from './permission.service';
+import { TenantHostService } from './tenant-host.service';
 
 export interface LoginRequest {
   usuario: string;
@@ -29,7 +30,8 @@ export class AuthService {
     private http: HttpClient,
     private router: Router,
     private condominioContext: CondominioContextService,
-    private permissions: PermissionService
+    private permissions: PermissionService,
+    private tenantHost: TenantHostService
   ) {}
 
   get token(): string | null {
@@ -80,6 +82,6 @@ export class AuthService {
     sessionStorage.removeItem('nome');
     this.permissions.clear();
     this.condominioContext.clear();
-    void this.router.navigate(['/login']);
+    void this.router.navigate([this.tenantHost.loginPath]);
   }
 }

@@ -89,10 +89,66 @@ public class LookupController : ControllerBase
     [HttpGet("condominio-resumo/{idCondominio:int}")]
     public async Task<ActionResult<object>> CondominioResumo(uint idCondominio, CancellationToken ct)
     {
-        var c = await _db.Condominio.AsNoTracking()
+        var c = await _db.Condominio.IgnoreQueryFilters().AsNoTracking()
             .Where(x => x.IdCondominio == idCondominio)
             .Select(x => new { x.IdCondominio, x.Nome })
             .FirstOrDefaultAsync(ct);
         return c == null ? NotFound() : Ok(c);
+    }
+
+    /// <summary>RT-Gerais 13 — resolve o condomínio pelo domínio do site (campo Dominio).</summary>
+    [AllowAnonymous]
+    [HttpGet("condominio-por-dominio")]
+    public async Task<ActionResult<object>> CondominioPorDominio([FromQuery] string? host, CancellationToken ct)
+    {
+        var h = NormalizarHost(host);
+        if (string.IsNullOrEmpty(h))
+            h = NormalizarHost(Request.Host.Host);
+        if (string.IsNullOrEmpty(h))
+            return NotFound();
+
+        // Condomínio é tenant global: sem IgnoreQueryFilters o filtro IdCondominio == 0 oculta todos os registros.
+        var dominios = await _db.Condominio.IgnoreQueryFilters().AsNoTracking()
+            .Where(x => x.Dominio != null && (x.Ativo == null || x.Ativo != 0))
+            .Select(x => new { x.IdCondominio, x.Nome, x.Dominio })
+            .ToListAsync(ct);
+
+        var c = dominios
+            .Where(x => HostCorrespondeDominio(h, x.Dominio))
+            .OrderByDescending(x => NormalizarHost(x.Dominio).Length)
+            .FirstOrDefault();
+        return c == null ? NotFound() : Ok(new { c.IdCondominio, c.Nome });
+    }
+
+    private static bool HostCorrespondeDominio(string host, string? dominio)
+    {
+        var h = NormalizarHost(host);
+        var d = NormalizarHost(dominio);
+        if (string.IsNullOrEmpty(h) || string.IsNullOrEmpty(d))
+            return false;
+        if (h == d)
+            return true;
+        // Ex.: cadastro "sistema.local" e acesso "sistema.local.127.0.0.1" (hosts locais).
+        return h.StartsWith(d + ".", StringComparison.Ordinal);
+    }
+
+    private static string NormalizarHost(string? host)
+    {
+        if (string.IsNullOrWhiteSpace(host))
+            return "";
+        var h = host.Trim().ToLowerInvariant();
+        if (h.StartsWith("http://", StringComparison.Ordinal))
+            h = h[7..];
+        else if (h.StartsWith("https://", StringComparison.Ordinal))
+            h = h[8..];
+        var path = h.IndexOf('/');
+        if (path >= 0)
+            h = h[..path];
+        var colon = h.IndexOf(':');
+        if (colon > 0)
+            h = h[..colon];
+        if (h.StartsWith("www."))
+            h = h[4..];
+        return h;
     }
 }
