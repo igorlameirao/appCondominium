@@ -466,26 +466,77 @@
   color: var(--color-text-label, #334155);
 }
 
-.lst-filtros .form-group input[type="search"],
-.lst-filtros .form-group input[type="text"],
-.lst-filtros .form-group input[type="number"],
-.lst-filtros .form-group input[type="date"],
-.lst-filtros .form-group select {
+/* Contrato visual dos controles em filtros lst-* (paridade com cad-* / tokens --cad-campo-*). */
+.lst-wrapper .lst-filtros .form-group input:not([type="checkbox"]):not([type="radio"]):not(.combo-input):not(.mat-mdc-input-element),
+.lst-wrapper .lst-filtros .form-group select,
+.lst-wrapper .lst-filtros .form-group textarea,
+.lst-wrapper .lst-filtro-competencia select {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  min-height: 38px;
+  box-sizing: border-box;
+  height: var(--cad-campo-altura, 38px);
+  min-height: var(--cad-campo-altura, 38px);
   padding: 6px 12px;
   font-size: 13px;
-  border-radius: 6px;
-  box-sizing: border-box;
+  border-radius: var(--cad-campo-raio, 6px);
+  color: #0f172a;
+  background-color: #fff;
 }
 
-.lst-filtros .form-group input:focus,
-.lst-filtros .form-group select:focus {
+.lst-wrapper .lst-filtros .form-group textarea {
+  height: auto;
+  min-height: calc(var(--cad-campo-altura, 38px) * 2);
+}
+
+/* Neutraliza styles-sco (borda #000 / sombra em opcionais) nos filtros. */
+.lst-wrapper .lst-filtros .form-group input:not([required]):not([type="checkbox"]):not([type="radio"]):not(.combo-input):not(.mat-mdc-input-element):not([readonly]):not([disabled]),
+.lst-wrapper .lst-filtros .form-group select:not([required]):not([disabled]),
+.lst-wrapper .lst-filtros .form-group textarea:not([required]):not([disabled]),
+.lst-wrapper .lst-filtro-competencia select:not([required]):not([disabled]),
+.lst-wrapper .lst-filtros .combo:not(.desabilitado) .combo-input {
+  border: 1px solid var(--cad-campo-borda, #cbd5e1) !important;
+  box-shadow: none !important;
+}
+
+.lst-wrapper .lst-filtros .form-group input:not([type="checkbox"]):not([type="radio"]):not(:focus):not(.combo-input):not(.mat-mdc-input-element),
+.lst-wrapper .lst-filtros .form-group select:not(:focus),
+.lst-wrapper .lst-filtros .form-group textarea:not(:focus),
+.lst-wrapper .lst-filtro-competencia select:not(:focus) {
+  box-shadow: none !important;
+}
+
+.lst-wrapper .lst-filtros .form-group input:disabled:not([type="checkbox"]):not([type="radio"]),
+.lst-wrapper .lst-filtros .form-group select:disabled,
+.lst-wrapper .lst-filtros .form-group textarea:disabled,
+.lst-wrapper .lst-filtros .combo.desabilitado .combo-input {
+  border: 1px solid var(--color-border, #e2e8f0) !important;
+  background-color: #f1f5f9 !important;
+  box-shadow: none !important;
+}
+
+.lst-wrapper .lst-filtros .form-group input.ng-invalid.ng-touched:not([type="checkbox"]):not([type="radio"]):not(.combo-input):not(.mat-mdc-input-element),
+.lst-wrapper .lst-filtros .form-group select.ng-invalid.ng-touched,
+.lst-wrapper .lst-filtros .form-group textarea.ng-invalid.ng-touched {
+  border: 2px solid var(--cad-campo-erro, #dc3545) !important;
+  box-shadow: none !important;
+}
+
+.lst-wrapper .lst-filtros .form-group input:not([type="checkbox"]):not([type="radio"]):not(.combo-input):focus,
+.lst-wrapper .lst-filtros .form-group select:focus,
+.lst-wrapper .lst-filtros .form-group textarea:focus,
+.lst-wrapper .lst-filtro-competencia select:focus,
+.lst-wrapper .lst-filtros .combo:not(.desabilitado) .combo-display:focus-within .combo-input {
   outline: none;
-  border-color: var(--cad-primary, #0d6efd);
-  box-shadow: var(--cad-focus-ring, 0 0 0 3px rgba(13, 110, 253, 0.15));
+  border-color: var(--cad-primary, #0d6efd) !important;
+  box-shadow: var(--cad-focus-ring, 0 0 0 3px rgba(13, 110, 253, 0.15)) !important;
+}
+
+.lst-wrapper .lst-filtros .combo:not(.desabilitado) .combo-input {
+  height: var(--cad-campo-altura, 38px);
+  min-height: var(--cad-campo-altura, 38px);
+  padding-right: 30px;
+  cursor: pointer;
 }
 
 .lst-filtros__acoes {

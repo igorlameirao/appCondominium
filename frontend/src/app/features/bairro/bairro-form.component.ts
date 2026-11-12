@@ -13,6 +13,7 @@ import { DocumentoInputComponent } from '../../shared/documento-input/documento-
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { MunicipioService } from '../municipio/municipio.service';
+import { Municipio } from '../municipio/municipio.model';
 
 @Component({
   selector: 'app-bairro-form',
@@ -30,7 +31,7 @@ import { MunicipioService } from '../municipio/municipio.service';
             <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
           </nav>
           <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Bairro</h1>
-          <p class="cad-subtitulo">Cadastre e mantenha as informações de bairro</p>
+          <p class="cad-subtitulo">Cadastre e mantenha as informações de Bairro</p>
         </header>
 
         <section class="cad-card form-page">
@@ -48,18 +49,14 @@ import { MunicipioService } from '../municipio/municipio.service';
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
           
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
-            </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
+          <div class="form-grid bairro-dados">
+            <div class="form-group bairro-dados__nome">
               <label>Bairro *</label>
               <input type="text" [(ngModel)]="model.nome" name="nome" maxlength="150" [readonly]="fieldDisabled('nome')" required />
             </div>
-            <div style="grid-column: 1 / span 6; grid-row: 3" class="form-group fg-col-6">
+            <div class="form-group bairro-dados__municipio">
               <label>Município *</label>
               <app-combobox-customizada
                 [options]="fk_codigoIBGEMunicipio"
@@ -70,7 +67,7 @@ import { MunicipioService } from '../municipio/municipio.service';
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
         <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
@@ -89,6 +86,14 @@ import { MunicipioService } from '../municipio/municipio.service';
     </div>
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
+  styles: [`
+    .bairro-dados {
+      grid-template-columns: 5fr 4fr;
+    }
+    @media (max-width: 720px) {
+      .bairro-dados { grid-template-columns: 1fr; }
+    }
+  `],
 })
 export class BairroFormComponent implements OnInit {
   model: Bairro = {} as Bairro;
@@ -125,17 +130,12 @@ export class BairroFormComponent implements OnInit {
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
-  get pkDisplay(): string { return String(this.model.idBairro); }
-
   ngOnInit(): void {
     if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();
 
     
-    this.pageLoad.run(this.municipioService.getPaged(1, 200), r => {
-      this.fk_codigoIBGEMunicipio = r.items.map((x: any) => ({
-        value: x.codigoIBGEMunicipio,
-        label: this.fkLabel_codigoIBGEMunicipio(x)
-      }));
+    this.pageLoad.run(this.municipioService.getPaged(1, 5000), r => {
+      this.fk_codigoIBGEMunicipio = (r.items ?? []).map(x => this.opcaoMunicipio(x));
     });
     const idBairro = this.route.snapshot.paramMap.get('idBairro');
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
@@ -148,7 +148,13 @@ export class BairroFormComponent implements OnInit {
     if (idBairro) {
       this.isEdit = true;
       this.refreshPermissions();
-      this.pageLoad.run(this.service.getById(idBairro), (r) => this.model = r, () => this.toast.showError('Registro não encontrado.'));
+      this.pageLoad.run(this.service.getById(idBairro), (r) => {
+        this.model = r;
+        if (this.model.codigoIBGEMunicipio != null) {
+          this.model.codigoIBGEMunicipio = Number(this.model.codigoIBGEMunicipio);
+        }
+        this.garantirMunicipioNasOpcoes();
+      }, () => this.toast.showError('Registro não encontrado.'));
     }
     this.pageLoad.seal();
   }
@@ -184,7 +190,24 @@ export class BairroFormComponent implements OnInit {
     this.service.delete(this.model.idBairro!).subscribe({ next: () => this.router.navigate(['/bairro']), error: () => this.toast.showError('Não foi possível excluir. Tente novamente.') });
   }
 
-  fkLabel_codigoIBGEMunicipio(x: any): string {
-    return String(x?.descricao ?? x?.nome ?? x?.siglaUF ?? x?.cep ?? x?.idMunicipio ?? '');
+  private opcaoMunicipio(m: Municipio): ComboboxOption {
+    const codigo = m.codigoIBGEMunicipio != null ? Number(m.codigoIBGEMunicipio) : 0;
+    return { value: codigo, label: this.rotuloMunicipio(m) };
+  }
+
+  private rotuloMunicipio(m: Pick<Municipio, 'nome' | 'codigoIBGEMunicipio'>): string {
+    const nome = m.nome?.trim();
+    if (nome) return nome;
+    return m.codigoIBGEMunicipio != null ? String(m.codigoIBGEMunicipio) : '';
+  }
+
+  private garantirMunicipioNasOpcoes(): void {
+    const codigo = this.model.codigoIBGEMunicipio;
+    if (codigo == null) return;
+    if (this.fk_codigoIBGEMunicipio.some(o => Number(o.value) === Number(codigo))) return;
+    this.municipioService.getById(codigo).subscribe(m => {
+      if (m.codigoIBGEMunicipio == null) return;
+      this.fk_codigoIBGEMunicipio = [...this.fk_codigoIBGEMunicipio, this.opcaoMunicipio(m)];
+    });
   }
 }

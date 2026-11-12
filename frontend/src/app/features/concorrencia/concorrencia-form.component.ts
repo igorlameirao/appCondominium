@@ -49,7 +49,7 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
           
           <div class="form-grid">
             <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
@@ -65,7 +65,7 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
             </div>
             <div style="grid-column: 9 / span 4; grid-row: 1" class="form-group fg-col-4">
               <label>DataAbertura *</label>
-              <app-campo-data-hora [(ngModel)]="model.dataAbertura" name="dataAbertura" [disabled]="fieldDisabled('dataAbertura')" [required]="true" />
+              <app-campo-data-hora [(ngModel)]="model.dataAbertura" name="dataAbertura" [disabled]="fieldDisabled('dataAbertura')" [required]="true" [feedbackVisual]="true"/>
             </div>
             <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
               <label>Descricao *</label>
@@ -73,11 +73,11 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
             </div>
             <div style="grid-column: 1 / span 4; grid-row: 3" class="form-group fg-col-4">
               <label>Data Prevista Encerramento *</label>
-              <app-campo-data-hora [(ngModel)]="model.dataPrevistaEncerramento" name="dataPrevistaEncerramento" [disabled]="fieldDisabled('dataPrevistaEncerramento')" [required]="true" />
+              <app-campo-data-hora [(ngModel)]="model.dataPrevistaEncerramento" name="dataPrevistaEncerramento" [disabled]="fieldDisabled('dataPrevistaEncerramento')" [required]="true" [feedbackVisual]="true"/>
             </div>
             <div style="grid-column: 5 / span 4; grid-row: 3" class="form-group fg-col-4">
               <label>DataEncerramento</label>
-              <app-campo-data-hora [(ngModel)]="model.dataEncerramento" name="dataEncerramento" [disabled]="fieldDisabled('dataEncerramento')" />
+              <app-campo-data-hora [(ngModel)]="model.dataEncerramento" name="dataEncerramento" [disabled]="fieldDisabled('dataEncerramento')" [feedbackVisual]="true"/>
             </div>
             <div style="grid-column: 9 / span 2; grid-row: 3" class="form-group fg-col-2">
               <label>TipoConcorrencia *</label>
@@ -97,7 +97,7 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
         <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>

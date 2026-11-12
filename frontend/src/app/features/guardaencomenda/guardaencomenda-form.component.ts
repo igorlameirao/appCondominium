@@ -51,7 +51,7 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
           
           <div class="form-grid">
             <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
@@ -67,7 +67,7 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
             </div>
             <div style="grid-column: 9 / span 4; grid-row: 1" class="form-group fg-col-4">
               <label>Data/Hora Saída</label>
-              <app-campo-data-hora [(ngModel)]="model.dataHoraSaida" name="dataHoraSaida" [disabled]="fieldDisabled('dataHoraSaida')" />
+              <app-campo-data-hora [(ngModel)]="model.dataHoraSaida" name="dataHoraSaida" [disabled]="fieldDisabled('dataHoraSaida')" [feedbackVisual]="true"/>
             </div>
             <div style="grid-column: 1 / span 6; grid-row: 2" class="form-group fg-col-6">
               <label>Id Local Armazenamento</label>
@@ -92,7 +92,7 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
             </div>
             <div style="grid-column: 7 / span 4; grid-row: 3" class="form-group fg-col-4">
               <label>Data/Hora Entrada *</label>
-              <app-campo-data-hora [(ngModel)]="model.dataHoraEntrada" name="dataHoraEntrada" [disabled]="fieldDisabled('dataHoraEntrada')" [required]="true" />
+              <app-campo-data-hora [(ngModel)]="model.dataHoraEntrada" name="dataHoraEntrada" [disabled]="fieldDisabled('dataHoraEntrada')" [required]="true" [feedbackVisual]="true"/>
             </div>
             <div style="grid-column: 1 / span 12; grid-row: 4" class="form-group fg-col-12">
               <label>Codigo da Encomenda *</label>
@@ -102,7 +102,7 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
         <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>

@@ -8,6 +8,11 @@
   --cad-primary-soft: #eaf2ff;
   --cad-focus-ring: 0 0 0 3px rgba(13, 110, 253, 0.15);
   --cad-muted: #64748b;
+  /* Controles de formulário (referência: Novo Condomínio — cadastro.css L476+) */
+  --cad-campo-altura: 38px;
+  --cad-campo-raio: 6px;
+  --cad-campo-borda: #cbd5e1;
+  --cad-campo-erro: #dc3545;
 }
 
 /* Escopo mais específico que .app-premium-main .content-wrapper (justify-content: center;
@@ -188,9 +193,9 @@
 .cad-blocos { display: flex; flex-direction: column; gap: 16px; }
 .cad-secao--apos { margin-top: 20px; }
 
-/* Cadastro de condomínio e de endereço: o card cad-* é o shell. O miolo não ganha a caixa interna do form-scroll. */
-app-condominio-form .cad-card.form-page .cad-form-scroll,
-app-endereco-form .cad-card.form-page .cad-form-scroll {
+/* Cadastros de entidade (cad-*): o card é o shell; o miolo não ganha a caixa interna do form-scroll. */
+.cad-wrapper .cad-card.form-page .cad-form-scroll,
+.cad-wrapper .cad-card.form-page .form-scroll.cad-form-scroll {
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -199,9 +204,13 @@ app-endereco-form .cad-card.form-page .cad-form-scroll {
   box-shadow: none;
 }
 
-app-condominio-form .cad-card.form-page .cad-form-scroll form,
-app-endereco-form .cad-card.form-page .cad-form-scroll form {
+.cad-wrapper .cad-card.form-page .cad-form-scroll form,
+.cad-wrapper .cad-card.form-page .form-scroll.cad-form-scroll form {
   padding: 0;
+}
+
+.cad-wrapper .cad-form-scroll .form-grid {
+  margin-top: 0;
 }
 
 app-condominio-form .cad-form-scroll app-endereco-widget {
@@ -229,13 +238,21 @@ app-endereco-form app-endereco-widget .form-grid > .form-group:last-child {
   grid-column: 1 / -1 !important;
 }
 
-/* Campos opcionais globais trazem sombra. Nestas telas a borda fica chapada; o anel de foco permanece. */
-app-condominio-form .cad-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(:focus):not(.doc-input--invalid),
-app-condominio-form .cad-card .form-group select:not(:focus),
-app-condominio-form .cad-card .form-group textarea:not(:focus),
-app-endereco-form .cad-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(:focus):not(.doc-input--invalid),
-app-endereco-form .cad-card .form-group select:not(:focus),
-app-endereco-form .cad-card .form-group textarea:not(:focus) {
+/* Campos opcionais globais trazem sombra. No cad-* a borda fica chapada; o anel de foco permanece. */
+.cad-wrapper .cad-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(:focus):not(.doc-input--invalid),
+.cad-wrapper .cad-card .form-group select:not(:focus),
+.cad-wrapper .cad-card .form-group textarea:not(:focus) {
+  box-shadow: none !important;
+}
+
+/* Neutraliza styles-sco (borda #000 / sombra em opcionais) dentro do cadastro. */
+.cad-wrapper .cad-card .form-group input:not([required]):not([type="checkbox"]):not([type="radio"]):not(.combo-input):not(.mat-mdc-input-element):not([readonly]):not([disabled]),
+.cad-wrapper .cad-painel-card .form-group input:not([required]):not([type="checkbox"]):not([type="radio"]):not(.combo-input):not(.mat-mdc-input-element):not([readonly]):not([disabled]),
+.cad-wrapper .cad-card .form-group select:not([required]):not([disabled]),
+.cad-wrapper .cad-painel-card .form-group select:not([required]):not([disabled]),
+.cad-wrapper .cad-card .form-group textarea:not([required]):not([disabled]),
+.cad-wrapper .cad-painel-card .form-group textarea:not([required]):not([disabled]) {
+  border: 1px solid var(--cad-campo-borda) !important;
   box-shadow: none !important;
 }
 
@@ -478,11 +495,13 @@ app-endereco-widget .form-group input:not([required]):not([disabled]):not([type=
 .cad-painel-card .form-group input:not([type="checkbox"]):not([type="radio"]):not(.combo-input),
 .cad-painel-card .form-group select:not([multiple]),
 .cad-painel-card .combo .combo-input {
-  min-height: 38px;
+  box-sizing: border-box;
+  height: var(--cad-campo-altura);
+  min-height: var(--cad-campo-altura);
   padding-left: 12px;
   padding-right: 12px;
   font-size: 13px;
-  border-radius: 6px;
+  border-radius: var(--cad-campo-raio);
 }
 
 .cad-card .form-group app-combobox-customizada,
@@ -500,7 +519,7 @@ app-endereco-widget .form-group input:not([required]):not([disabled]):not([type=
   box-sizing: border-box;
   color: #0f172a;
   background-color: #fff;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--cad-campo-borda);
 }
 
 .cad-card .form-group input:disabled:not([type="checkbox"]):not([type="radio"]),
@@ -544,10 +563,15 @@ app-endereco-widget .form-group input:not([required]):not([disabled]):not([type=
 
 .cad-card .combo:not(.desabilitado) .combo-input,
 .cad-painel-card .combo:not(.desabilitado) .combo-input {
-  border: 1px solid #cbd5e1 !important;
+  border: 1px solid var(--cad-campo-borda) !important;
   background-color: #fff !important;
   color: #0f172a;
   cursor: pointer;
+}
+
+.cad-card .combo-display,
+.cad-painel-card .combo-display {
+  min-height: var(--cad-campo-altura);
 }
 
 .cad-card .combo:not(.desabilitado) .combo-display:focus-within .combo-input,

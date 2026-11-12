@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, forwardRef } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALIDATORS,
@@ -11,6 +11,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { formatYmd, parseYmd } from '../campo-data/campo-data.component';
+import {
+  aplicarMascaraData,
+  dataParaDigitos,
+  parseDataEstrita,
+  posicaoAposDigitos
+} from '../campo-data/campo-data-mascara.util';
+import { avaliarTextoData, dataAceita, resolverDataCommit } from '../campo-data/campo-data-validacao.util';
 
 /** Data e hora (DATETIME): calendário Material + hora. Valor: `YYYY-MM-DDTHH:mm:ss` ou com espaço. */
 @Component({
@@ -32,9 +39,9 @@ import { formatYmd, parseYmd } from '../campo-data/campo-data.component';
     <div class="campo-data-hora__row">
       <div class="campo-data-hora__data">
         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="campo-data__field">
-          <input matInput
+          <input #dataInput matInput
             [matDatepicker]="picker"
-            [value]="dateValue"
+            [value]="feedbackVisual ? null : dateValue"
             (beforeinput)="onAntesDigitar($event)"
             (keydown)="onTeclaData($event)"
             (focus)="onFocoData($event)"
@@ -122,6 +129,8 @@ import { formatYmd, parseYmd } from '../campo-data/campo-data.component';
   `]
 })
 export class CampoDataHoraComponent implements ControlValueAccessor, Validator, OnChanges {
+  @ViewChild('dataInput') dataInput?: ElementRef<HTMLInputElement>;
+
   @Input() required = false;
   /** Validação visual da data e da hora. Desligado nas demais telas. */
   @Input() feedbackVisual = false;
@@ -149,6 +158,10 @@ export class CampoDataHoraComponent implements ControlValueAccessor, Validator, 
     this.dateValue = parsed.date;
     this.timeValue = parsed.time;
     this.separator = parsed.separator;
+    if (this.feedbackVisual && this.dateValue) {
+      this.textoData = aplicarMascaraData(dataParaDigitos(this.dateValue));
+      queueMicrotask(() => this.atualizarTextoInput());
+    }
   }
 
   registerOnChange(fn: (value: string) => void): void { this.onChange = fn; }
@@ -191,32 +204,28 @@ export class CampoDataHoraComponent implements ControlValueAccessor, Validator, 
 
   onTextoData(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (this.feedbackVisual) {
-      const cursor = input.selectionStart ?? input.value.length;
-      const digitosAntes = input.value.slice(0, cursor).replace(/\D/g, '').length;
-      this.escreverMascara(input, input.value, digitosAntes);
-      this.textoData = input.value;
-    } else {
+    if (!this.feedbackVisual) {
       this.textoData = input.value.trim();
-    }
-    if (!this.feedbackVisual || !this.textoData || !dataCompleta(this.textoData)) {
-      if (this.feedbackVisual) this.exibirInvalida = false;
       return;
     }
-    this.exibirInvalida = !this.textoValido(this.textoData);
+    const cursor = input.selectionStart ?? input.value.length;
+    const digitosAntes = input.value.slice(0, cursor).replace(/\D/g, '').length;
+    this.escreverMascara(input, input.value, digitosAntes);
+    this.textoData = input.value;
+    this.sincronizarEstadoTexto();
   }
 
   onDateBlur(event: FocusEvent): void {
     this.onTouched();
     if (!this.feedbackVisual) return;
     this.textoData = ((event.target as HTMLInputElement).value ?? '').trim();
-    this.exibirInvalida = !!this.textoData && !this.textoValido(this.textoData);
+    this.sincronizarEstadoTexto();
   }
 
-  /** Durante a digitação não devolve a data ao input — isso apagava o que o usuário estava editando. */
-  onDateTyping(event: MatDatepickerInputEvent<Date>): void {
-    if (this.feedbackVisual) return;
-    this.aplicarData(event);
+  onDateTyping(_event: MatDatepickerInputEvent<Date>): void {
+    if (!this.feedbackVisual) {
+      this.aplicarData(_event);
+    }
   }
 
   onDateCommit(event: MatDatepickerInputEvent<Date>): void {
@@ -226,32 +235,16 @@ export class CampoDataHoraComponent implements ControlValueAccessor, Validator, 
     }
     const bruto = ((event.targetElement as HTMLInputElement).value ?? '').trim();
     this.textoData = bruto;
-    if (!bruto) {
-      this.exibirInvalida = false;
-      this.ignorarWriteVazio = false;
-      this.dateValue = null;
-      this.emit();
+    const res = resolverDataCommit(bruto, event.value);
+    if (res === 'limpar') {
+      this.limparData();
       return;
     }
-    const data = parseDataEstrita(bruto);
-    if (data && this.dataAceita(data)) {
-      this.exibirInvalida = false;
-      this.ignorarWriteVazio = false;
-      this.dateValue = data;
-      this.emit();
+    if (res === 'invalida' || !dataAceita(res, this.nascimento)) {
+      this.marcarDataInvalida();
       return;
     }
-    if (event.value && !dataCompleta(bruto) && this.dataAceita(event.value)) {
-      this.exibirInvalida = false;
-      this.ignorarWriteVazio = false;
-      this.dateValue = event.value;
-      this.emit();
-      return;
-    }
-    this.exibirInvalida = true;
-    this.ignorarWriteVazio = true;
-    this.onChange('');
-    this.onTouched();
+    this.confirmarDataValida(res);
   }
 
   private aplicarData(event: MatDatepickerInputEvent<Date>): void {
@@ -286,17 +279,57 @@ export class CampoDataHoraComponent implements ControlValueAccessor, Validator, 
     input.setSelectionRange(pos, pos);
   }
 
-  private textoValido(valor: string): boolean {
-    const data = parseDataEstrita(valor);
-    return !!data && this.dataAceita(data);
+  private sincronizarEstadoTexto(): void {
+    const av = avaliarTextoData(this.textoData, this.nascimento);
+    if (av.incompleta) {
+      this.exibirInvalida = false;
+      if (!this.textoData.trim()) this.limparData();
+      return;
+    }
+    this.exibirInvalida = !av.valida;
+    if (av.valida && av.data) {
+      this.confirmarDataValida(av.data);
+    } else if (!av.valida) {
+      this.marcarDataInvalida(false);
+    }
   }
 
-  private dataAceita(data: Date): boolean {
-    if (Number.isNaN(data.getTime())) return false;
-    if (!this.nascimento) return true;
-    const fimDoDia = new Date();
-    fimDoDia.setHours(23, 59, 59, 999);
-    return data.getTime() <= fimDoDia.getTime();
+  private confirmarDataValida(data: Date): void {
+    this.exibirInvalida = false;
+    this.ignorarWriteVazio = false;
+    this.dateValue = data;
+    const mascarado = aplicarMascaraData(dataParaDigitos(data));
+    this.textoData = mascarado;
+    this.atualizarTextoInput(mascarado);
+    this.emit();
+    this.onValidatorChange();
+  }
+
+  private atualizarTextoInput(texto?: string): void {
+    if (!this.feedbackVisual) return;
+    const el = this.dataInput?.nativeElement;
+    if (!el) return;
+    const valor = texto ?? this.textoData;
+    if (el.value !== valor) el.value = valor;
+  }
+
+  private limparData(): void {
+    this.exibirInvalida = false;
+    this.ignorarWriteVazio = false;
+    this.dateValue = null;
+    this.emit();
+    this.onValidatorChange();
+  }
+
+  private marcarDataInvalida(emitirVazio = true): void {
+    this.exibirInvalida = true;
+    this.ignorarWriteVazio = true;
+    this.dateValue = null;
+    if (emitirVazio) {
+      this.onChange('');
+      this.onTouched();
+      this.onValidatorChange();
+    }
   }
 
   private emit(): void {
@@ -311,48 +344,9 @@ export class CampoDataHoraComponent implements ControlValueAccessor, Validator, 
   }
 }
 
-function aplicarMascaraData(valor: string): string {
-  const digitos = valor.replace(/\D/g, '').slice(0, 8);
-  if (digitos.length <= 2) return digitos;
-  if (digitos.length <= 4) return `${digitos.slice(0, 2)}/${digitos.slice(2)}`;
-  return `${digitos.slice(0, 2)}/${digitos.slice(2, 4)}/${digitos.slice(4)}`;
-}
-
-function dataParaDigitos(data: Date): string {
-  const dia = String(data.getDate()).padStart(2, '0');
-  const mes = String(data.getMonth() + 1).padStart(2, '0');
-  return `${dia}${mes}${data.getFullYear()}`;
-}
-
-function posicaoAposDigitos(mascarado: string, digitos: number): number {
-  if (digitos <= 0) return 0;
-  let vistos = 0;
-  for (let i = 0; i < mascarado.length; i++) {
-    if (/\d/.test(mascarado[i])) vistos++;
-    if (vistos === digitos) return i + 1;
-  }
-  return mascarado.length;
-}
-
 function horaInvalida(input: HTMLInputElement): boolean {
   if (!input.value) return input.validity.badInput;
   return !input.validity.valid || !/^\d{2}:\d{2}/.test(input.value);
-}
-
-function dataCompleta(valor: string): boolean {
-  return /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(valor);
-}
-
-function parseDataEstrita(valor: string): Date | null {
-  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(valor);
-  if (!match) return null;
-  const dia = +match[1];
-  const mes = +match[2];
-  const ano = +match[3];
-  if (mes < 1 || mes > 12 || dia < 1 || ano < 1) return null;
-  const data = new Date(ano, mes - 1, dia);
-  if (data.getFullYear() !== ano || data.getMonth() !== mes - 1 || data.getDate() !== dia) return null;
-  return data;
 }
 
 function parseDateTime(value: string | null | undefined): { date: Date | null; time: string; separator: 'T' | ' ' } {
