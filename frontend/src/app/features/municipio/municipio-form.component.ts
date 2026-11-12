@@ -29,7 +29,7 @@ import { LookupService, BairroResumo } from '../../core/services/lookup.service'
             <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
           </nav>
           <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Município</h1>
-          <p class="cad-subtitulo">Cadastre e mantenha as informações de município</p>
+          <p class="cad-subtitulo">Cadastre e mantenha as informações de Município</p>
         </header>
 
         <section class="cad-card form-page">
@@ -47,21 +47,21 @@ import { LookupService, BairroResumo } from '../../core/services/lookup.service'
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 3; grid-row: 1" *ngIf="isEdit" class="form-group fg-col-3 fg-label-nowrap">
-              <label>Código IBGE Município</label>
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
+          <div class="form-grid municipio-dados">
+            <div *ngIf="isEdit" class="form-group municipio-dados__ibge fg-label-nowrap">
+              <label>Código do IBGE</label>
               <input type="text" [value]="model.codigoIBGEMunicipio" readonly class="readonly" />
             </div>
-            <div style="grid-column: 1 / span 3; grid-row: 1" class="form-group fg-col-3 fg-label-nowrap" *ngIf="!isEdit">
-              <label>Código IBGE Município *</label>
+            <div class="form-group municipio-dados__ibge fg-label-nowrap" *ngIf="!isEdit">
+              <label>Código do IBGE *</label>
               <input type="number" [(ngModel)]="model.codigoIBGEMunicipio" name="codigoIBGEMunicipio" required />
             </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
+            <div class="form-group municipio-dados__nome">
               <label>Município *</label>
               <input type="text" [(ngModel)]="model.nome" name="nome" maxlength="150" [readonly]="fieldDisabled('nome')" required />
             </div>
-            <div style="grid-column: 1 / span 6; grid-row: 3" class="form-group fg-col-6 fg-label-nowrap">
+            <div class="form-group municipio-dados__uf fg-label-nowrap">
               <label>UF *</label>
               <app-combobox-customizada
                 [options]="fk_siglaUF"
@@ -72,7 +72,6 @@ import { LookupService, BairroResumo } from '../../core/services/lookup.service'
 
           <section class="child-list" *ngIf="isEdit && model.codigoIBGEMunicipio">
             <h3>Bairros deste município</h3>
-            <p class="child-list__hint">RN-Municipio-01 — somente leitura</p>
             <ul *ngIf="bairros.length; else semBairros">
               <li *ngFor="let b of bairros">{{ b.nome }}</li>
             </ul>
@@ -83,7 +82,7 @@ import { LookupService, BairroResumo } from '../../core/services/lookup.service'
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
         <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
@@ -103,9 +102,14 @@ import { LookupService, BairroResumo } from '../../core/services/lookup.service'
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
   styles: [`
+    .municipio-dados {
+      grid-template-columns: 8rem 3fr 2fr;
+    }
+    @media (max-width: 720px) {
+      .municipio-dados { grid-template-columns: 1fr; }
+    }
     .child-list { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
-    .child-list h3 { margin: 0 0 4px; font-size: 16px; }
-    .child-list__hint { margin: 0 0 12px; font-size: 12px; color: #64748b; }
+    .child-list h3 { margin: 0 0 12px; font-size: 16px; }
     .child-list ul { list-style: none; margin: 0; padding: 0; max-height: 200px; overflow-y: auto; }
     .child-list li { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
     .child-list__empty { color: #64748b; font-style: italic; }

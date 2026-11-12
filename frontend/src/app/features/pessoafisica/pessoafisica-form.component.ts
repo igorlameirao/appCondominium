@@ -9,8 +9,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { PessoafisicaService } from './pessoafisica.service';
 import { Pessoafisica } from './pessoafisica.model';
-import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 
@@ -18,7 +16,7 @@ import { CondominioContextService } from '../../core/services/condominio-context
 @Component({
   selector: 'app-pessoafisica-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataComponent],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -26,53 +24,58 @@ import { CondominioContextService } from '../../core/services/condominio-context
           <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
             <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
             <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
-            <a [routerLink]="'/pessoafisica'">pessoafisica</a>
+            <a [routerLink]="'/pessoafisica'">Pessoa Física</a>
             <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
             <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
           </nav>
-          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} pessoafisica</h1>
-          <p class="cad-subtitulo">Cadastre e mantenha as informações de pessoafisica</p>
+          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Pessoa Física</h1>
+          <p class="cad-subtitulo">Cadastre e mantenha as informações de pessoa física</p>
         </header>
 
         <section class="cad-card form-page">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
             <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
               <app-icone nome="user" [tamanho]="16" />
-              <span>Dados de pessoafisica</span>
+              <span>Dados da Pessoa Física</span>
             </button>
           </div>
           <div class="cad-conteudo" role="tabpanel">
             <div class="cad-secao">
               <app-icone class="cad-secao__icone" nome="user" [tamanho]="26" />
               <div>
-                <h2 class="cad-secao__titulo">Dados de pessoafisica</h2>
+                <h2 class="cad-secao__titulo">Dados da Pessoa Física</h2>
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
-          
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
           <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>IdPessoa *</label>
-              <input type="number" [(ngModel)]="model.idPessoa" name="idPessoa" [readonly]="fieldDisabled('idPessoa')" required />
+            <div class="form-group fg-col-2">
+              <label>Id Pessoa *</label>
+              <input type="number" [(ngModel)]="model.idPessoa" name="idPessoa" [readonly]="isEdit || fieldDisabled('idPessoa')" required />
             </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
+            <div class="form-group fg-col-4">
               <label>Senha</label>
-              <input type="password" [(ngModel)]="model.senha" name="senha" autocomplete="new-password" />
+              <input type="password" [(ngModel)]="model.senha" name="senha" autocomplete="new-password" [readonly]="fieldDisabled('senha')" />
             </div>
-            <div style="grid-column: 9 / span 2; grid-row: 1" class="form-group fg-col-2">
+            <div class="form-group fg-col-4">
               <label>Data de Nascimento *</label>
-              <app-campo-data [(ngModel)]="model.dataNascimento" name="dataNascimento" [disabled]="fieldDisabled('dataNascimento')" [required]="true" />
+              <app-campo-data
+                [(ngModel)]="model.dataNascimento"
+                name="dataNascimento"
+                [disabled]="fieldDisabled('dataNascimento')"
+                [required]="true"
+                [feedbackVisual]="true"
+                [nascimento]="true" />
             </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
-              <label>e-mail</label>
-              <input type="text" [(ngModel)]="model.email" name="email" maxlength="255" [readonly]="fieldDisabled('email')" />
+            <div class="form-group fg-col-12">
+              <label>E-mail</label>
+              <input type="email" [(ngModel)]="model.email" name="email" maxlength="255" [readonly]="fieldDisabled('email')" />
             </div>
           </div>
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
         <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
@@ -98,7 +101,7 @@ export class PessoafisicaFormComponent implements OnInit {
   saving = false;
   readonly pageLoad = new FormInitialLoad();
   private readonly toast = inject(ToastService);
-  private readonly entityTitle = 'pessoafisica';
+  private readonly entityTitle = 'Pessoa Física';
   showDeleteConfirm = false;
   readonly permissionKey = 'PESSOAFISICA';
   canEdit = true;

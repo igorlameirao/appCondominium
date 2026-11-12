@@ -10,7 +10,6 @@ import { ToastService } from '../../core/services/toast.service';
 import { PessoaCondominioService } from './pessoacondominio.service';
 import { PessoaCondominio } from './pessoacondominio.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { PerfilAcessoLookupService } from '../../core/services/perfil-acesso-lookup.service';
@@ -18,7 +17,7 @@ import { PerfilAcessoLookupService } from '../../core/services/perfil-acesso-loo
 @Component({
   selector: 'app-pessoacondominio-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataComponent, ComboboxCustomizadaComponent],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -49,40 +48,60 @@ import { PerfilAcessoLookupService } from '../../core/services/perfil-acesso-loo
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
-          
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
           <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
+            <div *ngIf="isEdit" class="form-group fg-col-2">
+              <label>Id</label>
+              <input type="text" [value]="pkDisplay" readonly class="readonly" />
+            </div>
+            <div *ngIf="!isEdit" class="form-group fg-col-2">
               <label>IdPessoa *</label>
               <input type="number" [(ngModel)]="model.idPessoa" name="idPessoa" [readonly]="fieldDisabled('idPessoa')" required />
             </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
+            <div class="form-group fg-col-6">
               <label>Perfil de acesso *</label>
               <app-combobox-customizada
                 [options]="fk_idPerfil"
                 [(value)]="model.idPerfil"
-                [disabled]="fieldDisabled('idPerfil')" [required]="true" />
+                [disabled]="fieldDisabled('idPerfil')"
+                [required]="true" />
             </div>
-            <div style="grid-column: 1 / span 2; grid-row: 2" class="form-group fg-col-2">
+            <div class="form-group fg-col-2">
               <label>DataInicio *</label>
-              <app-campo-data [(ngModel)]="model.dataInicio" name="dataInicio" [disabled]="fieldDisabled('dataInicio')" [required]="true" />
+              <app-campo-data
+                [(ngModel)]="model.dataInicio"
+                name="dataInicio"
+                [disabled]="fieldDisabled('dataInicio')"
+                [required]="true"
+                [feedbackVisual]="true" />
             </div>
-            <div style="grid-column: 3 / span 2; grid-row: 2" class="form-group fg-col-2">
+            <div class="form-group fg-col-2">
               <label>TipoVinculo *</label>
               <select [(ngModel)]="model.tipoVinculo" name="tipoVinculo" [disabled]="fieldDisabled('tipoVinculo')" required>
                 <option [ngValue]="null">Selecione…</option>
-                <option [ngValue]="0">Administrador</option><option [ngValue]="1">Síndico</option><option [ngValue]="2">Subsíndico</option><option [ngValue]="3">Conselheiro</option><option [ngValue]="4">Funcionário Administração</option><option [ngValue]="5">Funcionário Manutenção</option><option [ngValue]="6">Visitante</option><option [ngValue]="7">Prestador Serviço</option>
+                <option [ngValue]="0">Administrador</option>
+                <option [ngValue]="1">Síndico</option>
+                <option [ngValue]="2">Subsíndico</option>
+                <option [ngValue]="3">Conselheiro</option>
+                <option [ngValue]="4">Funcionário Administração</option>
+                <option [ngValue]="5">Funcionário Manutenção</option>
+                <option [ngValue]="6">Visitante</option>
+                <option [ngValue]="7">Prestador Serviço</option>
               </select>
             </div>
-            <div style="grid-column: 5 / span 2; grid-row: 2" class="form-group fg-col-2">
+            <div class="form-group fg-col-2">
               <label>DataFim</label>
-              <app-campo-data [(ngModel)]="model.dataFim" name="dataFim" [disabled]="fieldDisabled('dataFim')" />
+              <app-campo-data
+                [(ngModel)]="model.dataFim"
+                name="dataFim"
+                [disabled]="fieldDisabled('dataFim')"
+                [feedbackVisual]="true" />
             </div>
           </div>
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
         <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>

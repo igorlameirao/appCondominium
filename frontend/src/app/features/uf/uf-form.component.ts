@@ -27,7 +27,7 @@ import { LookupService, MunicipioResumo } from '../../core/services/lookup.servi
             <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
           </nav>
           <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} UF</h1>
-          <p class="cad-subtitulo">Cadastre e mantenha as informações de uf</p>
+          <p class="cad-subtitulo">Cadastre e mantenha as informações de UF</p>
         </header>
 
         <section class="cad-card form-page">
@@ -45,18 +45,18 @@ import { LookupService, MunicipioResumo } from '../../core/services/lookup.servi
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
+          <div class="form-grid uf-dados">
+            <div class="form-group uf-dados__sigla">
               <label>Sigla UF *</label>
               <input type="text" [(ngModel)]="model.siglaUF" name="siglaUF" maxlength="2"
                 [readonly]="isEdit || fieldDisabled('siglaUF')" style="text-transform: uppercase" required />
             </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
+            <div class="form-group uf-dados__estado">
               <label>Estado *</label>
               <input type="text" [(ngModel)]="model.estado" name="estado" maxlength="150" [readonly]="fieldDisabled('estado')" required />
             </div>
-            <div style="grid-column: 1 / span 2; grid-row: 3" class="form-group fg-col-2">
+            <div class="form-group uf-dados__ibge">
               <label>Código IBGE *</label>
               <input type="number" [(ngModel)]="model.codigoIBGE" name="codigoIBGE" [readonly]="fieldDisabled('codigoIBGE')" required />
             </div>
@@ -64,7 +64,6 @@ import { LookupService, MunicipioResumo } from '../../core/services/lookup.servi
 
           <section class="child-list" *ngIf="isEdit && model.siglaUF">
             <h3>Municípios desta UF</h3>
-            <p class="child-list__hint">RN-UF-01 — somente leitura</p>
             <ul *ngIf="municipios.length; else semMunicipios">
               <li *ngFor="let m of municipios">
                 <span class="child-list__code">{{ m.codigoIBGEMunicipio }}</span>
@@ -78,7 +77,7 @@ import { LookupService, MunicipioResumo } from '../../core/services/lookup.servi
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
         <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
@@ -98,13 +97,18 @@ import { LookupService, MunicipioResumo } from '../../core/services/lookup.servi
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
   styles: [`
+    .uf-dados {
+      grid-template-columns: 6.75rem minmax(0, 1fr) 8rem;
+    }
     .child-list { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
-    .child-list h3 { margin: 0 0 4px; font-size: 16px; color: #0f172a; }
-    .child-list__hint { margin: 0 0 12px; font-size: 12px; color: #64748b; }
+    .child-list h3 { margin: 0 0 12px; font-size: 16px; color: #0f172a; }
     .child-list ul { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow-y: auto; }
     .child-list li { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
     .child-list__code { color: #64748b; margin-right: 8px; font-size: 12px; }
     .child-list__empty { color: #64748b; font-style: italic; }
+    @media (max-width: 720px) {
+      .uf-dados { grid-template-columns: 1fr; }
+    }
   `]
 })
 export class UFFormComponent implements OnInit {

@@ -52,7 +52,7 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
           
           <div class="form-grid">
             <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
@@ -68,7 +68,7 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
             </div>
             <div style="grid-column: 9 / span 4; grid-row: 1" class="form-group fg-col-4">
               <label>DataLancamento *</label>
-              <app-campo-data-hora [(ngModel)]="model.dataLancamento" name="dataLancamento" [disabled]="fieldDisabled('dataLancamento')" [required]="true" />
+              <app-campo-data-hora [(ngModel)]="model.dataLancamento" name="dataLancamento" [disabled]="fieldDisabled('dataLancamento')" [required]="true" [feedbackVisual]="true"/>
             </div>
             <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
               <label>Descricao *</label>
@@ -83,7 +83,7 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
             </div>
             <div style="grid-column: 7 / span 2; grid-row: 3" class="form-group fg-col-2">
               <label>DataDespesa *</label>
-              <app-campo-data [(ngModel)]="model.dataDespesa" name="dataDespesa" [disabled]="fieldDisabled('dataDespesa')" [required]="true" />
+              <app-campo-data [(ngModel)]="model.dataDespesa" name="dataDespesa" [disabled]="fieldDisabled('dataDespesa')" [required]="true" [feedbackVisual]="true" />
             </div>
             <div style="grid-column: 1 / span 6; grid-row: 4" class="form-group fg-col-6">
               <label>idTipoDespesa *</label>
@@ -104,7 +104,7 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
         <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>

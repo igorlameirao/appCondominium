@@ -47,7 +47,7 @@ import { somenteDigitos } from '../../core/utils/documento-validator';
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
           <div class="form-grid">
             <div class="form-group fg-col-2">
               <label>Id</label>

@@ -24,11 +24,11 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
           <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
             <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
             <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
-            <span aria-current="page">pessoafisica</span>
+            <span aria-current="page">Pessoa Física</span>
           </nav>
           <div class="lst-cabecalho__linha">
             <div>
-              <h1 class="lst-titulo">pessoafisica</h1>
+              <h1 class="lst-titulo">Pessoa Física</h1>
               <p class="lst-subtitulo">Visualize e gerencie os pessoafisicas cadastrados no AppCondominium</p>
             </div>
             <button type="button" class="btn-novo" (click)="goNovo()">Novo pessoafisica</button>

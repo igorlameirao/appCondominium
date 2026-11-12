@@ -50,7 +50,7 @@ import { LocalService } from '../local/local.service';
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
           
           <div class="form-grid">
             <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
@@ -66,7 +66,7 @@ import { LocalService } from '../local/local.service';
             </div>
             <div style="grid-column: 9 / span 4; grid-row: 1" class="form-group fg-col-4">
               <label>Data/Hora Validade</label>
-              <app-campo-data-hora [(ngModel)]="model.dataValidade" name="dataValidade" [disabled]="fieldDisabled('dataValidade')" />
+              <app-campo-data-hora [(ngModel)]="model.dataValidade" name="dataValidade" [disabled]="fieldDisabled('dataValidade')" [feedbackVisual]="true"/>
             </div>
             <div style="grid-column: 1 / span 6; grid-row: 2" class="form-group fg-col-6">
               <label>Local de Armazenamento *</label>
@@ -77,7 +77,7 @@ import { LocalService } from '../local/local.service';
             </div>
             <div style="grid-column: 7 / span 4; grid-row: 2" class="form-group fg-col-4">
               <label>Data/Hora Última Aquisição *</label>
-              <app-campo-data-hora [(ngModel)]="model.dataUltimaAquisicao" name="dataUltimaAquisicao" [disabled]="fieldDisabled('dataUltimaAquisicao')" [required]="true" />
+              <app-campo-data-hora [(ngModel)]="model.dataUltimaAquisicao" name="dataUltimaAquisicao" [disabled]="fieldDisabled('dataUltimaAquisicao')" [required]="true" [feedbackVisual]="true"/>
             </div>
             <div style="grid-column: 1 / span 6; grid-row: 3" class="form-group fg-col-6">
               <label>Valor Total</label>
@@ -110,7 +110,7 @@ import { LocalService } from '../local/local.service';
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
         <span class="cad-acoes__espaco"></span>
         <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
