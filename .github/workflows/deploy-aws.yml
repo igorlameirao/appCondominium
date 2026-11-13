@@ -1,0 +1,151 @@
+name: Deploy AppCondominium AWS
+ 
+on:
+  workflow_dispatch:
+ 
+permissions:
+  contents: read
+ 
+concurrency:
+  group: appcondominium-production
+  cancel-in-progress: false
+ 
+jobs:
+  deploy:
+    name: Build e Deploy AWS
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+ 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+ 
+      # API .NET 8
+      - name: Instalar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+ 
+      - name: Publicar API
+        run: |
+          dotnet publish \
+            WebApi/AppCondominium.API/AppCondominium.API.csproj \
+            -c Release \
+            -r linux-x64 \
+            --self-contained false \
+            -o "$RUNNER_TEMP/api"
+ 
+          test -f "$RUNNER_TEMP/api/AppCondominium.API.dll"
+ 
+      # Frontend Angular
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+ 
+      - name: Compilar Angular
+        working-directory: frontend
+        run: |
+          npm ci
+          npx ng build --configuration production
+ 
+      - name: Preparar frontend
+        run: |
+          mkdir -p "$RUNNER_TEMP/web"
+ 
+          if [ -f frontend/dist/frontend/browser/index.html ]; then
+            cp -a frontend/dist/frontend/browser/. "$RUNNER_TEMP/web/"
+          elif [ -f frontend/dist/frontend/index.html ]; then
+            cp -a frontend/dist/frontend/. "$RUNNER_TEMP/web/"
+          else
+            echo "Diretorio Angular nao identificado:"
+            find frontend/dist -maxdepth 4 -name index.html
+            exit 1
+          fi
+ 
+      # Empacotamento
+      - name: Criar pacotes
+        run: |
+          tar -czf "$RUNNER_TEMP/api.tar.gz" \
+            -C "$RUNNER_TEMP/api" .
+ 
+          tar -czf "$RUNNER_TEMP/web.tar.gz" \
+            -C "$RUNNER_TEMP/web" .
+ 
+      # Conexao SSH
+      - name: Configurar SSH
+        env:
+          SSH_KEY: ${{ secrets.AWS_EC2_SSH_KEY }}
+          SSH_HOST: ${{ secrets.AWS_EC2_HOST }}
+          SSH_KNOWN_HOSTS: ${{ secrets.AWS_EC2_KNOWN_HOSTS }}
+        run: |
+          test -n "$SSH_KEY"
+          test -n "$SSH_HOST"
+          test -n "$SSH_KNOWN_HOSTS"
+ 
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+ 
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ec2
+          chmod 600 ~/.ssh/id_ec2
+ 
+          printf '%s\n' "$SSH_KNOWN_HOSTS" \ > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+ 
+      - name: Enviar pacotes
+        env:
+          SSH_HOST: ${{ secrets.AWS_EC2_HOST }}
+        run: |
+          scp -i ~/.ssh/id_ec2 \
+            -o StrictHostKeyChecking=yes \
+            "$RUNNER_TEMP/api.tar.gz" \
+            "$RUNNER_TEMP/web.tar.gz" \
+            "ec2-user@$SSH_HOST:/tmp/"
+ 
+      # Implantacao na EC2
+      - name: Implantar API e Frontend
+        env:
+          SSH_HOST: ${{ secrets.AWS_EC2_HOST }}
+        run: |
+          ssh -i ~/.ssh/id_ec2 \
+            -o StrictHostKeyChecking=yes \
+            "ec2-user@$SSH_HOST" 'sudo bash -se' <<'REMOTE'
+          set -euo pipefail
+ 
+          API=/var/www/appcondominium-api
+          WEB=/var/www/appcondominium-web
+ 
+          test -f /etc/appcondominium/api.env
+ 
+          mkdir -p "$API" "$WEB"
+ 
+          # Limpar apenas arquivos publicados da API.
+          find "$API" -mindepth 1 -maxdepth 1 \
+            -exec rm -rf -- {} +
+ 
+          tar -xzf /tmp/api.tar.gz -C "$API"
+ 
+          # Atualizar somente o frontend AppCondominium.
+          find "$WEB" -mindepth 1 -maxdepth 1 \
+            -exec rm -rf -- {} +
+ 
+          tar -xzf /tmp/web.tar.gz -C "$WEB"
+ 
+          chown -R ec2-user:ec2-user "$API" "$WEB"
+ 
+          systemctl restart appcondominium-api
+ 
+          sleep 5
+ 
+          if ! systemctl is-active --quiet appcondominium-api; then
+            journalctl -u appcondominium-api \
+              -n 30 --no-pager
+            exit 1
+          fi
+ 
+          rm -f /tmp/api.tar.gz /tmp/web.tar.gz
+ 
+          echo "Deploy AppCondominium concluido."
+          REMOTE
