@@ -54,11 +54,11 @@ import { HidrometroService } from '../hidrometro/hidrometro.service';
           
           <div class="form-grid">
             <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id Unidade *</label>
-              <input type="number" [(ngModel)]="model.idUnidade" name="idUnidade" [readonly]="fieldDisabled('idUnidade')" required />
+              <label>Id</label>
+              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
             </div>
             <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
-              <label>Id Bloco *</label>
+              <label>Bloco *</label>
               <app-combobox-customizada
                 [options]="fk_idBloco"
                 [(value)]="model.idBloco"
@@ -69,18 +69,18 @@ import { HidrometroService } from '../hidrometro/hidrometro.service';
               <input type="number" [(ngModel)]="model.numero" name="numero" [readonly]="fieldDisabled('numero')" />
             </div>
             <div style="grid-column: 1 / span 6; grid-row: 2" class="form-group fg-col-6">
-              <label>Id Tipo Unidade *</label>
+              <label>Tipo Unidade *</label>
               <app-combobox-customizada
                 [options]="fk_idTipoUnidade"
                 [(value)]="model.idTipoUnidade"
                 [disabled]="fieldDisabled('idTipoUnidade')" [required]="true" />
             </div>
             <div style="grid-column: 7 / span 6; grid-row: 2" class="form-group fg-col-6">
-              <label>Id Hidrômetro *</label>
+              <label>Hidrômetro</label>
               <app-combobox-customizada
                 [options]="fk_idHidrometro"
                 [(value)]="model.idHidrometro"
-                [disabled]="fieldDisabled('idHidrometro')" [required]="true" />
+                [disabled]="fieldDisabled('idHidrometro')" />
             </div>
           </div>
         </form></div>
@@ -225,6 +225,6 @@ export class UnidadeFormComponent implements OnInit {
     return String(x?.descricao ?? x?.nome ?? x?.siglaUF ?? x?.cep ?? x?.idTipoUnidade ?? '');
   }
   fkLabel_idHidrometro(x: any): string {
-    return String(x?.descricao ?? x?.nome ?? x?.siglaUF ?? x?.cep ?? x?.idHidrometro ?? '');
+    return String(x?.numeroSerie ?? x?.idHidrometro ?? '');
   }
 }

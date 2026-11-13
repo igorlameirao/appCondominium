@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+var fixUnidadeSchema = args.Any(a => string.Equals(a, "fix-unidade-schema", StringComparison.OrdinalIgnoreCase));
 var importarBancos = args.Length > 0 && string.Equals(args[0], "importar-bancos", StringComparison.OrdinalIgnoreCase);
 var dropColumns = args.Any(a => string.Equals(a, "--drop-columns", StringComparison.OrdinalIgnoreCase));
 var apiDir = EncontrarApi();
@@ -29,6 +30,9 @@ using var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger(importarBancos ? "importar-bancos" : "migrate-blobs-to-s3");
 try
 {
+    if (fixUnidadeSchema)
+        return await UnidadeSchemaFix.RunAsync(host.Services, logger, CancellationToken.None);
+
     using var scope = host.Services.CreateScope();
     if (importarBancos)
     {

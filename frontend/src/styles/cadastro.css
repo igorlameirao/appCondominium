@@ -711,6 +711,76 @@ app-endereco-form app-endereco-widget .form-grid > .form-group:last-child {
 }
 
 /* Imagem cadastral (foto / logotipo) */
+.imagem-cadastro__rotulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #334155;
+}
+
+.cad-informativo {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.cad-informativo__icone {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 18px;
+  text-align: center;
+  color: #fff;
+  background: var(--cad-primary, #2563eb);
+  cursor: pointer;
+}
+
+.cad-informativo__icone:focus {
+  outline: none;
+}
+
+.cad-informativo__icone:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.cad-informativo__balao {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  min-width: 200px;
+  max-width: 280px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #0f172a;
+  background: #fff;
+  border: 1px solid var(--cad-campo-borda, #cbd5e1);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+}
+
+.cad-informativo__balao::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #fff;
+}
+
 .imagem-cadastro__preview {
   display: flex;
   align-items: center;

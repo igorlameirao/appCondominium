@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Icone } from '../../shared/icone';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,9 @@ import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../sh
 import { PagedResult } from '../../core/models/paged-result';
 import { UnidadeService } from './unidade.service';
 import { Unidade } from './unidade.model';
+import { HidrometroService } from '../hidrometro/hidrometro.service';
+import { TipoUnidadeService } from '../tipounidade/tipounidade.service';
+import { BlocoService } from '../bloco/bloco.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/confirmar-exclusao.component';
@@ -17,6 +20,43 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
   selector: 'app-unidade-list',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent],
+  styles: [`
+    .lst-lote-menu { position: relative; }
+    .lst-lote-menu__trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .lst-lote-menu__painel {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      min-width: 11rem;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+      z-index: 30;
+      padding: 4px;
+    }
+    .lst-lote-menu__item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+    }
+    .lst-lote-menu__item:hover,
+    .lst-lote-menu__item:focus-visible {
+      background: #f1f5f9;
+      outline: none;
+    }
+  `],
     template: `
     <div class="content-wrapper lst-wrapper" lstSgeViewport [tamanhoPagina]="pageSize" (tamanhoPaginaChange)="aplicarTamanhoPagina($event)" [totalItens]="totalCount" [itensNaPagina]="paged?.items?.length ?? 0" [filtrosRecolhidos]="filtrosRecolhidos">
       <div class="lst-page">
@@ -31,7 +71,24 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
               <h1 class="lst-titulo">Unidade</h1>
               <p class="lst-subtitulo">Visualize e gerencie os unidades cadastrados no AppCondominium</p>
             </div>
-            <button type="button" class="btn-novo" (click)="goNovo()">Novo Unidade</button>
+            <div class="lst-cabecalho__acoes">
+              <div class="lst-lote-menu" *ngIf="podeIncluir">
+                <button
+                  type="button"
+                  class="btn-secondary lst-lote-menu__trigger"
+                  (click)="alternarMenuLote($event)"
+                  [attr.aria-expanded]="menuLoteAberto"
+                  aria-haspopup="menu">
+                  Incluir em Lote
+                  <app-icone nome="chevron-down" [tamanho]="16" />
+                </button>
+                <div class="lst-lote-menu__painel" *ngIf="menuLoteAberto" role="menu" (click)="$event.stopPropagation()">
+                  <button type="button" class="lst-lote-menu__item" role="menuitem" (click)="goLoteUnidades()">Unidades</button>
+                  <button type="button" class="lst-lote-menu__item" role="menuitem" (click)="goCopiarBloco()">Copiar Bloco</button>
+                </div>
+              </div>
+              <button type="button" class="btn-novo" *ngIf="podeIncluir" (click)="goNovo()">Nova Unidade</button>
+            </div>
           </div>
         </header>
 
@@ -56,10 +113,10 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
           </div>
           <div class="lst-tabela__scroll" [class.is-loading]="loading">
             <table class="lst-grade" *ngIf="paged?.items?.length; else lstEmpty">
-              <thead><tr><th scope="col">Id Unidade</th><th scope="col" class="lst-col--conteudo">Id Bloco</th><th scope="col">Número</th><th scope="col">Id Tipo Unidade</th><th scope="col">Id Hidrômetro</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
+              <thead><tr><th scope="col">Id Unidade</th><th scope="col" class="lst-col--conteudo">Bloco</th><th scope="col">Número</th><th scope="col">Tipo da Unidade</th><th scope="col">Hidrômetro</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
-                  <td>{{ item.idUnidade }}</td><td class="lst-col--conteudo">{{ item.idBloco }}</td><td>{{ item.numero }}</td><td>{{ item.idTipoUnidade }}</td><td>{{ item.idHidrometro }}</td>
+                  <td>{{ item.idUnidade }}</td><td class="lst-col--conteudo">{{ descricaoBloco(item.idBloco) }}</td><td>{{ item.numero }}</td><td>{{ descricaoTipoUnidade(item.idTipoUnidade) }}</td><td>{{ numeroSerieHidrometro(item.idHidrometro) }}</td>
                   <td class="lst-grade__acoes">
                     <div class="lst-acoes" role="group" aria-label="Ações da linha">
 <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
@@ -101,9 +158,17 @@ export class UnidadeListComponent implements OnInit {
   confirmarExclusao = false;
   excluindo = false;
   itemExcluir: Unidade | null = null;
+  menuLoteAberto = false;
+  private readonly numeroSeriePorHidrometro = new Map<number, string>();
+  private readonly descricaoPorTipoUnidade = new Map<number, string>();
+  private readonly descricaoPorBloco = new Map<number, string>();
 
   get podeExcluir(): boolean {
     return this.permissions.can(this.permissionKey, 'Excluir');
+  }
+
+  get podeIncluir(): boolean {
+    return this.permissions.can(this.permissionKey, 'Incluir');
   }
 
   solicitarExclusao(item: Unidade): void {
@@ -135,9 +200,61 @@ export class UnidadeListComponent implements OnInit {
     });
   }
 
-  constructor(private service: UnidadeService, private router: Router, private permissions: PermissionService, private toast: ToastService) {}
+  constructor(
+    private service: UnidadeService,
+    private hidrometroService: HidrometroService,
+    private tipoUnidadeService: TipoUnidadeService,
+    private blocoService: BlocoService,
+    private router: Router,
+    private permissions: PermissionService,
+    private toast: ToastService,
+  ) {}
 
-  ngOnInit(): void { this.loadPage(1); }
+  numeroSerieHidrometro(idHidrometro?: number): string {
+    if (idHidrometro == null) return '';
+    return this.numeroSeriePorHidrometro.get(idHidrometro) ?? '';
+  }
+
+  descricaoTipoUnidade(idTipoUnidade?: number): string {
+    if (idTipoUnidade == null) return '';
+    return this.descricaoPorTipoUnidade.get(idTipoUnidade) ?? '';
+  }
+
+  descricaoBloco(idBloco?: number): string {
+    if (idBloco == null) return '';
+    return this.descricaoPorBloco.get(idBloco) ?? '';
+  }
+
+  ngOnInit(): void {
+    this.blocoService.getPaged(1, 500).subscribe({
+      next: (r) => {
+        for (const b of r.items) {
+          if (b.idBloco != null && b.descricao) {
+            this.descricaoPorBloco.set(b.idBloco, b.descricao);
+          }
+        }
+      },
+    });
+    this.tipoUnidadeService.getPaged(1, 500).subscribe({
+      next: (r) => {
+        for (const t of r.items) {
+          if (t.idTipoUnidade != null && t.descricao) {
+            this.descricaoPorTipoUnidade.set(t.idTipoUnidade, t.descricao);
+          }
+        }
+      },
+    });
+    this.hidrometroService.getPaged(1, 500).subscribe({
+      next: (r) => {
+        for (const h of r.items) {
+          if (h.idHidrometro != null && h.numeroSerie) {
+            this.numeroSeriePorHidrometro.set(h.idHidrometro, h.numeroSerie);
+          }
+        }
+      },
+    });
+    this.loadPage(1);
+  }
 
   applyFilter(): void { this.page = 1; this.loadPage(1); }
 
@@ -169,7 +286,27 @@ export class UnidadeListComponent implements OnInit {
     this.pageSize = ctx.tamanhoPagina;
   }
 
+  @HostListener('document:click')
+  fecharMenuLote(): void {
+    this.menuLoteAberto = false;
+  }
+
+  alternarMenuLote(event: MouseEvent): void {
+    event.stopPropagation();
+    this.menuLoteAberto = !this.menuLoteAberto;
+  }
+
   goNovo(): void { this.router.navigate(['/unidade', 'novo']); }
+
+  goLoteUnidades(): void {
+    this.menuLoteAberto = false;
+    this.router.navigate(['/unidade', 'lote']);
+  }
+
+  goCopiarBloco(): void {
+    this.menuLoteAberto = false;
+    this.router.navigate(['/unidade', 'copiar-bloco']);
+  }
   goEdit(item: Unidade): void {
     this.router.navigate(['/unidade', item.idUnidade]);
   }

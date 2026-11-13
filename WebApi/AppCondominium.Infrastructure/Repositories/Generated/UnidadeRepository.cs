@@ -28,9 +28,16 @@ public class UnidadeRepository
 
     public async Task<PagedResult<Unidade>> GetPagedAsync(int page, int pageSize, string? filter, CancellationToken ct = default)
     {
-        var query = ApplyCondominioFilter(BaseQuery().AsNoTracking());
+        var baseQuery = ApplyCondominioFilter(BaseQuery().AsNoTracking());
 
-        var total = await query.CountAsync(ct);
+        var query =
+            from u in baseQuery
+            join b in _ctx.Bloco.AsNoTracking() on u.IdBloco equals b.IdBloco into blocoJoin
+            from b in blocoJoin.DefaultIfEmpty()
+            orderby b != null ? b.Descricao : null, u.Numero ?? uint.MaxValue, u.IdUnidade
+            select u;
+
+        var total = await baseQuery.CountAsync(ct);
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         return new PagedResult<Unidade> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
     }
@@ -45,6 +52,10 @@ public class UnidadeRepository
     {
         var tenantId = _condominio.RequireTenantId();
         entity.IdCondominio = tenantId;
+        if (entity.IdUnidade is null or 0)
+            entity.IdUnidade = null;
+        if (entity.IdHidrometro is 0)
+            entity.IdHidrometro = null;
 
         await _ctx.Set<Unidade>().AddAsync(entity, ct);
         await _ctx.SaveChangesAsync(ct);

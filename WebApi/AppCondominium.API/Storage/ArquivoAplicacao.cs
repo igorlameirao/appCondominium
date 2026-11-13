@@ -28,14 +28,15 @@ public sealed class ArquivoAplicacao
         CancellationToken ct)
     {
         if (arquivo == null || arquivo.Length == 0)
-            return new BadRequestObjectResult("Arquivo obrigatório.");
+            return new BadRequestObjectResult(new { title = "Arquivo obrigatório.", message = "Selecione uma imagem antes de enviar." });
         if (arquivo.Length > maxBytes)
-            return new BadRequestObjectResult($"O arquivo deve ter no máximo {maxBytes / (1024 * 1024)} MB.");
-        if (!tipos.Contains(arquivo.ContentType, StringComparer.OrdinalIgnoreCase))
-            return new BadRequestObjectResult("Formato inválido.");
+            return new BadRequestObjectResult(new { title = "Arquivo grande.", message = $"O arquivo deve ter no máximo {maxBytes / (1024 * 1024)} MB." });
+        var contentType = ResolverContentType(arquivo, tipos);
+        if (contentType == null)
+            return new BadRequestObjectResult(new { title = "Formato inválido.", message = "Use PNG, JPG ou WEBP." });
 
         await using var stream = arquivo.OpenReadStream();
-        await _arquivos.SalvarSubstituindoAsync(radical, stream, arquivo.ContentType, ct);
+        await _arquivos.SalvarSubstituindoAsync(radical, stream, contentType, ct);
         return new NoContentResult();
     }
 
@@ -43,5 +44,25 @@ public sealed class ArquivoAplicacao
     {
         await _arquivos.ExcluirAsync(radical, ct);
         return new NoContentResult();
+    }
+
+    private static string? ResolverContentType(IFormFile arquivo, IReadOnlyCollection<string> tipos)
+    {
+        var informado = (arquivo.ContentType ?? "").Trim();
+        if (tipos.Contains(informado, StringComparer.OrdinalIgnoreCase))
+            return informado;
+
+        var ext = Path.GetExtension(arquivo.FileName ?? "").TrimStart('.').ToLowerInvariant();
+        var porExtensao = ext switch
+        {
+            "jpg" or "jpeg" => "image/jpeg",
+            "png" => "image/png",
+            "webp" => "image/webp",
+            _ => null
+        };
+        if (porExtensao != null && tipos.Contains(porExtensao, StringComparer.OrdinalIgnoreCase))
+            return porExtensao;
+
+        return null;
     }
 }

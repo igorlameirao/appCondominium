@@ -97,6 +97,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ApiExceptionMiddleware>();
 app.UseCors();
 app.UseAuthentication();
 app.UseMiddleware<CondominioContextMiddleware>();
