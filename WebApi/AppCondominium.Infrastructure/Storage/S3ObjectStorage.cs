@@ -18,15 +18,22 @@ public sealed class S3ObjectStorage : IObjectStorage
     public async Task PutAsync(string key, Stream content, string contentType, CancellationToken ct = default)
     {
         ExigirBucket();
-        var request = new PutObjectRequest
+        try
         {
-            BucketName = _bucket,
-            Key = key,
-            InputStream = content,
-            ContentType = contentType,
-            AutoCloseStream = false
-        };
-        await _s3.PutObjectAsync(request, ct);
+            var request = new PutObjectRequest
+            {
+                BucketName = _bucket,
+                Key = key,
+                InputStream = content,
+                ContentType = contentType,
+                AutoCloseStream = false
+            };
+            await _s3.PutObjectAsync(request, ct);
+        }
+        catch (AmazonS3Exception ex)
+        {
+            throw EncapsularFalhaS3(ex, "upload");
+        }
     }
 
     public async Task<ObjetoArmazenado?> OpenAsync(string key, CancellationToken ct = default)
@@ -45,12 +52,23 @@ public sealed class S3ObjectStorage : IObjectStorage
         {
             return null;
         }
+        catch (AmazonS3Exception ex)
+        {
+            throw EncapsularFalhaS3(ex, "recuperação");
+        }
     }
 
     public async Task DeleteAsync(string key, CancellationToken ct = default)
     {
         ExigirBucket();
-        await _s3.DeleteObjectAsync(_bucket, key, ct);
+        try
+        {
+            await _s3.DeleteObjectAsync(_bucket, key, ct);
+        }
+        catch (AmazonS3Exception ex)
+        {
+            throw EncapsularFalhaS3(ex, "exclusão");
+        }
     }
 
     public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken ct = default)
@@ -59,19 +77,26 @@ public sealed class S3ObjectStorage : IObjectStorage
             return [];
         var chaves = new List<string>();
         string? token = null;
-        do
+        try
         {
-            var response = await _s3.ListObjectsV2Async(new ListObjectsV2Request
+            do
             {
-                BucketName = _bucket,
-                Prefix = prefix,
-                ContinuationToken = token
-            }, ct);
-            if (response.S3Objects != null)
-                chaves.AddRange(response.S3Objects.Select(o => o.Key));
-            token = response.IsTruncated == true ? response.NextContinuationToken : null;
+                var response = await _s3.ListObjectsV2Async(new ListObjectsV2Request
+                {
+                    BucketName = _bucket,
+                    Prefix = prefix,
+                    ContinuationToken = token
+                }, ct);
+                if (response.S3Objects != null)
+                    chaves.AddRange(response.S3Objects.Select(o => o.Key));
+                token = response.IsTruncated == true ? response.NextContinuationToken : null;
+            }
+            while (token != null);
         }
-        while (token != null);
+        catch (AmazonS3Exception ex)
+        {
+            throw EncapsularFalhaS3(ex, "listagem");
+        }
 
         return chaves;
     }
@@ -81,4 +106,7 @@ public sealed class S3ObjectStorage : IObjectStorage
         if (string.IsNullOrWhiteSpace(_bucket))
             throw new InvalidOperationException("Storage:S3:Bucket não configurado.");
     }
+
+    private static InvalidOperationException EncapsularFalhaS3(AmazonS3Exception ex, string operacao) =>
+        new($"AmazonS3Exception durante {operacao} (ErrorCode={ex.ErrorCode}): {ex.Message}", ex);
 }

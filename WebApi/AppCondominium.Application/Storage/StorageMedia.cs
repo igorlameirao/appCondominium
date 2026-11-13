@@ -9,6 +9,7 @@ public static class StorageMedia
     public const long FotoPerfilMaxBytes = 2 * 1024 * 1024;
     public const long ImagemLoginMaxBytes = 5 * 1024 * 1024;
     public const long ImagemIconeMaxBytes = 2 * 1024 * 1024;
+    public const long ImagemPlantaMaxBytes = 5 * 1024 * 1024;
     public const long DocumentoMaxBytes = 8 * 1024 * 1024;
 
     public static string ExtensionFor(string contentType) => contentType.ToLowerInvariant() switch

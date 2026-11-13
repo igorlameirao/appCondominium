@@ -56,7 +56,7 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
           </div>
           <div class="lst-tabela__scroll" [class.is-loading]="loading">
             <table class="lst-grade" *ngIf="paged?.items?.length; else lstEmpty">
-              <thead><tr><th scope="col" class="lst-col--conteudo">Descrição</th><th scope="col" class="lst-col--conteudo">Quantidade de Salas</th><th scope="col">Quantidade de Quartos</th><th scope="col">Quantidade de Suítes</th><th scope="col">Quntidade de Banheiros</th><th scope="col">Área</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
+              <thead><tr><th scope="col" class="lst-col--conteudo">Descrição</th><th scope="col" class="lst-col--conteudo">Quantidade de Salas</th><th scope="col">Quantidade de Quartos</th><th scope="col">Quantidade de Suítes</th><th scope="col">Quantidade de Banheiros</th><th scope="col">Área</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
                   <td class="lst-col--conteudo">{{ item.descricao }}</td><td class="lst-col--conteudo">{{ item.qtdSalas }}</td><td>{{ item.qtdQuartos }}</td><td>{{ item.qtdSuites }}</td><td>{{ item.qtdBanheiros }}</td><td>{{ item.area }}</td>

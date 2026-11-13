@@ -45,13 +45,14 @@ dotnet user-secrets set "Jwt:Key" "GERE_UMA_CHAVE_ALEATORIA_COM_NO_MINIMO_32_CHA
 
 Produção: variáveis `ConnectionStrings__DefaultConnection` e `Jwt__Key`.
 
-Arquivos (fotos, imagens do condomínio, documento de oferta e procuração) ficam no **S3**, não em colunas BLOB. A chave segue `{ambiente}/app-condominium/condominios/{id}/funcionalidades/...` ou, para a foto da pessoa física, `{ambiente}/app-condominium/plataforma/funcionalidades/pessoas-fisicas/{idPessoa}/foto-perfil/`. `FotoEmbedding` permanece no banco para o reconhecimento facial.
+Arquivos (fotos, imagens do condomínio, documento de oferta e procuração) ficam no **S3**, não em colunas BLOB. A chave segue `app-condominium/{ambiente}/condominios/{id}/funcionalidades/...` ou, para a foto da pessoa física, `app-condominium/{ambiente}/plataforma/funcionalidades/pessoas-fisicas/{idPessoa}/foto-perfil/`. `FotoEmbedding` permanece no banco para o reconhecimento facial.
 
 ```powershell
 cd WebApi\AppCondominium.API
 dotnet user-secrets set "Storage:S3:Bucket" "NOME_DO_BUCKET"
-dotnet user-secrets set "Storage:S3:Region" "us-east-1"
+dotnet user-secrets set "Storage:S3:Region" "us-east-2"
 dotnet user-secrets set "Storage:S3:EnvironmentPrefix" "dev"
+# AWS local: use perfil em ~/.aws/credentials (ex.: AWS_PROFILE=appcondominium-dev)
 # MinIO local (opcional):
 dotnet user-secrets set "Storage:S3:ServiceUrl" "http://localhost:9000"
 dotnet user-secrets set "Storage:S3:AccessKey" "minioadmin"

@@ -705,7 +705,7 @@
           {
             "Campo": "IdUnidade",
             "RotuloCampo": "Id Unidade",
-            "TipoDado": "INT - Unsigned",
+            "TipoDado": "INT - Unsigned - Auto incremental",
             "Filtro": "Sim",
             "Obrigatorio": "Sim",
             "Indice": "Primary Key"
@@ -748,7 +748,7 @@
             "RotuloCampo": "Id Hidrômetro",
             "TipoDado": "INT - Unsigned",
             "Filtro": "Sim",
-            "Obrigatorio": "Sim",
+            "Obrigatorio": "Não",
             "Indice": "Foreign Key",
             "EntidadeForeignKey": "Hidrometro"
           }
