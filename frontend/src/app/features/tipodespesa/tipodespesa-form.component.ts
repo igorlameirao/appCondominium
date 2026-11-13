@@ -8,8 +8,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { TipoDespesaService } from './tipodespesa.service';
 import { TipoDespesa } from './tipodespesa.model';
-import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 
@@ -17,7 +15,7 @@ import { CondominioContextService } from '../../core/services/condominio-context
 @Component({
   selector: 'app-tipodespesa-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -33,7 +31,7 @@ import { CondominioContextService } from '../../core/services/condominio-context
           <p class="cad-subtitulo">Cadastre e mantenha as informações de tipo de despesa</p>
         </header>
 
-        <section class="cad-card form-page">
+        <section class="cad-card form-page cad-card--secao-unica">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
             <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
               <app-icone nome="layers" [tamanho]="16" />
@@ -41,37 +39,46 @@ import { CondominioContextService } from '../../core/services/condominio-context
             </button>
           </div>
           <div class="cad-conteudo" role="tabpanel">
-            <div class="cad-secao">
-              <app-icone class="cad-secao__icone" nome="layers" [tamanho]="26" />
-              <div>
-                <h2 class="cad-secao__titulo">Dados de Tipo de Despesa</h2>
-                <p class="cad-secao__texto">Informe as informações principais</p>
-              </div>
-            </div>
             <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
-            </div>
-            <div style="grid-column: 3 / span 3; grid-row: 1" class="form-group fg-col-3">
-              <label>CodigoContabil</label>
-              <input type="text" [(ngModel)]="model.codigoContabil" name="codigoContabil" maxlength="50" [readonly]="fieldDisabled('codigoContabil')" />
-            </div>
-            <div style="grid-column: 6 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>TipoRateio *</label>
-              <select [(ngModel)]="model.tipoRateio" name="tipoRateio" [disabled]="fieldDisabled('tipoRateio')" required>
-                <option [ngValue]="null">Selecione…</option>
-                <option [ngValue]="0">Por Metro Quadrado Unidade</option><option [ngValue]="1">Pela Quantidade Unidades</option>
-              </select>
-            </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
-              <label>Descricao *</label>
-              <input type="text" [(ngModel)]="model.descricao" name="descricao" maxlength="255" [readonly]="fieldDisabled('descricao')" required />
-            </div>
-          </div>
-        </form></div>
+              <div class="cad-blocos tipodespesa-dados">
+                <div class="form-grid tipodespesa-dados__linha">
+                  <div class="form-group tipodespesa-dados__descricao">
+                    <label for="td-descricao">Descrição *</label>
+                    <input
+                      id="td-descricao"
+                      type="text"
+                      [(ngModel)]="model.descricao"
+                      name="descricao"
+                      maxlength="255"
+                      [readonly]="fieldDisabled('descricao')"
+                      required />
+                  </div>
+                  <div class="form-group tipodespesa-dados__codigo">
+                    <label for="td-codigo-contabil">Código Contábil</label>
+                    <input
+                      id="td-codigo-contabil"
+                      type="text"
+                      [(ngModel)]="model.codigoContabil"
+                      name="codigoContabil"
+                      maxlength="50"
+                      [readonly]="fieldDisabled('codigoContabil')" />
+                  </div>
+                  <div class="form-group tipodespesa-dados__rateio">
+                    <label for="td-tipo-rateio">Tipo de Rateio *</label>
+                    <select
+                      id="td-tipo-rateio"
+                      [(ngModel)]="model.tipoRateio"
+                      name="tipoRateio"
+                      [disabled]="fieldDisabled('tipoRateio')"
+                      required>
+                      <option [ngValue]="null">Selecione…</option>
+                      <option [ngValue]="0">Por metro quadrado da unidade</option>
+                      <option [ngValue]="1">Pela quantidade de unidades</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
         <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
@@ -93,6 +100,28 @@ import { CondominioContextService } from '../../core/services/condominio-context
     </div>
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
+  styles: [`
+    :host .cad-page {
+      max-width: min(1100px, calc(100vw - 40px));
+    }
+    .tipodespesa-dados {
+      gap: 0;
+    }
+    .tipodespesa-dados__linha {
+      grid-template-columns: minmax(0, 48fr) minmax(0, 22fr) minmax(0, 30fr);
+      align-items: end;
+    }
+    .tipodespesa-dados__descricao,
+    .tipodespesa-dados__codigo,
+    .tipodespesa-dados__rateio {
+      min-width: 0;
+    }
+    @media (max-width: 720px) {
+      .tipodespesa-dados__linha {
+        grid-template-columns: 1fr;
+      }
+    }
+  `],
 })
 export class TipoDespesaFormComponent implements OnInit {
   model: TipoDespesa = {} as TipoDespesa;
@@ -128,8 +157,6 @@ export class TipoDespesaFormComponent implements OnInit {
     this.canEdit = this.podeGravar;
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
-
-  get pkDisplay(): string { return String(this.model.idTipoDespesa); }
 
   ngOnInit(): void {
     if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();

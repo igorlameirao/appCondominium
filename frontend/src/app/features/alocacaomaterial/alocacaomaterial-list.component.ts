@@ -61,12 +61,14 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
                   <td>{{ item.idMaterial }}</td><td class="lst-col--conteudo">{{ item.idPessoa }}</td><td>{{ item.idLocal }}</td><td>{{ item.dataHoraInicio }}</td><td>{{ item.dataHoraFim }}</td>
                   <td class="lst-grade__acoes">
-                    <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
+                    <div class="lst-acoes" role="group" aria-label="Ações da linha">
+<button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="trash" [tamanho]="16" />
                     </button>
                     <button type="button" class="lst-acao lst-acao--editar" title="Editar" aria-label="Editar" (click)="goEdit(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="pencil" [tamanho]="16" />
                     </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>

@@ -39,7 +39,7 @@ export class AppComponent implements OnInit {
   menuGroups: MenuGroup[] = [
     { label: 'Cadastros Gerais', icon: 'map-pin', links: [
       { label: 'UF', route: '/uf' }, { label: 'Município', route: '/municipio' },
-      { label: 'Bairro', route: '/bairro' }, { label: 'Endereço', route: '/endereco' },
+      { label: 'Bairro', route: '/bairro' },
       { label: 'Condomínio', route: '/condominio' }
     ]},
     { label: 'Condomínio', icon: 'building', links: [

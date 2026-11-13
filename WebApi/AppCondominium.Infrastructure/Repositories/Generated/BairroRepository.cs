@@ -32,14 +32,31 @@ public class BairroRepository
             query = query.Where(e => (e.Nome != null && e.Nome.Contains(filter)));
 
         var total = await query.CountAsync(ct);
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        var items = await EnrichWithMunicipioNomeAsync(
+            query.Skip((page - 1) * pageSize).Take(pageSize), ct);
         return new PagedResult<Bairro> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
     }
 
     public async Task<Bairro?> GetByIdAsync(uint? idBairro, CancellationToken ct = default)
     {
-        var q = ApplyCondominioFilter(BaseQuery());
-        return await q.FirstOrDefaultAsync(e => e.IdBairro == idBairro, ct);
+        var q = ApplyCondominioFilter(BaseQuery().AsNoTracking()).Where(e => e.IdBairro == idBairro);
+        var items = await EnrichWithMunicipioNomeAsync(q, ct);
+        return items.FirstOrDefault();
+    }
+
+    private async Task<List<Bairro>> EnrichWithMunicipioNomeAsync(IQueryable<Bairro> bairros, CancellationToken ct)
+    {
+        return await (
+            from b in bairros
+            join m in _ctx.Municipio.AsNoTracking() on b.CodigoIBGEMunicipio equals m.CodigoIBGEMunicipio into mg
+            from m in mg.DefaultIfEmpty()
+            select new Bairro
+            {
+                IdBairro = b.IdBairro,
+                Nome = b.Nome,
+                CodigoIBGEMunicipio = b.CodigoIBGEMunicipio,
+                NomeMunicipio = m != null ? m.Nome : null
+            }).ToListAsync(ct);
     }
 
     public async Task<Bairro> AddAsync(Bairro entity, CancellationToken ct = default)

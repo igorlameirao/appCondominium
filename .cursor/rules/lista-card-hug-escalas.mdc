@@ -9,6 +9,7 @@ alwaysApply: false
 Padrão hug do SCO aplicado no AppCondominium com duas classes genéricas, porque as telas CRUD compartilham o mesmo markup.
 
 **Tabela de rotas:** `MDs/referencias-layout/hug-escalas-rotas.referencia.md`  
+**Upload de imagem (form):** `MDs/referencias-layout/hug-imagem-upload.referencia.md` + `hug-estilo-AppCondominium.mdc`  
 **Estilos:** `frontend/src/styles-sco.css`, `frontend/src/app/app.component.ts`, `frontend/src/styles-premium-shell.css`  
 **Host da lista:** `frontend/src/app/shared/list-card-hug-layout.styles.ts`
 

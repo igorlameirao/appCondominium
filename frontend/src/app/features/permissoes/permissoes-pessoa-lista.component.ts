@@ -71,9 +71,11 @@ import { ehPerfilAdministrador, PessoaOpcao } from './permissoes.util';
                   <td>{{ item.perfilDescricao || '—' }}</td>
                   <td>{{ situacao(item) }}</td>
                   <td class="lst-grade__acoes">
-                    <button type="button" class="lst-acao lst-acao--editar" title="Configurar exceções" aria-label="Configurar exceções" (click)="abrir(item)" (dblclick)="$event.stopPropagation()">
+                    <div class="lst-acoes" role="group" aria-label="Ações da linha">
+<button type="button" class="lst-acao lst-acao--editar" title="Configurar exceções" aria-label="Configurar exceções" (click)="abrir(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="pencil" [tamanho]="16" />
                     </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>

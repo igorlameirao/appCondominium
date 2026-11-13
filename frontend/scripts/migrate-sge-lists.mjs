@@ -88,9 +88,11 @@ function buildTemplate(entityRoute, title, columns) {
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
                   ${colCells}
                   <td class="lst-grade__acoes">
+                    <div class="lst-acoes" role="group" aria-label="Ações da linha">
                     <button type="button" class="lst-acao lst-acao--editar" title="Editar" aria-label="Editar" (click)="goEdit(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="pencil" [tamanho]="16" />
                     </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>

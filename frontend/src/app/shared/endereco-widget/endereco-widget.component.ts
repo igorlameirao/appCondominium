@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Input, NgZone, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { Component, EventEmitter, Input, NgZone, OnChanges, OnInit, Optional, Output, SkipSelf, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ControlContainer, FormsModule } from '@angular/forms';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../combobox-customizada/combobox-customizada.component';
 import { ListLoadingModalComponent } from '../list-loading-modal/list-loading-modal.component';
 import { EnderecoService } from '../../features/endereco/endereco.service';
@@ -40,10 +40,17 @@ interface ViaCep {
   selector: 'app-endereco-widget',
   standalone: true,
   imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent, ListLoadingModalComponent],
+  viewProviders: [
+    {
+      provide: ControlContainer,
+      useFactory: (container: ControlContainer | null) => container,
+      deps: [[new Optional(), new SkipSelf(), ControlContainer]],
+    },
+  ],
   template: `
     <app-list-loading-modal [visible]="carregando" message="Aguarde, carregando..." [delayMs]="0" />
     <app-list-loading-modal [visible]="cepLoading" message="Aguarde, consultando o CEP..." />
-    <div class="form-grid">
+    <div class="form-grid" *ngIf="disposicao === 'padrao'; else gridCondominio">
       <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
         <label>CEP *</label>
         <input type="text" name="cEP" [ngModel]="cepDisplay" (ngModelChange)="onCepModel($event)"
@@ -83,6 +90,57 @@ interface ViaCep {
           [disabled]="readonly" [required]="true" placeholder="Digite para filtrar o bairro..." />
       </div>
     </div>
+    <ng-template #gridCondominio>
+      <input type="hidden" name="bairroCondominio" [(ngModel)]="bairroSelecionado" required tabindex="-1" aria-hidden="true" />
+      <input type="hidden" name="ufCondominio" [(ngModel)]="siglaUf" required tabindex="-1" aria-hidden="true" />
+      <input type="hidden" name="municipioCondominio" [(ngModel)]="codigoIbgeMunicipio" required tabindex="-1" aria-hidden="true" />
+      <div class="cad-blocos endereco-condominio">
+        <div class="form-grid endereco-condominio__linha endereco-condominio__linha--1">
+          <div class="form-group fg-label-nowrap">
+            <label>CEP *</label>
+            <input type="text" name="cEPCondominio" [ngModel]="cepDisplay" (ngModelChange)="onCepModel($event)"
+              (focus)="onCepFocus()" (blur)="onCepBlur()" [disabled]="readonly"
+              [attr.maxlength]="cepFocused ? 8 : 10" required />
+          </div>
+          <div class="form-group">
+            <label>Logradouro *</label>
+            <input type="text" name="logradouroCondominio" [(ngModel)]="logradouro" (ngModelChange)="emitChange()"
+              [disabled]="readonly" maxlength="100" required />
+          </div>
+          <div class="form-group fg-label-nowrap">
+            <label>Número</label>
+            <input type="text" name="numeroEnderecoCondominio" [(ngModel)]="numero" (ngModelChange)="emitChange()" [disabled]="readonlyNumero" />
+          </div>
+        </div>
+        <div class="form-grid endereco-condominio__linha endereco-condominio__linha--2">
+          <div class="form-group">
+            <label>Complemento</label>
+            <input type="text" name="complementoCondominio" [(ngModel)]="complemento" (ngModelChange)="emitChange()"
+              [disabled]="readonlyNumero" maxlength="255" />
+          </div>
+          <div class="form-group fg-label-nowrap endereco-campo-uf">
+            <label>UF *</label>
+            <app-combobox-customizada [options]="ufOptions" [(value)]="siglaUf"
+              (valueChange)="onUfChange()" (blurCommit)="onUfCommit($event)"
+              [disabled]="readonly" [required]="true" placeholder="Digite para filtrar a UF..." />
+          </div>
+        </div>
+        <div class="form-grid endereco-condominio__linha endereco-condominio__linha--3">
+          <div class="form-group endereco-campo-municipio">
+            <label>Município *</label>
+            <app-combobox-customizada [options]="municipioOptions" [(value)]="codigoIbgeMunicipio"
+              (valueChange)="onMunicipioChange()" (blurCommit)="onMunicipioCommit($event)"
+              [disabled]="readonly" [required]="true" placeholder="Digite para filtrar o município..." />
+          </div>
+          <div class="form-group">
+            <label>Bairro *</label>
+            <app-combobox-customizada [options]="bairroOptions" [(value)]="bairroSelecionado"
+              (valueChange)="onBairroChange()" (blurCommit)="onBairroCommit($event)"
+              [disabled]="readonly" [required]="true" placeholder="Digite para filtrar o bairro..." />
+          </div>
+        </div>
+      </div>
+    </ng-template>
     <div class="cep-list" *ngIf="cepMatches.length">
       <p>CEP encontrado — selecione:</p>
       <button type="button" *ngFor="let e of cepMatches" (click)="applyEndereco(e)">
@@ -99,11 +157,29 @@ interface ViaCep {
   styles: [`
     :host { display: block; min-width: 0; }
     .cep-list button { display: block; width: 100%; text-align: left; margin: 4px 0; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc; cursor: pointer; }
+    .endereco-condominio__linha--1 {
+      grid-template-columns: 170px minmax(0, 1fr) 110px;
+    }
+    .endereco-condominio__linha--2 {
+      grid-template-columns: 65% 35%;
+    }
+    .endereco-condominio__linha--3 {
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 720px) {
+      .endereco-condominio__linha--1,
+      .endereco-condominio__linha--2,
+      .endereco-condominio__linha--3 {
+        grid-template-columns: 1fr;
+      }
+    }
   `]
 })
 export class EnderecoWidgetComponent implements OnInit, OnChanges {
   /** vinculo: reaproveita ou grava um endereço e devolve o id. cadastro: edita o próprio endereço. */
   @Input() modo: 'vinculo' | 'cadastro' = 'vinculo';
+  /** Layout de grid: padrão (gerado) ou condomínio (linhas Logradouro/Número, etc.). */
+  @Input() disposicao: 'padrao' | 'condominio' = 'padrao';
   @Input() idEndereco: number | null | undefined = null;
   @Input() cep: string | null | undefined = '';
   @Input() logradouroVinculo: string | null | undefined = '';
@@ -608,5 +684,41 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
     this.idEnderecoChange.emit(this.idEndereco ?? null);
     this.numeroChange.emit(String(this.numero ?? ''));
     this.complementoChange.emit(this.complemento ?? '');
+  }
+
+  /** Preenche campos de endereço a partir da consulta de CNPJ sem sobrescrever dados já informados. */
+  aplicarDadosCnpj(dados: {
+    cep?: string | null;
+    enderecoLogradouro?: string | null;
+    enderecoNumero?: number | null;
+    enderecoComplemento?: string | null;
+    idBairro?: number | null;
+  }): void {
+    if (this.readonly) return;
+    const cepDigits = (dados.cep ?? '').replace(/\D/g, '');
+    const cepAtual = this.cepDigitos();
+    if (cepDigits.length === 8 && cepAtual.length !== 8) {
+      this.cepDisplay = mascaraCep(cepDigits);
+      this.ultimoCepEmitido = '';
+    }
+    if (!this.logradouro?.trim() && dados.enderecoLogradouro?.trim())
+      this.logradouro = dados.enderecoLogradouro.trim();
+    if ((this.numero === '' || this.numero == null) && dados.enderecoNumero != null && dados.enderecoNumero > 0)
+      this.numero = dados.enderecoNumero;
+    if (!this.complemento?.trim() && dados.enderecoComplemento?.trim())
+      this.complemento = dados.enderecoComplemento.trim();
+
+    if (!this.idBairro && dados.idBairro != null) {
+      this.aplicarBairro(dados.idBairro);
+      this.emitChange();
+      return;
+    }
+
+    if (cepDigits.length === 8 && cepAtual.length !== 8) {
+      this.emitChange();
+      queueMicrotask(() => this.onCepBlur());
+      return;
+    }
+    this.emitChange();
   }
 }

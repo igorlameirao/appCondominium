@@ -1,6 +1,6 @@
 ---
 description: Contrato visual oficial AppCondominium — lst-*, cad-*, controles de formulário, data/hora, botões, modais e paginação.
-globs: frontend/src/app/**/*.{ts,html},frontend/src/styles/**/*.css,frontend/src/styles-*.css,frontend/src/app/shared/paginacao.ts,frontend/src/app/shared/icone.ts,frontend/src/app/shared/campo-data-hora/**,frontend/src/app/shared/campo-data/**,frontend/src/app/shared/combobox-customizada/**
+globs: frontend/src/app/**/*.{ts,html},frontend/src/styles/**/*.css,frontend/src/styles-*.css,frontend/src/app/shared/paginacao.ts,frontend/src/app/shared/icone.ts,frontend/src/app/shared/campo-data-hora/**,frontend/src/app/shared/campo-data/**,frontend/src/app/shared/combobox-customizada/**,frontend/src/app/shared/hug-file-upload/**,frontend/src/app/shared/hug-file-preview/**,frontend/src/app/shared/hug-image-upload/**,frontend/src/app/shared/hug-image-preview/**,frontend/src/app/shared/hug-color-picker/**,frontend/src/app/shared/upload-imagem-cad/**,frontend/src/app/shared/campo-cor-hex/**,frontend/src/app/shared/modal-imagem-visualizacao/**,frontend/src/app/shared/modal-arquivo-visualizacao/**,frontend/src/app/shared/cor-hex/**,frontend/src/app/shared/lst-situacao-cadastral/**
 alwaysApply: false
 ---
 
@@ -37,6 +37,15 @@ Regras gerais: `box-sizing: border-box`; altura **38px**; raio **6px**; sem somb
 
 **Onde centralizar:** dimensões e borda em `cadastro.css` (nativos/combo em `cad-*`); **filtros** em `lista-sge.css` (`.lst-wrapper .lst-filtros`) com os mesmos tokens `--cad-campo-*`, neutralizando `styles-sco.css` (opcionais com `#000` + sombra); data `feedbackVisual` em `styles-sco.css` bloco `.cad-wrapper app-campo-data(*).campo-data--feedback`. Combos: mesma altura externa que input (`.combo-display` + `.combo-input`).
 
+### Combobox (`app-combobox-customizada`)
+
+Todos os comboboxes personalizados participam do **mesmo contrato** de borda, espessura (1px normal / 2px só após interação em nativos), altura (`--cad-campo-altura`), raio (`--cad-campo-raio`), foco (`--cad-primary` + `--cad-focus-ring`) e validação (`--cad-campo-erro`) que inputs, selects e datepickers.
+
+- **Borda única:** só em `.combo-input`; `.combo-display` e `.combo` **sem** borda/sombra próprias (evita contorno duplicado).
+- **Estado obrigatório vazio:** classe `.combo--invalido` no host `.combo` (derivada de `[required]` no componente + valor vazio), **não** o atributo HTML `[required]` no `.combo-input` (o texto de filtro quebraria validação nativa e os estilos globais do SCO).
+- **Arquivos canônicos:** tokens e estados em `combobox-sge.css`; reforço em `cad-*` (`cadastro.css`) e `lst-filtros` (`lista-sge.css`). **`styles-sco.css`** deve excluir `.combo-input` das regras globais `input[required]` / `input:not([required])`.
+- **Proibido:** overrides por tela (ex.: `app-endereco-widget`), borda preta/sombra SCO ou espessura divergente (ex. 2px em vazio obrigatório do combo) fora do contrato acima.
+
 ## Referências rápidas
 
 | Área | Arquivo |
@@ -44,15 +53,47 @@ Regras gerais: `box-sizing: border-box`; altura **38px**; raio **6px**; sem somb
 | Cadastro `cad-*` | `styles/cadastro.css` |
 | Combobox | `styles/combobox-sge.css` + regras `.cad-card .combo` em `cadastro.css` |
 | Lista `lst-*` | `lista-sge.css` |
+| Badge Situação (Ativo/Inativo) | `app-lst-situacao-cadastral` + `.lst-badge--sucesso` / `.lst-badge--perigo` em `lista-sge.css` |
 | Botões | `styles-buttons.css` |
 | Data/hora UI | `styles-sco.css` (~L1630), componentes em `shared/campo-data*` |
-| Modelos | `banco-list/form`, `municipio-form`, `condominio-form`, `pessoafisica-form` |
+| Upload imagem (Hug) | `hug-image-upload` (wrapper) → `hug-file-upload`; legado `hug-image-preview`; estilos `.hug-img-*`; doc `MDs/referencias-layout/hug-imagem-upload.referencia.md` |
+| Upload arquivo (Hug) | `hug-file-upload` + `hug-file-preview`, `hug-arquivo.util.ts`, `modal-arquivo-visualizacao`; mesmos tokens `.hug-img-*` em `cadastro.css` |
+| Cor (Hug) | `hug-color-picker`, `cor-format.util.ts`, `.hug-color-picker*` |
+| Legado upload | `upload-imagem-cad` (encaminha para Hug) |
+| Legado cor HEX | `campo-cor-hex`, `cor-hex.util.ts`, `.cad-campo-cor*` |
+| Modal imagem | `modal-imagem-visualizacao`, `.cad-modal-imagem*` |
+| Modelos | `banco-list/form`, `municipio-form`, `condominio-form`, `pessoafisica-form`, `configuracaocondominio-form` |
 
 ## Listagem (`lst-*`)
 
 `lst-wrapper` + viewport; card `lst-card lst-painel`; duplo clique ou lápis para editar; `app-paginacao` com `rotulo="..."` (atributo).
 
+**Coluna Ações (regra permanente):** em **todas** as listagens, o eixo central do cabeçalho «Ações» (`th.lst-grade__acoes`) deve coincidir com o eixo central do conjunto de botões da linha. **`th` e `td` permanecem células de tabela** (`display: table-cell`); **proibido** `display: flex` (ou grid) diretamente em `td`/`th` da coluna — isso desalinha colunas com `table-layout: fixed` (ex.: Condomínios). Os botões ficam dentro de **`<div class="lst-acoes" role="group">`** (flex interno, `gap: 8px`, `min-width` para par 28+8+28), com `text-align: center` em `th`/`td`. Estilos em `lista-sge.css`; **proibido** override por tela, exceto largura de coluna em percentual já aprovada (ex.: Condomínios). Novas listagens: `lst-grade__acoes` no `th`/`td` + wrapper `.lst-acoes` no markup.
+
 **Filtros:** campos em `.lst-filtros` seguem o **mesmo contrato de controles** que `cad-*` (borda `#cbd5e1`, 38px, raio 6px, sem sombra de repouso, foco com `--cad-primary` / `--cad-focus-ring`). Ao aplicar a rule numa listagem, inspecionar estilos **computados** dos inputs/selects/combos do painel de filtros e corrigir divergências em `lista-sge.css`, não por entidade.
+
+### Situação cadastral Ativo/Inativo — badge obrigatório (regra permanente)
+
+Em **todas** as listagens (`lst-*`) em que a coluna represente a **situação cadastral** do registro (campo `ativo` ou equivalente de negócio: 1/0, true/false), a exibição é **somente** via **`app-lst-situacao-cadastral`** (`shared/lst-situacao-cadastral/`). Lógica de normalização: `ehRegistroCadastralAtivo` em `lst-situacao-cadastral.util.ts` (1, `true` ou `'1'` → ativo; demais → inativo). **Proibido** na grade: `{{ item.ativo }}`, `1`/`0`, `true`/`false` ou markup duplicado de badge por tela.
+
+| Valor persistido | Texto | Classes |
+|------------------|-------|---------|
+| Ativo (1 / true) | **Ativo** | `.lst-badge.lst-badge--sucesso` (verde suave `#ecfdf5`, texto `#15803d`) |
+| Inativo (0 / false) | **Inativo** | `.lst-badge.lst-badge--perigo` (vermelho suave `#fef2f2`, texto `#b91c1c`) |
+
+- **Cabeçalho da coluna:** `Situação` (não «Ativo» nem o nome do campo).
+- **Célula:** `td.lst-col--situacao` com `<app-lst-situacao-cadastral [valor]="item.ativo" />` (ou propriedade equivalente); `th`/`td` com alinhamento centralizado via `.lst-col--situacao` em `lista-sge.css`.
+- **Badge:** compacto, cantos arredondados (`border-radius: 999px`), tipografia já definida em `.lst-badge` — **não** duplicar CSS por entidade.
+- **Escopo:** aplica-se **apenas** a situação cadastral Ativo/Inativo. **Não** usar para outros booleanos (ex.: flags de oferta, cobrança, workflow) nem para colunas «Situação» com semântica diferente (ex.: perfis «Configurável» / «Protegido»).
+- **Novas listagens:** incluir `LstSituacaoCadastralComponent` nos `imports` do componente; não recriar `span.lst-badge` manualmente.
+
+**Checklist do Agent (situação cadastral em lista):**
+
+1. Identificar colunas que exibem `ativo` ou equivalente cadastral.
+2. Garantir `th`/`td` com `lst-col--situacao` e título «Situação».
+3. Substituir markup inline por `app-lst-situacao-cadastral`.
+4. Remover helpers locais duplicados (`registroAtivo`, comparações `=== 1` na template).
+5. Validar visual (badges verde/vermelho, centralização) sem alterar API, filtros ou persistência.
 
 ## Cadastro (`cad-*`)
 
@@ -79,12 +120,92 @@ Regras gerais: `box-sizing: border-box`; altura **38px**; raio **6px**; sem somb
 
 ### Checklist do Agent (ao aplicar em uma tela)
 
+0. **Imagens:** se houver upload/seleção de imagem → `app-hug-image-upload` (seção «Upload de imagem — Hug»).
+0a. **Arquivos (PDF/imagem):** anexos, comprovantes, misto imagem+PDF → `app-hug-file-upload` (seção «Upload de arquivo — Hug»).
+0b. **Situação cadastral na lista:** se a grade tiver coluna Ativo/Inativo → `app-lst-situacao-cadastral` (seção «Situação cadastral Ativo/Inativo»).
 1. Mapear todos os controles (incl. data, combo, legados `date`/`time`); em **listagens**, incluir todo o painel `.lst-filtros`.
 2. Comparar com Novo Condomínio e componentes compartilhados.
 3. Ajustar template/bindings (`feedbackVisual`, `nascimento`, `required`) — não só um atributo solto.
 4. **Inspecionar CSS computado** (altura, borda, raio, sombra); rastrear conflitos com `styles-sco.css` (causa típica em lst-*: regra global `input:not([required])` com `#000` e `box-shadow`).
 5. Corrigir em estilos compartilhados (`cadastro.css` ou `lista-sge.css`); preservar negócio, eventos e validações.
 6. Validar vazio, preenchido, foco, inválido, desabilitado (cadastro **e** filtros de lista quando for `lst-*`).
+
+## Alinhamento do card (`cad-abas`)
+
+Abas usam `margin: 0 -22px` e `padding: 0 22px` (simétrico ao `padding` horizontal do `.cad-card`). Evitar `max-width` no `.cad-card` sem `margin-inline: auto` — reduz a largura útil e desalinha o miolo em relação às margens do `cad-page`.
+
+## Upload de imagem — Hug (componente oficial)
+
+**Regra permanente:** em qualquer pedido de «aplicar Hug-Estilo-AppCondominium», se a tela tiver upload/seleção de imagem, usar **`app-hug-image-upload`** (não recriar UI). Exceção: componentes com requisito funcional incompatível — avaliar antes de manter custom.
+
+**Referência aprovada:** `configuracaocondominio-form.component.ts`. Documentação expandida: `MDs/referencias-layout/hug-imagem-upload.referencia.md`.
+
+### Obrigatório na UI
+
+- Card `[varianteCard]="true"`: `.hug-img-upload--card` (borda `#e2e8f0`, raio 10px, fundo neutro).
+- Quadro `.hug-img-preview__quadro`: `object-fit: contain`; placeholder (ícone + instrução); clique ou drag-and-drop.
+- Ações **abaixo** da imagem: Visualizar / Substituir / Remover (`app-icone` + tooltips); em `≤720px` só ícone (texto em sr-only).
+- Rodapé: `metaFormatos`, `maxMb`, `dimensaoRecomendada`.
+- Pré-visualização imediata (`blob:` / URL) antes de Salvar.
+- Estados: `carregando`, `disabled`, `somenteLeitura` (mantém Visualizar), `invalido`/`erro`, `obrigatorio` (asterisco).
+
+### Parâmetros (`app-hug-image-upload`)
+
+`label`, `previewUrl`, `accept`, `maxMb`, `metaFormatos`, `dimensaoRecomendada`, `layout` (`paisagem` | `quadrado`), `iconeZona`, `varianteCard`, `obrigatorio`, `invalido`, `disabled`, `somenteLeitura`, `carregando`, `exibirVisualizar` | `exibirSubstituir` | `exibirRemover`, eventos `(arquivoSelecionado)`, `(removido)`.
+
+`app-upload-imagem-cad` é legado (encaminha ao Hug); não usar em telas novas.
+
+### Múltiplos campos na mesma linha
+
+Container **`.hug-img-upload-grid`**: grid `minmax(0,1.45fr) minmax(0,1fr)`, `align-items: stretch`; cada filho com `[varianteCard]="true"` para alturas equivalentes (quadro `flex:1`, meta `margin-top: auto`, barra com `min-height` reservado). Responsivo: uma coluna em `≤720px`. Não usar margens artificiais para «alinhar» cards.
+
+### Persistência e formulários
+
+- `(arquivoSelecionado)` / `(removido)` só alteram estado local; **API no Salvar** (inclusão e edição).
+- Não duplicar HTML/CSS de upload por tela; não chamar delete de imagem no clique Remover.
+- Respeitar `canEdit`, `saving` → tipicamente `[disabled]="!canEdit || saving"`.
+
+### Checklist do Agent (imagens)
+
+1. Mapear campos de imagem na tela alvo.
+2. Trocar por `app-hug-image-upload`; remover CSS/markup duplicado.
+3. Se ≥2 na mesma linha → `.hug-img-upload-grid`.
+4. Ligar preview, pendências e remoção ao `submit` existente sem mudar contrato da API.
+5. Validar vazio, com imagem, drag, erro de formato/tamanho, desabilitado, somente leitura, carregando, mobile.
+
+## Upload de arquivo — Hug (`app-hug-file-upload`)
+
+**Regra permanente:** upload de **arquivo genérico** (PDF, JPG, PNG ou combinações definidas em `accept`) → **`app-hug-file-upload`**. Não usar `<input type="file">` nem `<img>` para PDF.
+
+**Referência aprovada:** `ofertaconcorrencia-form.component.ts` (Documento comprobatório).
+
+**Implementação:** `hug-file-upload` concentra drag-and-drop, validação e barra de ações; `hug-file-preview` renderiza miniatura (imagem) ou cartão PDF (ícone + nome). Utilitários em `hug-arquivo.util.ts` (`inferirMimeArquivo`, `classificarArquivoPreview`, `blobComTipo`).
+
+### Visualização por tipo
+
+| Tipo | Quadro padrão | Quadro `[compacta]="true"` | Visualizar |
+|------|---------------|----------------------------|------------|
+| Imagem | `<img>` com `object-fit: contain` | Ícone + nome + «Imagem · Anexo» — **sem** miniatura grande | Modal (`app-modal-arquivo-visualizacao`, tipo `imagem`) |
+| PDF | Ícone + rótulo + nome — **sem** `<img>` | Cartão horizontal (ícone PDF + nome + «PDF · Anexo») | Modal com `iframe` seguro (DomSanitizer); fallback «abrir em nova aba» no rodapé e no cabeçalho |
+
+**Modal unificado (`app-modal-arquivo-visualizacao`):** cabeçalho com rótulo + nome do arquivo; ações Fechar, Baixar, Abrir em nova aba; corpo responsivo com altura máxima por viewport; imagens com `object-fit: contain`; PDF em `iframe` — **não** revogar Blob URL no modal (controle no formulário/`ngOnDestroy`).
+
+### Parâmetros (`app-hug-file-upload`)
+
+Além dos de imagem: `previewMime`, `nomeArquivo`, `exibirBaixar`, `(baixar)`, **`compacta`** (anexos discretos em formulários — referência: Documento comprobatório em Oferta de Concorrência). Em edição, carregar Blob da API com `blobComTipo` quando o MIME vier genérico.
+
+**Compatibilidade:** `app-hug-image-upload` permanece como **wrapper** (`[modoImagem]="true"`) sobre `app-hug-file-upload` — telas só de imagem (ex.: Configuração do Condomínio) não precisam migrar.
+
+### Checklist do Agent (arquivos)
+
+1. Usar `app-hug-file-upload` com `[varianteCard]="true"` quando em `cad-*`; **`[compacta]="true"`** para comprovantes/anexos que não devem ocupar quadro 16:9.
+2. Passar `previewUrl`, `previewMime`, `nomeArquivo` na edição; revogar Object URLs no `ngOnDestroy`.
+3. Persistir no Salvar; Remover só marca pendência local.
+4. Validar JPG/PNG/PDF, arquivo inválido, tamanho máximo, substituição, remoção sem salvar, download e visualização.
+
+## Cor — Hug (`app-hug-color-picker`)
+
+Disparo compacto (≈280–320px): amostra + **nome amigável** (`nomeCorPorHex`), não CMYK/HEX na linha principal. Popover: paleta + busca + seletor nativo; **HEX/RGB/CMYK** só em “Edição avançada”. Conversões em `cor-format.util.ts`.
 
 ## Botões
 

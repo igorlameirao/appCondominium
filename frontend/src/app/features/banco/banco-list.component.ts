@@ -12,11 +12,13 @@ import { Banco } from './banco.model';
 import { PermissionService } from '../../core/services/permission.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/confirmar-exclusao.component';
+import { mascaraCnpj } from '../../core/utils/documento-validator';
+import { LstSituacaoCadastralComponent } from '../../shared/lst-situacao-cadastral/lst-situacao-cadastral.component';
 
 @Component({
   selector: 'app-banco-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent],
+  imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent, LstSituacaoCadastralComponent],
     template: `
     <div class="content-wrapper lst-wrapper" lstSgeViewport [tamanhoPagina]="pageSize" (tamanhoPaginaChange)="aplicarTamanhoPagina($event)" [totalItens]="totalCount" [itensNaPagina]="paged?.items?.length ?? 0" [filtrosRecolhidos]="filtrosRecolhidos">
       <div class="lst-page">
@@ -45,7 +47,7 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
             <div class="lst-filtros__corpo" id="lst-filtros-painel" *ngIf="!filtrosRecolhidos">
               <div class="lst-filtros__grade">
                 <div class="form-group">
-                <input type="search" aria-label="Filtro" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" minlength="3" placeholder="Digite pelo menos 3 caracteres" />
+                <input type="search" aria-label="Buscar por código, nome ou ISPB" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" minlength="3" placeholder="Código, nome ou ISPB (mín. 3 caracteres)" />
               </div>
               </div>
               <div class="lst-filtros__acoes">
@@ -56,17 +58,20 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
           </div>
           <div class="lst-tabela__scroll" [class.is-loading]="loading">
             <table class="lst-grade" *ngIf="paged?.items?.length; else lstEmpty">
-              <thead><tr><th scope="col">CodigoBanco</th><th scope="col" class="lst-col--conteudo">DigitoVerificador</th><th scope="col" class="lst-col--conteudo">Nome</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
+              <thead><tr><th scope="col">Código</th><th scope="col" class="lst-col--conteudo">Nome</th><th scope="col">ISPB</th><th scope="col">CNPJ</th><th scope="col" class="lst-col--situacao">Situação</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
-                  <td>{{ item.codigoBanco }}</td><td class="lst-col--conteudo">{{ item.digitoVerificador }}</td><td class="lst-col--conteudo">{{ item.nome }}</td>
+                  <td>{{ item.codigoBanco }}</td><td class="lst-col--conteudo">{{ item.nome }}</td><td>{{ item.ispb }}</td><td>{{ cnpjExibicao(item.cnpj) }}</td>
+                  <td class="lst-col--situacao"><app-lst-situacao-cadastral [valor]="item.ativo" /></td>
                   <td class="lst-grade__acoes">
-                    <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
+                    <div class="lst-acoes" role="group" aria-label="Ações da linha">
+<button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="trash" [tamanho]="16" />
                     </button>
                     <button type="button" class="lst-acao lst-acao--editar" title="Editar" aria-label="Editar" (click)="goEdit(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="pencil" [tamanho]="16" />
                     </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -119,18 +124,23 @@ export class BancoListComponent implements OnInit {
     const item = this.itemExcluir;
     if (this.excluindo || !item) return;
     this.excluindo = true;
-    this.service.delete(item.codigoBanco!).subscribe({
+    this.service.delete(item.idBanco!).subscribe({
       next: () => {
         this.excluindo = false;
         this.confirmarExclusao = false;
         this.itemExcluir = null;
         this.loadPage(this.page);
       },
-      error: () => {
+      error: (e: unknown) => {
         this.excluindo = false;
-        this.toast.showError('Não foi possível excluir. Tente novamente.');
+        const err = (e as any)?.error;
+        this.toast.showError(typeof err === 'string' && err ? err : 'Não foi possível excluir. Tente novamente.');
       },
     });
+  }
+
+  cnpjExibicao(cnpj: string | null | undefined): string {
+    return cnpj ? mascaraCnpj(cnpj) : '';
   }
 
   constructor(private service: BancoService, private router: Router, private permissions: PermissionService, private toast: ToastService) {}
@@ -169,6 +179,6 @@ export class BancoListComponent implements OnInit {
 
   goNovo(): void { this.router.navigate(['/banco', 'novo']); }
   goEdit(item: Banco): void {
-    this.router.navigate(['/banco', item.codigoBanco]);
+    this.router.navigate(['/banco', item.idBanco]);
   }
 }

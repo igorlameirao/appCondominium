@@ -5,22 +5,34 @@ import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-
 import { FormInitialLoad } from '../../shared/form-initial-load';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CampoDataHoraComponent } from '../../shared/campo-data-hora/campo-data-hora.component';
+import { CampoMoedaComponent } from '../../shared/campo-moeda/campo-moeda.component';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { EntradaSaidaMaterialConsumoService } from './entradasaidamaterialconsumo.service';
 import { EntradaSaidaMaterialConsumo } from './entradasaidamaterialconsumo.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { EstoqueMaterialConsumoService } from '../estoquematerialconsumo/estoquematerialconsumo.service';
 import { TipoMaterialService } from '../tipomaterial/tipomaterial.service';
 import { PessoaCondominioService } from '../pessoacondominio/pessoacondominio.service';
 
+/** Saída por utilização — exige Consumidor (RN04, metadado). */
+const TIPO_LANCAMENTO_SAIDA_UTILIZACAO = 2;
+
 @Component({
   selector: 'app-entradasaidamaterialconsumo-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    Icone,
+    ListLoadingModalComponent,
+    FormsModule,
+    CampoDataHoraComponent,
+    CampoMoedaComponent,
+    ComboboxCustomizadaComponent,
+  ],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -32,92 +44,169 @@ import { PessoaCondominioService } from '../pessoacondominio/pessoacondominio.se
             <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
             <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
           </nav>
-          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Entrada e Saída de Material de Consumo</h1>
-          <p class="cad-subtitulo">Cadastre e mantenha as informações de entrada e saída de material de consumo</p>
+          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Movimentação de Material</h1>
+          <p class="cad-subtitulo">Registre entradas, saídas e informações da movimentação</p>
         </header>
 
-        <section class="cad-card form-page">
+        <section class="cad-card form-page cad-card--secao-unica">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
             <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
-              <app-icone nome="layers" [tamanho]="16" />
-              <span>Dados de Entrada e Saída de Material de Consumo</span>
+              <app-icone nome="rotate-ccw" [tamanho]="16" />
+              <span>Movimentação de Material</span>
             </button>
           </div>
           <div class="cad-conteudo" role="tabpanel">
             <div class="cad-secao">
-              <app-icone class="cad-secao__icone" nome="layers" [tamanho]="26" />
+              <app-icone class="cad-secao__icone" nome="rotate-ccw" [tamanho]="26" />
               <div>
-                <h2 class="cad-secao__titulo">Dados de Entrada e Saída de Material de Consumo</h2>
-                <p class="cad-secao__texto">Informe as informações principais</p>
+                <h2 class="cad-secao__titulo">Movimentação de Material</h2>
+                <p class="cad-secao__texto">Informe estoque, tipo de lançamento e envolvidos</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
+            <div class="form-scroll cad-form-scroll">
+              <form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
+                <input
+                  *ngIf="isEdit"
+                  type="hidden"
+                  name="idEntradaSaidaMaterialConsumo"
+                  [(ngModel)]="model.idEntradaSaidaMaterialConsumo" />
+
+                <div class="cad-blocos esmc-mov">
+                  <div class="form-grid esmc-mov__linha esmc-mov__linha--1">
+                    <div class="form-group">
+                      <label>Estoque *</label>
+                      <app-combobox-customizada
+                        [options]="fk_idEstoqueMaterialConsumo"
+                        [(value)]="model.idEstoqueMaterialConsumo"
+                        [disabled]="fieldDisabled('idEstoqueMaterialConsumo')"
+                        [required]="true"
+                        ariaLabel="Estoque" />
+                    </div>
+                    <div class="form-group">
+                      <label>Tipo de Material *</label>
+                      <app-combobox-customizada
+                        [options]="fk_idTipoMaterial"
+                        [(value)]="model.idTipoMaterial"
+                        [disabled]="fieldDisabled('idTipoMaterial')"
+                        [required]="true"
+                        ariaLabel="Tipo de Material" />
+                    </div>
+                  </div>
+
+                  <div
+                    class="form-grid esmc-mov__linha esmc-mov__linha--2"
+                    [class.esmc-mov__linha--2--sem-consumidor]="!exibirConsumidor">
+                    <div class="form-group">
+                      <label for="esmc-tipo-lancamento">Tipo de Lançamento *</label>
+                      <select
+                        id="esmc-tipo-lancamento"
+                        [(ngModel)]="model.tipoLancamento"
+                        (ngModelChange)="onTipoLancamentoChange()"
+                        name="tipoLancamento"
+                        [disabled]="fieldDisabled('tipoLancamento')"
+                        required>
+                        <option [ngValue]="null">Selecione…</option>
+                        <option [ngValue]="0">Entrada Por Aquisição</option>
+                        <option [ngValue]="1">Entrada Por Devolução</option>
+                        <option [ngValue]="2">Saída por utilização</option>
+                        <option [ngValue]="3">Saída por Perda</option>
+                        <option [ngValue]="4">Saída por Inventário</option>
+                      </select>
+                    </div>
+                    <div class="form-group" *ngIf="exibirConsumidor">
+                      <label>Consumidor *</label>
+                      <app-combobox-customizada
+                        [options]="fk_idPessoa"
+                        [(value)]="model.idPessoa"
+                        [disabled]="fieldDisabled('idPessoa')"
+                        [required]="true"
+                        ariaLabel="Consumidor" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="cad-secao cad-secao--apos">
+                  <app-icone class="cad-secao__icone" nome="clipboard-list" [tamanho]="26" />
+                  <div>
+                    <h2 class="cad-secao__titulo">Detalhes da Movimentação</h2>
+                  </div>
+                </div>
+
+                <div class="cad-blocos esmc-mov">
+                  <div class="form-grid esmc-mov__linha esmc-mov__linha--3">
+                    <div class="form-group">
+                      <label for="esmc-quantidade">Quantidade *</label>
+                      <input
+                        id="esmc-quantidade"
+                        type="number"
+                        [(ngModel)]="model.quantidade"
+                        name="quantidade"
+                        step="0.001"
+                        min="0"
+                        inputmode="decimal"
+                        [readonly]="fieldDisabled('quantidade')"
+                        required />
+                    </div>
+                    <div class="form-group">
+                      <label for="esmc-unidade">Unidade de Medida *</label>
+                      <select
+                        id="esmc-unidade"
+                        [(ngModel)]="model.unidadeMedida"
+                        name="unidadeMedida"
+                        [disabled]="fieldDisabled('unidadeMedida')"
+                        required>
+                        <option [ngValue]="null">Selecione…</option>
+                        <option [ngValue]="0">Unidade (UN)</option>
+                        <option [ngValue]="1">Quilograma (kg)</option>
+                        <option [ngValue]="2">Litro (L)</option>
+                        <option [ngValue]="3">Metro (m)</option>
+                        <option [ngValue]="4">Metro quadrado (m²)</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="esmc-lote">Lote</label>
+                      <input
+                        id="esmc-lote"
+                        type="text"
+                        [(ngModel)]="model.lote"
+                        name="lote"
+                        maxlength="20"
+                        [readonly]="fieldDisabled('lote')" />
+                    </div>
+                  </div>
+
+                  <div class="form-grid esmc-mov__linha esmc-mov__linha--4">
+                    <div class="form-group esmc-mov__moeda">
+                      <label>Valor Unitário da Aquisição</label>
+                      <app-campo-moeda
+                        [(ngModel)]="model.valorUnitarioAquisicao"
+                        name="valorUnitarioAquisicao"
+                        modo="numero"
+                        [readonly]="fieldDisabled('valorUnitarioAquisicao')"
+                        [disabled]="fieldDisabled('valorUnitarioAquisicao')" />
+                    </div>
+                    <div class="form-group esmc-mov__datahora">
+                      <div class="esmc-datahora-rotulos">
+                        <label class="esmc-datahora-rotulos__data">Validade</label>
+                        <label class="esmc-datahora-rotulos__hora">Hora</label>
+                      </div>
+                      <app-campo-data-hora
+                        [(ngModel)]="model.dataValidade"
+                        name="dataValidade"
+                        [disabled]="fieldDisabled('dataValidade')"
+                        [feedbackVisual]="true" />
+                    </div>
+                  </div>
+                </div>
+              </form>
             </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
-              <label>Id do Estoque *</label>
-              <app-combobox-customizada
-                [options]="fk_idEstoqueMaterialConsumo"
-                [(value)]="model.idEstoqueMaterialConsumo"
-                [disabled]="fieldDisabled('idEstoqueMaterialConsumo')" [required]="true" />
-            </div>
-            <div style="grid-column: 9 / span 4; grid-row: 1" class="form-group fg-col-4">
-              <label>Data/Hora Validade</label>
-              <app-campo-data-hora [(ngModel)]="model.dataValidade" name="dataValidade" [disabled]="fieldDisabled('dataValidade')" [feedbackVisual]="true"/>
-            </div>
-            <div style="grid-column: 1 / span 6; grid-row: 2" class="form-group fg-col-6">
-              <label>Id do Tipo de Material *</label>
-              <app-combobox-customizada
-                [options]="fk_idTipoMaterial"
-                [(value)]="model.idTipoMaterial"
-                [disabled]="fieldDisabled('idTipoMaterial')" [required]="true" />
-            </div>
-            <div style="grid-column: 7 / span 6; grid-row: 2" class="form-group fg-col-6">
-              <label>Consumidor</label>
-              <app-combobox-customizada
-                [options]="fk_idPessoa"
-                [(value)]="model.idPessoa"
-                [disabled]="fieldDisabled('idPessoa')" />
-            </div>
-            <div style="grid-column: 1 / span 2; grid-row: 3" class="form-group fg-col-2">
-              <label>Quantidade *</label>
-              <input type="number" [(ngModel)]="model.quantidade" name="quantidade" step="0.001" [readonly]="fieldDisabled('quantidade')" required />
-            </div>
-            <div style="grid-column: 3 / span 2; grid-row: 3" class="form-group fg-col-2">
-              <label>Unidade de Medida *</label>
-              <select [(ngModel)]="model.unidadeMedida" name="unidadeMedida" [disabled]="fieldDisabled('unidadeMedida')" required>
-                <option [ngValue]="null">Selecione…</option>
-                <option [ngValue]="0">Unidade (UN)</option><option [ngValue]="1">Quilograma (kg)</option><option [ngValue]="2">Litro (L)</option><option [ngValue]="3">Metro (m)</option><option [ngValue]="4">Metro quadrado (m²)</option>
-              </select>
-            </div>
-            <div style="grid-column: 5 / span 2; grid-row: 3" class="form-group fg-col-2">
-              <label>Tipo de Lançamento *</label>
-              <select [(ngModel)]="model.tipoLancamento" name="tipoLancamento" [disabled]="fieldDisabled('tipoLancamento')" required>
-                <option [ngValue]="null">Selecione…</option>
-                <option [ngValue]="0">Entrada Por Aquisição</option><option [ngValue]="1">Entrada Por Devolução</option><option [ngValue]="2">Saída por utilização</option><option [ngValue]="3">Saída por Perda</option><option [ngValue]="4">Saída por Inventário</option>
-              </select>
-            </div>
-            <div style="grid-column: 7 / span 2; grid-row: 3" class="form-group fg-col-2">
-              <label>Lote</label>
-              <input type="text" [(ngModel)]="model.lote" name="lote" maxlength="20" [readonly]="fieldDisabled('lote')" />
-            </div>
-            <div style="grid-column: 9 / span 2; grid-row: 3" class="form-group fg-col-2">
-              <label>Valor Uniário da Aquisição</label>
-              <input type="number" [(ngModel)]="model.valorUnitarioAquisicao" name="valorUnitarioAquisicao" step="0.001" [readonly]="fieldDisabled('valorUnitarioAquisicao')" />
-            </div>
-          </div>
-        </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
-        <span class="cad-acoes__espaco"></span>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
-        <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
-      </div>
+            <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
+            <span class="cad-acoes__espaco"></span>
+            <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
+            <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
+          </div>
         </section>
       </div>
     </div>
@@ -132,6 +221,73 @@ import { PessoaCondominioService } from '../pessoacondominio/pessoacondominio.se
     </div>
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
+  styles: [`
+    :host .cad-page {
+      max-width: min(960px, calc(100vw - 40px));
+    }
+    .esmc-mov {
+      gap: 12px;
+    }
+    .esmc-mov__linha--1 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: end;
+    }
+    .esmc-mov__linha--2 {
+      grid-template-columns: minmax(0, 40fr) minmax(0, 60fr);
+      align-items: end;
+    }
+    .esmc-mov__linha--2--sem-consumidor {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .esmc-mov__linha--3 {
+      grid-template-columns: minmax(0, 30fr) minmax(0, 30fr) minmax(0, 40fr);
+      align-items: end;
+    }
+    .esmc-mov__linha--4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: end;
+    }
+    .esmc-mov__datahora,
+    .esmc-mov__moeda {
+      min-width: 0;
+    }
+    .esmc-mov__moeda > label {
+      line-height: 1.25;
+    }
+    .esmc-datahora-rotulos {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      width: 100%;
+      min-width: 0;
+    }
+    .esmc-datahora-rotulos label {
+      margin-bottom: 4px;
+      min-height: 0;
+      line-height: 1.25;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+    }
+    .esmc-datahora-rotulos__data {
+      flex: 1 1 70%;
+      min-width: 0;
+    }
+    .esmc-datahora-rotulos__hora {
+      flex: 0 0 30%;
+      max-width: 30%;
+      text-align: left;
+      white-space: nowrap;
+    }
+    @media (max-width: 720px) {
+      .esmc-mov__linha--1,
+      .esmc-mov__linha--2,
+      .esmc-mov__linha--3,
+      .esmc-mov__linha--4 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  `],
 })
 export class EntradaSaidaMaterialConsumoFormComponent implements OnInit {
   model: EntradaSaidaMaterialConsumo = {} as EntradaSaidaMaterialConsumo;
@@ -161,6 +317,10 @@ export class EntradaSaidaMaterialConsumoFormComponent implements OnInit {
     this.refreshPermissions();
   }
 
+  get exibirConsumidor(): boolean {
+    return this.model.tipoLancamento === TIPO_LANCAMENTO_SAIDA_UTILIZACAO;
+  }
+
   get podeGravar(): boolean {
     return this.isEdit
       ? this.permissions.can(this.permissionKey, 'Alterar')
@@ -172,12 +332,9 @@ export class EntradaSaidaMaterialConsumoFormComponent implements OnInit {
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
-  get pkDisplay(): string { return String(this.model.idEntradaSaidaMaterialConsumo); }
-
   ngOnInit(): void {
     if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();
 
-    
     this.pageLoad.run(this.estoqueMaterialConsumoService.getPaged(1, 200), r => {
       this.fk_idEstoqueMaterialConsumo = r.items.map((x: any) => ({
         value: x.idEstoqueMaterialConsumo,
@@ -212,6 +369,12 @@ export class EntradaSaidaMaterialConsumoFormComponent implements OnInit {
       this.pageLoad.run(this.service.getById(idEntradaSaidaMaterialConsumo), (r) => this.model = r, () => this.toast.showError('Registro não encontrado.'));
     }
     this.pageLoad.seal();
+  }
+
+  onTipoLancamentoChange(): void {
+    if (!this.exibirConsumidor) {
+      this.model.idPessoa = undefined;
+    }
   }
 
   fieldDisabled(field: string): boolean {

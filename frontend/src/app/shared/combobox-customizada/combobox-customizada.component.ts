@@ -48,7 +48,8 @@ const MIN_ESPACO_ABAIXO = 180;
           (input)="onSearch()"
           [placeholder]="placeholder"
           [disabled]="disabled"
-          [required]="required"
+          [attr.aria-required]="required ? 'true' : null"
+          [attr.aria-invalid]="invalido ? 'true' : null"
           [attr.aria-label]="ariaLabel || null"
           autocomplete="off" />
         <button
@@ -152,6 +153,9 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
       this.atualizarRotuloDaSelecao();
       this.aplicarFiltroOpcoes();
     }
+    if (changes['value'] || changes['required'] || changes['disabled']) {
+      this.cd.markForCheck();
+    }
   }
 
   ngOnDestroy(): void {
@@ -194,6 +198,7 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
       if (!found || found.label !== this.search) {
         this.value = null;
         this.valueChange.emit(null);
+        this.cd.markForCheck();
       }
     }
     if (this.open) {
@@ -211,6 +216,7 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
     this.search = o.label;
     this.valueChange.emit(o.value);
     this.fechar();
+    this.cd.markForCheck();
   }
 
   onInputBlur(): void {
@@ -226,6 +232,7 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
     this.search = '';
     this.valueChange.emit(null);
     this.onSearch();
+    this.cd.markForCheck();
   }
 
   prev(): void {

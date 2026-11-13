@@ -47,6 +47,19 @@ public partial class AppDbContext
         modelBuilder.Entity<PessoaPermissaoExcecao>().HasKey(p => new { p.IdPessoa, p.IdCondominio, p.IdPermissionKey });
         modelBuilder.Entity<PessoaPermissaoExcecao>().HasQueryFilter(e => e.IdCondominio == CurrentTenantId);
 
+        modelBuilder.Entity<Banco>(b =>
+        {
+            b.Property(e => e.IdBanco).ValueGeneratedOnAdd();
+            b.Property(e => e.CodigoBanco).HasMaxLength(3);
+            b.Property(e => e.DigitoVerificador).HasMaxLength(1);
+            b.Property(e => e.Nome).HasMaxLength(255).IsRequired();
+            b.Property(e => e.ISPB).HasMaxLength(8).IsRequired();
+            b.Property(e => e.CNPJ).HasMaxLength(14);
+            b.Property(e => e.Ativo).IsRequired();
+            b.HasIndex(e => e.CodigoBanco).IsUnique().HasDatabaseName("uq_Banco_CodigoBanco");
+            b.HasIndex(e => e.ISPB).IsUnique().HasDatabaseName("uq_Banco_ISPB");
+        });
+
         ConfigureEntityKeys(modelBuilder);
         ConfigureTenantQueryFilters(modelBuilder);
 

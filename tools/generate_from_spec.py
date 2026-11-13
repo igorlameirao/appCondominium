@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Gera entidades, repositórios, controllers e telas Angular a partir de md_appCondominium.json."""
+"""Gera entidades, repositórios, controllers e telas Angular a partir de md_appCondominium.json.
+
+Uso:
+  python tools/generate_from_spec.py                      # regeneração global (sobrescreve telas migradas)
+  python tools/generate_from_spec.py --entidade Banco     # só os artefatos da entidade
+  python tools/generate_from_spec.py --entidade Banco --saida C:/tmp/gen   # gera fora do repositório para comparação
+"""
+import argparse
 import json
 import os
 import re
@@ -7,8 +14,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_PATH = ROOT / "MDs" / "md_appCondominium.json"
+OUT_ROOT = ROOT
 SRC = ROOT / "WebApi"
 FE = ROOT / "frontend" / "src" / "app" / "features"
+
+# Artefatos com regras além do metadata (validação, unicidade, layout aprovado). O gerador não os sobrescreve.
+ARTEFATOS_MANUAIS = {
+    "Banco": {"repository", "controller", "angular_model", "angular_service", "angular_list", "angular_form"},
+    "DadosBancarios": {"angular_list", "angular_form"},
+}
+
+# PK auto incremental que não deve aparecer no formulário (campo "Id" somente leitura).
+OCULTAR_PK_NO_FORM = {"Banco"}
 
 
 def load_spec():
@@ -24,8 +41,18 @@ def pascal(s):
 
 
 def camel(s):
+    """Mesmo resultado do JsonNamingPolicy.CamelCase da API (CNPJ -> cnpj, ISPB -> ispb, IdBanco -> idBanco)."""
     p = pascal(s)
-    return p[:1].lower() + p[1:] if p else s
+    if not p:
+        return s
+    chars = list(p)
+    for i, ch in enumerate(chars):
+        if i == 1 and not ch.isupper():
+            break
+        if i > 0 and i + 1 < len(chars) and not chars[i + 1].isupper():
+            break
+        chars[i] = ch.lower()
+    return "".join(chars)
 
 
 def is_pk(campo):
@@ -155,7 +182,9 @@ def mysql_type(campo):
     if "DATE" in t:
         return "DATE" + (" NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL")
     if "BOOLEAN" in t:
-        return "TINYINT(1)" + (" NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL")
+        padrao = re.search(r"(?:PADR[ÃA]O|DEFAULT)\s+(TRUE|FALSE)", t)
+        default = f" DEFAULT {1 if padrao.group(1) == 'TRUE' else 0}" if padrao else ""
+        return "TINYINT(1)" + (" NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL") + default
     m = re.search(r"CHAR\((\d+)\)", t, re.I)
     if m:
         return f"CHAR({m.group(1)})" + (" NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL")
@@ -331,7 +360,7 @@ def route_params(entity):
 
 def route_path_suffix(entity):
     pks = pk_fields(entity)
-    return "/".join("{" + camel(c["Campo"]) + "}" for c in pks)
+    return "/".join(":" + camel(c["Campo"]) for c in pks)
 
 
 def pk_fields(entity):
@@ -345,12 +374,12 @@ def write(path, content):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-    print("  wrote", path.relative_to(ROOT))
+    print("  wrote", path.relative_to(OUT_ROOT))
 
 
 def gen_entity(entity):
     name = pascal(entity["Entidade"])
-    lines = [f"namespace AppCondominium.Domain.Entities;", "", f"public class {name}", "{"]
+    lines = [f"namespace AppCondominium.Domain.Entities;", "", f"public partial class {name}", "{"]
     seen = set()
     for c in entity["Campos"]:
         cn = pascal(c["Campo"])
@@ -689,7 +718,7 @@ def gen_angular_model(entity):
         seen.add(cn)
         ct = "string"
         td = (c.get("TipoDado") or "").upper()
-        if "INT" in td or "DECIMAL" in td or "TINYINT" in td:
+        if "INT" in td or "DECIMAL" in td or "TINYINT" in td or "BOOL" in td:
             ct = "number"
         if "DATE" in td:
             ct = "string"
@@ -989,7 +1018,7 @@ def gen_sql(entities):
 
     lines.append("SET FOREIGN_KEY_CHECKS = 1;")
     lines.append("")
-    write(ROOT / "database" / "schema.sql", "\n".join(lines))
+    write(OUT_ROOT / "database" / "schema.sql", "\n".join(lines))
 
 
 def gen_dbcontext(entities):
@@ -1250,7 +1279,7 @@ def gen_angular_form(entity):
     }});""")
 
     pk_display = ""
-    if any(is_auto_inc(c) for c in pk_list):
+    if any(is_auto_inc(c) for c in pk_list) and entity["Entidade"] not in OCULTAR_PK_NO_FORM:
         pk_display = """
           <div class="form-group fg-col-2">
             <label>Id</label>
@@ -1460,25 +1489,62 @@ def gen_angular_routes_file(crud_entities):
     write(FE.parent / "entity-routes.generated.ts", "\n".join(lines))
 
 
+def set_output_root(root):
+    global OUT_ROOT, SRC, FE
+    OUT_ROOT = Path(root).resolve()
+    SRC = OUT_ROOT / "WebApi"
+    FE = OUT_ROOT / "frontend" / "src" / "app" / "features"
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--entidade", action="append", default=[],
+                        help="Gera apenas a(s) entidade(s) informada(s); omite DbContext, DI, schema.sql e rotas globais.")
+    parser.add_argument("--saida", help="Diretório raiz alternativo para os arquivos gerados (padrão: o repositório).")
+    parser.add_argument("--incluir-manuais", action="store_true",
+                        help="Também gera os artefatos listados em ARTEFATOS_MANUAIS (use com --saida para comparar).")
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+    if args.saida:
+        set_output_root(args.saida)
     spec = load_spec()
     entities = spec["Entidades"]
     crud_entities = [e for e in entities if e.get("Gerar CRUD") == "Sim"]
-    print(f"Gerando {len(crud_entities)} entidades CRUD...")
-    for e in crud_entities:
+    if args.entidade:
+        conhecidas = {e["Entidade"] for e in crud_entities}
+        desconhecidas = sorted(set(args.entidade) - conhecidas)
+        if desconhecidas:
+            raise SystemExit(f"Entidade(s) sem 'Gerar CRUD' no metadata: {', '.join(desconhecidas)}")
+        alvo = [e for e in crud_entities if e["Entidade"] in args.entidade]
+    else:
+        alvo = crud_entities
+    print(f"Gerando {len(alvo)} entidades CRUD em {OUT_ROOT}...")
+    for e in alvo:
         print(e["Entidade"])
-        gen_entity(e)
-        gen_repository(e)
-        gen_controller(e)
-        gen_angular_model(e)
-        gen_angular_service(e)
-        gen_angular_list(e)
+        manuais = set() if args.incluir_manuais else ARTEFATOS_MANUAIS.get(e["Entidade"], set())
+        artefatos = [
+            ("entity", gen_entity),
+            ("repository", gen_repository),
+            ("controller", gen_controller),
+            ("angular_model", gen_angular_model),
+            ("angular_service", gen_angular_service),
+            ("angular_list", gen_angular_list),
+        ]
         if e["Entidade"] not in ("UF", "Municipio", "Endereco", "ConfiguracaoCondominio"):
-            gen_angular_form(e)
-    gen_dbcontext(crud_entities)
-    gen_di(crud_entities)
-    gen_sql(entities)
-    gen_angular_routes_file(crud_entities)
+            artefatos.append(("angular_form", gen_angular_form))
+        for nome, gerar in artefatos:
+            if nome in manuais:
+                print(f"  skip {nome} (mantido manualmente)")
+                continue
+            gerar(e)
+    if not args.entidade:
+        gen_dbcontext(crud_entities)
+        gen_di(crud_entities)
+        gen_sql(entities)
+        gen_angular_routes_file(crud_entities)
     print("Concluído.")
 
 

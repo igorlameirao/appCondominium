@@ -33,7 +33,7 @@ import { UnidadeService } from '../unidade/unidade.service';
           <p class="cad-subtitulo">Cadastre e mantenha as informações de hidrômetro</p>
         </header>
 
-        <section class="cad-card form-page">
+        <section class="cad-card form-page cad-card--secao-unica">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
             <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
               <app-icone nome="layers" [tamanho]="16" />
@@ -49,20 +49,15 @@ import { UnidadeService } from '../unidade/unidade.service';
               </div>
             </div>
             <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
-            </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
-              <label>Id Unidade *</label>
+          <div class="form-grid hidrometro-dados">
+            <div class="form-group hidrometro-dados__unidade">
+              <label>Unidade *</label>
               <app-combobox-customizada
                 [options]="fk_idUnidade"
                 [(value)]="model.idUnidade"
                 [disabled]="fieldDisabled('idUnidade')" [required]="true" />
             </div>
-            <div style="grid-column: 9 / span 3; grid-row: 1" class="form-group fg-col-3">
+            <div class="form-group hidrometro-dados__serie">
               <label>Número de Série *</label>
               <input type="text" [(ngModel)]="model.numeroSerie" name="numeroSerie" maxlength="40" [readonly]="fieldDisabled('numeroSerie')" required />
             </div>
@@ -89,6 +84,14 @@ import { UnidadeService } from '../unidade/unidade.service';
     </div>
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
+  styles: [`
+    .hidrometro-dados {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+    @media (max-width: 720px) {
+      .hidrometro-dados { grid-template-columns: 1fr; }
+    }
+  `],
 })
 export class HidrometroFormComponent implements OnInit {
   model: Hidrometro = {} as Hidrometro;
@@ -124,8 +127,6 @@ export class HidrometroFormComponent implements OnInit {
     this.canEdit = this.podeGravar;
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
-
-  get pkDisplay(): string { return String(this.model.idHidrometro); }
 
   ngOnInit(): void {
     if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();

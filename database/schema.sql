@@ -271,16 +271,21 @@ CREATE TABLE IF NOT EXISTS `OfertaConcorrencia` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `Banco` (
-  `CodigoBanco` INT UNSIGNED NOT NULL,
-  `DigitoVerificador` INT UNSIGNED NOT NULL,
+  `IdBanco` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `CodigoBanco` VARCHAR(3) NULL,
+  `DigitoVerificador` VARCHAR(1) NULL,
   `Nome` VARCHAR(255) NOT NULL,
-  PRIMARY KEY (`CodigoBanco`),
-  UNIQUE KEY `uq_Banco_Nome` (`Nome`)
+  `ISPB` VARCHAR(8) NOT NULL,
+  `CNPJ` VARCHAR(14) NULL,
+  `Ativo` TINYINT(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`IdBanco`),
+  UNIQUE KEY `uq_Banco_CodigoBanco` (`CodigoBanco`),
+  UNIQUE KEY `uq_Banco_ISPB` (`ISPB`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `DadosBancarios` (
   `Conta` INT UNSIGNED NOT NULL,
-  `CodigoBanco` INT UNSIGNED NOT NULL,
+  `IdBanco` INT UNSIGNED NOT NULL,
   `Agencia` CHAR(4) NOT NULL,
   `DigitoAgencia` CHAR(1) NULL,
   `DigitoConta` CHAR(1) NOT NULL,
@@ -288,8 +293,8 @@ CREATE TABLE IF NOT EXISTS `DadosBancarios` (
   `Ativo` TINYINT(1) NOT NULL,
   `DataCadastro` DATETIME NOT NULL,
   `CodigoEmpresaCobranca` INT UNSIGNED NULL,
-  PRIMARY KEY (`Conta`, `CodigoBanco`, `Agencia`),
-  CONSTRAINT `fk_DadosBancarios_CodigoBanco` FOREIGN KEY (`CodigoBanco`) REFERENCES `Banco` (`CodigoBanco`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  PRIMARY KEY (`Conta`, `IdBanco`, `Agencia`),
+  CONSTRAINT `fk_DadosBancarios_IdBanco` FOREIGN KEY (`IdBanco`) REFERENCES `Banco` (`IdBanco`) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `fk_DadosBancarios_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

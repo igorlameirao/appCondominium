@@ -1,5 +1,9 @@
 export interface Banco {
-  codigoBanco?: number;
-  digitoVerificador?: number;
+  idBanco?: number;
+  codigoBanco?: string | null;
+  digitoVerificador?: string | null;
   nome?: string;
+  ispb?: string;
+  cnpj?: string | null;
+  ativo?: number;
 }

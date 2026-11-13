@@ -25,6 +25,9 @@ public static partial class DependencyInjection
         services.AddSingleton<PessoafisicaSenhaInterceptor>();
         services.AddScoped<ArquivoCleanupInterceptor>();
         services.AddScoped<IFaceEmbeddingSync, FaceEmbeddingSync>();
+        services.AddHttpClient();
+        services.AddScoped<CnpjService>();
+        services.AddScoped<BancoCodigoService>();
         RegistrarArmazenamento(services, config);
 
         var connectionString = config.GetConnectionString("DefaultConnection")

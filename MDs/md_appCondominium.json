@@ -1990,18 +1990,25 @@
         ],
         "Campos": [
           {
-            "Campo": "CodigoBanco",
-            "RotuloCampo": "CodigoBanco",
-            "TipoDado": "INT - Unsigned",
-            "Filtro": "Sim",
+            "Campo": "IdBanco",
+            "RotuloCampo": "Id Banco",
+            "TipoDado": "INT - Unsigned - Auto incremental",
             "Obrigatorio": "Sim",
             "Indice": "Primary Key"
           },
           {
+            "Campo": "CodigoBanco",
+            "RotuloCampo": "CodigoBanco",
+            "TipoDado": "VARCHAR(3)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Não",
+            "Indice": "Unique Key"
+          },
+          {
             "Campo": "DigitoVerificador",
             "RotuloCampo": "DigitoVerificador",
-            "TipoDado": "INT - Unsigned",
-            "Obrigatorio": "Sim",
+            "TipoDado": "VARCHAR(1)",
+            "Obrigatorio": "Não",
             "Indice": ""
           },
           {
@@ -2010,7 +2017,28 @@
             "TipoDado": "VARCHAR(255)",
             "Filtro": "Sim",
             "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "ISPB",
+            "RotuloCampo": "ISPB",
+            "TipoDado": "VARCHAR(8)",
+            "Obrigatorio": "Sim",
             "Indice": "Unique Key"
+          },
+          {
+            "Campo": "CNPJ",
+            "RotuloCampo": "CNPJ",
+            "TipoDado": "VARCHAR(14)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "Ativo",
+            "RotuloCampo": "Ativo",
+            "TipoDado": "BOOLEAN - Padrão true",
+            "Obrigatorio": "Sim",
+            "Indice": ""
           }
         ],
         "EscopoTenant": "Global"
@@ -2032,8 +2060,8 @@
             "Indice": "Primary Key"
           },
           {
-            "Campo": "CodigoBanco",
-            "RotuloCampo": "CodigoBanco",
+            "Campo": "IdBanco",
+            "RotuloCampo": "Id Banco",
             "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Sim",
             "Filtro": "Sim",

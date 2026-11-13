@@ -38,10 +38,10 @@ public class DadosBancariosRepository
         return new PagedResult<DadosBancarios> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
     }
 
-    public async Task<DadosBancarios?> GetByIdAsync(uint? conta, uint? codigoBanco, string? agencia, CancellationToken ct = default)
+    public async Task<DadosBancarios?> GetByIdAsync(uint? conta, uint? idBanco, string? agencia, CancellationToken ct = default)
     {
         var q = ApplyCondominioFilter(BaseQuery());
-        return await q.FirstOrDefaultAsync(e => e.Conta == conta && e.CodigoBanco == codigoBanco && e.Agencia == agencia, ct);
+        return await q.FirstOrDefaultAsync(e => e.Conta == conta && e.IdBanco == idBanco && e.Agencia == agencia, ct);
     }
 
     public async Task<DadosBancarios> AddAsync(DadosBancarios entity, CancellationToken ct = default)
@@ -62,9 +62,9 @@ public class DadosBancariosRepository
         await _ctx.SaveChangesAsync(ct);
     }
 
-    public async Task<bool> DeleteAsync(uint? conta, uint? codigoBanco, string? agencia, CancellationToken ct = default)
+    public async Task<bool> DeleteAsync(uint? conta, uint? idBanco, string? agencia, CancellationToken ct = default)
     {
-        var e = await GetByIdAsync(conta, codigoBanco, agencia, ct);
+        var e = await GetByIdAsync(conta, idBanco, agencia, ct);
         if (e == null) return false;
         _ctx.Set<DadosBancarios>().Remove(e);
         await _ctx.SaveChangesAsync(ct);

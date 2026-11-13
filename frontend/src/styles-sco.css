@@ -97,8 +97,9 @@ select {
   font-size: 12px;
 }
 
-/* Campos obrigatórios: vazio vermelho, preenchido slate, sem sombra (hug SCO). */
-input[required]:not([type="checkbox"]):not([type="radio"]),
+/* Campos obrigatórios: vazio vermelho, preenchido slate, sem sombra (hug SCO).
+   .combo-input fica fora — borda via app-combobox-customizada (.combo--invalido) e cadastro.css. */
+input[required]:not([type="checkbox"]):not([type="radio"]):not(.combo-input),
 select[required],
 textarea[required] {
   border: 1px solid #dc3545 !important;
@@ -106,8 +107,8 @@ textarea[required] {
   box-shadow: none !important;
 }
 
-input[required]:not([type="checkbox"]):not([type="radio"]).ng-valid,
-input[required]:not([type="checkbox"]):not([type="radio"]):valid,
+input[required]:not([type="checkbox"]):not([type="radio"]):not(.combo-input).ng-valid,
+input[required]:not([type="checkbox"]):not([type="radio"]):not(.combo-input):valid,
 select[required].ng-valid,
 select[required]:valid,
 textarea[required].ng-valid,
@@ -116,8 +117,8 @@ textarea[required]:valid {
   box-shadow: none !important;
 }
 
-input[required]:not([type="checkbox"]):not([type="radio"]).ng-invalid,
-input[required]:not([type="checkbox"]):not([type="radio"]):invalid,
+input[required]:not([type="checkbox"]):not([type="radio"]):not(.combo-input).ng-invalid,
+input[required]:not([type="checkbox"]):not([type="radio"]):not(.combo-input):invalid,
 select[required].ng-invalid,
 select[required]:invalid,
 textarea[required].ng-invalid,
@@ -127,7 +128,7 @@ select[required]:has(> option.opt-placeholder:checked) {
   box-shadow: none !important;
 }
 
-input:not([required]):not(.readonly):not([disabled]):not([type="checkbox"]):not([type="radio"]):not(.mat-mdc-input-element),
+input:not([required]):not(.readonly):not([disabled]):not([type="checkbox"]):not([type="radio"]):not(.mat-mdc-input-element):not(.combo-input),
 select:not([required]),
 textarea:not([required]) {
   border: 1px solid #000 !important;
