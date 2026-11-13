@@ -29,6 +29,8 @@ const entityRoutes: Routes = [
   { path: 'tipounidade/:idTipoUnidade', loadComponent: () => import('./features/tipounidade/tipounidade-form.component').then(m => m.TipoUnidadeFormComponent) },
   { path: 'unidade', loadComponent: () => import('./features/unidade/unidade-list.component').then(m => m.UnidadeListComponent) },
   { path: 'unidade/novo', loadComponent: () => import('./features/unidade/unidade-form.component').then(m => m.UnidadeFormComponent) },
+  { path: 'unidade/lote', loadComponent: () => import('./features/unidade/unidade-lote.component').then(m => m.UnidadeLoteComponent) },
+  { path: 'unidade/copiar-bloco', loadComponent: () => import('./features/unidade/unidade-copiar-bloco.component').then(m => m.UnidadeCopiarBlocoComponent) },
   { path: 'unidade/:idUnidade', loadComponent: () => import('./features/unidade/unidade-form.component').then(m => m.UnidadeFormComponent) },
   { path: 'hidrometro', loadComponent: () => import('./features/hidrometro/hidrometro-list.component').then(m => m.HidrometroListComponent) },
   { path: 'hidrometro/novo', loadComponent: () => import('./features/hidrometro/hidrometro-form.component').then(m => m.HidrometroFormComponent) },

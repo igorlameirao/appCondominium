@@ -2,8 +2,8 @@ namespace AppCondominium.Application.Storage;
 
 /// <summary>
 /// Chaves determinísticas, sem coluna no banco.
-/// Tenant: <c>{env}/{sistema}/condominios/{id}/funcionalidades/...</c>
-/// Pessoa (foto única): <c>{env}/{sistema}/plataforma/funcionalidades/...</c>
+/// Tenant: <c>{sistema}/{env}/condominios/{id}/funcionalidades/...</c> (prefixo IAM: <c>app-condominium/dev/</c>)
+/// Pessoa (foto única): <c>{sistema}/{env}/plataforma/funcionalidades/...</c>
 /// O valor retornado não inclui extensão; o arquivo real é <c>{radical}.{ext}</c>.
 /// </summary>
 public sealed class StorageObjectKeyBuilder
@@ -27,7 +27,13 @@ public sealed class StorageObjectKeyBuilder
     public string Procuracao(uint idCondominio, uint idPessoa, uint idUnidade) =>
         $"{Condominio(idCondominio)}/funcionalidades/pessoas-unidade/{idPessoa}-{idUnidade}/procuracao";
 
-    private string Root() => $"{Segmento(_options.EnvironmentPrefix)}/{Segmento(_options.Sistema)}";
+    public string LocalizacaoUnidade(uint idCondominio, uint idTipoUnidade) =>
+        $"{Condominio(idCondominio)}/funcionalidades/tipos-unidade/{idTipoUnidade}/localizacao-unidade";
+
+    public string PlantaBaixa(uint idCondominio, uint idTipoUnidade) =>
+        $"{Condominio(idCondominio)}/funcionalidades/tipos-unidade/{idTipoUnidade}/planta-baixa";
+
+    private string Root() => $"{Segmento(_options.Sistema)}/{Segmento(_options.EnvironmentPrefix)}";
 
     private string Plataforma() => $"{Root()}/plataforma";
 

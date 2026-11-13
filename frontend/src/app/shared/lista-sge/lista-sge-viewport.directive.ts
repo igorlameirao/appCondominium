@@ -168,7 +168,12 @@ export class ListaSgeViewport implements OnInit, AfterViewInit, OnChanges, OnDes
     if (capacidade !== this.ultimaCapacidade) {
       this.ultimaCapacidade = capacidade;
       if (capacidade !== this.tamanhoPagina) {
-        this.tamanhoPaginaChange.emit(capacidade);
+        // Evita NG0100: o host atualiza `[tamanhoPagina]` (ex.: 14 → 16) após o check da view.
+        setTimeout(() => {
+          if (capacidade !== this.tamanhoPagina) {
+            this.tamanhoPaginaChange.emit(capacidade);
+          }
+        }, 0);
       }
     }
   }

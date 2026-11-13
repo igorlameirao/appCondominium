@@ -26,7 +26,7 @@ public class StorageObjectKeyBuilderTests
     public void Foto_de_pessoa_fica_na_plataforma_sem_condominio()
     {
         Assert.Equal(
-            "dev/app-condominium/plataforma/funcionalidades/pessoas-fisicas/15/foto-perfil/original",
+            "app-condominium/dev/plataforma/funcionalidades/pessoas-fisicas/15/foto-perfil/original",
             _chaves.FotoPerfil(15));
     }
 
@@ -34,17 +34,23 @@ public class StorageObjectKeyBuilderTests
     public void Arquivos_de_tenant_ficam_sob_o_condominio_e_a_funcionalidade()
     {
         Assert.Equal(
-            "dev/app-condominium/condominios/3/funcionalidades/configuracao/imagem-login",
+            "app-condominium/dev/condominios/3/funcionalidades/configuracao/imagem-login",
             _chaves.ImagemLogin(3));
         Assert.Equal(
-            "dev/app-condominium/condominios/3/funcionalidades/configuracao/imagem-icone",
+            "app-condominium/dev/condominios/3/funcionalidades/configuracao/imagem-icone",
             _chaves.ImagemIcone(3));
         Assert.Equal(
-            "dev/app-condominium/condominios/3/funcionalidades/concorrencias/ofertas/9/documento-comprobatorio",
+            "app-condominium/dev/condominios/3/funcionalidades/concorrencias/ofertas/9/documento-comprobatorio",
             _chaves.DocumentoComprobatorio(3, 9));
         Assert.Equal(
-            "dev/app-condominium/condominios/3/funcionalidades/pessoas-unidade/4-8/procuracao",
+            "app-condominium/dev/condominios/3/funcionalidades/pessoas-unidade/4-8/procuracao",
             _chaves.Procuracao(3, 4, 8));
+        Assert.Equal(
+            "app-condominium/dev/condominios/3/funcionalidades/tipos-unidade/12/localizacao-unidade",
+            _chaves.LocalizacaoUnidade(3, 12));
+        Assert.Equal(
+            "app-condominium/dev/condominios/3/funcionalidades/tipos-unidade/12/planta-baixa",
+            _chaves.PlantaBaixa(3, 12));
     }
 }
 

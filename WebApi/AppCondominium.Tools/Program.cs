@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+var fixUnidadeSchema = args.Any(a => string.Equals(a, "fix-unidade-schema", StringComparison.OrdinalIgnoreCase));
 var dropColumns = args.Any(a => string.Equals(a, "--drop-columns", StringComparison.OrdinalIgnoreCase));
 var apiDir = EncontrarApi();
 
@@ -23,16 +24,19 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddTransient<BlobToS3Migrator>();
 
 using var host = builder.Build();
-var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("migrate-blobs-to-s3");
+var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("AppCondominium.Tools");
 try
 {
+    if (fixUnidadeSchema)
+        return await UnidadeSchemaFix.RunAsync(host.Services, logger, CancellationToken.None);
+
     using var scope = host.Services.CreateScope();
     var migrator = scope.ServiceProvider.GetRequiredService<BlobToS3Migrator>();
     await migrator.RunAsync(dropColumns, CancellationToken.None);
 }
 catch (Exception ex)
 {
-    logger.LogError(ex, "Migração de BLOBs para o S3 interrompida.");
+    logger.LogError(ex, fixUnidadeSchema ? "Correção de schema Unidade interrompida." : "Migração de BLOBs para o S3 interrompida.");
     return 1;
 }
 

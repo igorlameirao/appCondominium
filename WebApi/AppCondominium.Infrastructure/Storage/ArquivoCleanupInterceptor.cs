@@ -106,6 +106,21 @@ public sealed class ArquivoCleanupInterceptor : SaveChangesInterceptor
                 continue;
             _depois.Add(ct => ExcluirProcuracaoAsync(idPessoa, idUnidade, ct));
         }
+
+        foreach (var entry in context.ChangeTracker.Entries<TipoUnidade>())
+        {
+            if (entry.State != EntityState.Deleted
+                || entry.Entity.IdTipoUnidade is not uint idTipoUnidade
+                || entry.Entity.IdCondominio is not uint idCondominio)
+                continue;
+            var localizacao = _chaves.LocalizacaoUnidade(idCondominio, idTipoUnidade);
+            var planta = _chaves.PlantaBaixa(idCondominio, idTipoUnidade);
+            _depois.Add(async ct =>
+            {
+                await _arquivos.ExcluirAsync(localizacao, ct);
+                await _arquivos.ExcluirAsync(planta, ct);
+            });
+        }
     }
 
     private async Task ExcluirProcuracaoAsync(uint idPessoa, uint idUnidade, CancellationToken ct)

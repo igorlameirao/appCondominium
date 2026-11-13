@@ -49,6 +49,11 @@ public partial class AppDbContext
 
         ConfigureEntityKeys(modelBuilder);
         ConfigureTenantQueryFilters(modelBuilder);
+
+        modelBuilder.Entity<Unidade>()
+            .Property(u => u.IdUnidade)
+            .ValueGeneratedOnAdd();
+
         base.OnModelCreating(modelBuilder);
     }
 }
