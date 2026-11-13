@@ -8,8 +8,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { LocalService } from './local.service';
 import { Local } from './local.model';
-import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 
@@ -17,7 +15,7 @@ import { CondominioContextService } from '../../core/services/condominio-context
 @Component({
   selector: 'app-local-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -49,24 +47,40 @@ import { CondominioContextService } from '../../core/services/condominio-context
               </div>
             </div>
             <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
-            </div>
-            <div style="grid-column: 3 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Tipo de Local *</label>
-              <select [(ngModel)]="model.tipoLocal" name="tipoLocal" [disabled]="fieldDisabled('tipoLocal')" required>
-                <option [ngValue]="null">Selecione…</option>
-                <option [ngValue]="0">Armazenamento</option><option [ngValue]="1">Alocação</option>
-              </select>
-            </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
-              <label>Descrição *</label>
-              <input type="text" [(ngModel)]="model.descricao" name="descricao" maxlength="100" [readonly]="fieldDisabled('descricao')" required />
-            </div>
-          </div>
+                @if (isEdit) {
+                  <input
+                    type="hidden"
+                    [(ngModel)]="model.idLocal"
+                    name="idLocal" />
+                }
+                <div class="cad-blocos local-dados">
+                  <div class="form-grid local-dados__linha">
+                    <div class="form-group local-dados__tipo">
+                      <label for="local-tipo">Tipo de Local *</label>
+                      <select
+                        id="local-tipo"
+                        [(ngModel)]="model.tipoLocal"
+                        name="tipoLocal"
+                        [disabled]="fieldDisabled('tipoLocal')"
+                        required>
+                        <option [ngValue]="null">Selecione…</option>
+                        <option [ngValue]="0">Armazenamento</option>
+                        <option [ngValue]="1">Alocação</option>
+                      </select>
+                    </div>
+                    <div class="form-group local-dados__descricao">
+                      <label for="local-descricao">Descrição *</label>
+                      <input
+                        id="local-descricao"
+                        type="text"
+                        [(ngModel)]="model.descricao"
+                        name="descricao"
+                        maxlength="100"
+                        [readonly]="fieldDisabled('descricao')"
+                        required />
+                    </div>
+                  </div>
+                </div>
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
@@ -89,6 +103,28 @@ import { CondominioContextService } from '../../core/services/condominio-context
     </div>
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
+  styles: [`
+    :host .cad-conteudo {
+      min-height: 0;
+      padding: 20px 0 8px;
+    }
+    :host .cad-secao {
+      margin-bottom: 16px;
+    }
+    .local-dados__linha {
+      grid-template-columns: minmax(0, 33fr) minmax(0, 67fr);
+      align-items: end;
+    }
+    .local-dados__tipo,
+    .local-dados__descricao {
+      min-width: 0;
+    }
+    @media (max-width: 720px) {
+      .local-dados__linha {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  `],
 })
 export class LocalFormComponent implements OnInit {
   model: Local = {} as Local;
@@ -124,8 +160,6 @@ export class LocalFormComponent implements OnInit {
     this.canEdit = this.podeGravar;
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
-
-  get pkDisplay(): string { return String(this.model.idLocal); }
 
   ngOnInit(): void {
     if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();

@@ -1,6 +1,6 @@
 namespace AppCondominium.Domain.Entities;
 
-public class Condominio
+public partial class Condominio
 {
     public uint? IdCondominio { get; set; }
     public string? Nome { get; set; }

@@ -77,7 +77,7 @@ const entityRoutes: Routes = [
   { path: 'banco/:idBanco', loadComponent: () => import('./features/banco/banco-form.component').then(m => m.BancoFormComponent) },
   { path: 'dadosbancarios', loadComponent: () => import('./features/dadosbancarios/dadosbancarios-list.component').then(m => m.DadosBancariosListComponent) },
   { path: 'dadosbancarios/novo', loadComponent: () => import('./features/dadosbancarios/dadosbancarios-form.component').then(m => m.DadosBancariosFormComponent) },
-  { path: 'dadosbancarios/:idDadosBancarios', loadComponent: () => import('./features/dadosbancarios/dadosbancarios-form.component').then(m => m.DadosBancariosFormComponent) },
+  { path: 'dadosbancarios/:conta/:idBanco/:agencia', loadComponent: () => import('./features/dadosbancarios/dadosbancarios-form.component').then(m => m.DadosBancariosFormComponent) },
   { path: 'cobranca', loadComponent: () => import('./features/cobranca/cobranca-list.component').then(m => m.CobrancaListComponent) },
   { path: 'cobranca/novo', loadComponent: () => import('./features/cobranca/cobranca-form.component').then(m => m.CobrancaFormComponent) },
   { path: 'cobranca/:idCobranca', loadComponent: () => import('./features/cobranca/cobranca-form.component').then(m => m.CobrancaFormComponent) },

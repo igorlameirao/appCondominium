@@ -1,16 +1,16 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Icone } from '../../shared/icone';
 import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
 import { FormInitialLoad } from '../../shared/form-initial-load';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CampoDataHoraComponent } from '../../shared/campo-data-hora/campo-data-hora.component';
+import { CampoMoedaComponent } from '../../shared/campo-moeda/campo-moeda.component';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { AluguelEquipamentoService } from './aluguelequipamento.service';
 import { AluguelEquipamento } from './aluguelequipamento.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { UnidadeService } from '../unidade/unidade.service';
@@ -19,7 +19,7 @@ import { EquipamentoService } from '../equipamento/equipamento.service';
 @Component({
   selector: 'app-aluguelequipamento-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataHoraComponent, CampoMoedaComponent, ComboboxCustomizadaComponent],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -35,7 +35,7 @@ import { EquipamentoService } from '../equipamento/equipamento.service';
           <p class="cad-subtitulo">Cadastre e mantenha as informações de aluguel de equipamento</p>
         </header>
 
-        <section class="cad-card form-page">
+        <section class="cad-card form-page cad-card--secao-unica">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
             <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
               <app-icone nome="layers" [tamanho]="16" />
@@ -50,41 +50,66 @@ import { EquipamentoService } from '../equipamento/equipamento.service';
                 <p class="cad-secao__texto">Informe as informações principais</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
+            <div class="form-scroll cad-form-scroll">
+              <form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
+                <input
+                  *ngIf="isEdit"
+                  type="hidden"
+                  name="idAluguelEquipamento"
+                  [(ngModel)]="model.idAluguelEquipamento" />
+
+                <div class="cad-blocos ae-cad">
+                  <div class="form-grid ae-cad__linha ae-cad__linha--1">
+                    <div class="form-group ae-cad__campo">
+                      <label>Unidade *</label>
+                      <app-combobox-customizada
+                        [options]="fk_idUnidade"
+                        [(value)]="model.idUnidade"
+                        [disabled]="fieldDisabled('idUnidade')"
+                        [required]="true"
+                        ariaLabel="Unidade" />
+                    </div>
+                    <div class="form-group ae-cad__campo">
+                      <label>Equipamento *</label>
+                      <app-combobox-customizada
+                        [options]="fk_idEquipamento"
+                        [(value)]="model.idEquipamento"
+                        [disabled]="fieldDisabled('idEquipamento')"
+                        [required]="true"
+                        ariaLabel="Equipamento" />
+                    </div>
+                  </div>
+
+                  <div class="form-grid ae-cad__linha ae-cad__linha--2">
+                    <div class="form-group ae-cad__campo ae-cad__datahora">
+                      <label>Data Início</label>
+                      <app-campo-data-hora
+                        [(ngModel)]="model.dataInicio"
+                        name="dataInicio"
+                        [disabled]="fieldDisabled('dataInicio')"
+                        [feedbackVisual]="true" />
+                    </div>
+                    <div class="form-group ae-cad__campo ae-cad__datahora">
+                      <label>Data Fim</label>
+                      <app-campo-data-hora
+                        [(ngModel)]="model.dataFim"
+                        name="dataFim"
+                        [disabled]="fieldDisabled('dataFim')"
+                        [feedbackVisual]="true" />
+                    </div>
+                    <div class="form-group ae-cad__campo ae-cad__moeda">
+                      <label>Valor</label>
+                      <app-campo-moeda
+                        [(ngModel)]="model.valor"
+                        name="valor"
+                        modo="numero"
+                        [readonly]="fieldDisabled('valor')"
+                        [disabled]="fieldDisabled('valor')" />
+                    </div>
+                  </div>
+                </div>
+              </form>
             </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
-              <label>IdUnidade *</label>
-              <app-combobox-customizada
-                [options]="fk_idUnidade"
-                [(value)]="model.idUnidade"
-                [disabled]="fieldDisabled('idUnidade')" [required]="true" />
-            </div>
-            <div style="grid-column: 9 / span 4; grid-row: 1" class="form-group fg-col-4">
-              <label>DataInicio</label>
-              <app-campo-data-hora [(ngModel)]="model.dataInicio" name="dataInicio" [disabled]="fieldDisabled('dataInicio')" [feedbackVisual]="true"/>
-            </div>
-            <div style="grid-column: 1 / span 6; grid-row: 2" class="form-group fg-col-6">
-              <label>IdEquipamento *</label>
-              <app-combobox-customizada
-                [options]="fk_idEquipamento"
-                [(value)]="model.idEquipamento"
-                [disabled]="fieldDisabled('idEquipamento')" [required]="true" />
-            </div>
-            <div style="grid-column: 7 / span 4; grid-row: 2" class="form-group fg-col-4">
-              <label>DataFim</label>
-              <app-campo-data-hora [(ngModel)]="model.dataFim" name="dataFim" [disabled]="fieldDisabled('dataFim')" [feedbackVisual]="true"/>
-            </div>
-            <div style="grid-column: 11 / span 2; grid-row: 2" class="form-group fg-col-2">
-              <label>Valor</label>
-              <input type="number" [(ngModel)]="model.valor" name="valor" step="0.001" [readonly]="fieldDisabled('valor')" />
-            </div>
-          </div>
-        </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
         <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
@@ -104,10 +129,38 @@ import { EquipamentoService } from '../equipamento/equipamento.service';
         </div>
       </div>
     </div>
-    <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
+    <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." />
   `,
+  styles: [`
+    .ae-cad {
+      gap: 12px;
+    }
+    .ae-cad__linha--1 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: end;
+    }
+    .ae-cad__linha--2 {
+      grid-template-columns: minmax(0, 30fr) minmax(0, 30fr) minmax(0, 40fr);
+      align-items: end;
+    }
+    .ae-cad__campo,
+    .ae-cad__datahora,
+    .ae-cad__moeda {
+      min-width: 0;
+    }
+    .ae-cad__moeda > label,
+    .ae-cad__datahora > label {
+      line-height: 1.25;
+    }
+    @media (max-width: 720px) {
+      .ae-cad__linha--1,
+      .ae-cad__linha--2 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  `],
 })
-export class AluguelEquipamentoFormComponent implements OnInit {
+export class AluguelEquipamentoFormComponent implements OnInit, OnDestroy {
   model: AluguelEquipamento = {} as AluguelEquipamento;
   isEdit = false;
   saving = false;
@@ -144,12 +197,13 @@ export class AluguelEquipamentoFormComponent implements OnInit {
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
-  get pkDisplay(): string { return String(this.model.idAluguelEquipamento); }
-
   ngOnInit(): void {
-    if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();
+    const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
+    const idAluguelEquipamento = this.route.snapshot.paramMap.get('idAluguelEquipamento');
+    if (!isNovo && idAluguelEquipamento) {
+      this.pageLoad.beginEdit();
+    }
 
-    
     this.pageLoad.run(this.unidadeService.getPaged(1, 200), r => {
       this.fk_idUnidade = r.items.map((x: any) => ({
         value: x.idUnidade,
@@ -163,20 +217,27 @@ export class AluguelEquipamentoFormComponent implements OnInit {
         label: this.fkLabel_idEquipamento(x)
       }));
     });
-    const idAluguelEquipamento = this.route.snapshot.paramMap.get('idAluguelEquipamento');
-    const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
+
     if (isNovo) {
       this.isEdit = false;
       this.refreshPermissions();
       this.model.idCondominio = this.condominioCtx.idCondominio!;
+      this.pageLoad.seal();
       return;
     }
     if (idAluguelEquipamento) {
       this.isEdit = true;
       this.refreshPermissions();
-      this.pageLoad.run(this.service.getById(idAluguelEquipamento), (r) => this.model = r, () => this.toast.showError('Registro não encontrado.'));
+      this.pageLoad.run(
+        this.service.getById(idAluguelEquipamento),
+        (r) => { this.model = r; },
+        () => this.toast.showError('Registro não encontrado.'));
     }
     this.pageLoad.seal();
+  }
+
+  ngOnDestroy(): void {
+    this.pageLoad.loading = false;
   }
 
   fieldDisabled(field: string): boolean {

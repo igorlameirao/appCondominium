@@ -1,6 +1,10 @@
 export interface Condominio {
   idCondominio?: number;
   nome?: string;
+  enderecoLogradouro?: string;
+  nomeBairro?: string;
+  nomeMunicipio?: string;
+  siglaUf?: string;
   idEndereco?: number;
   numeroEndereco?: number;
   complementoEndereco?: string;

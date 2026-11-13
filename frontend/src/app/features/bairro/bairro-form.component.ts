@@ -136,6 +136,11 @@ export class BairroFormComponent implements OnInit {
     
     this.pageLoad.run(this.municipioService.getPaged(1, 5000), r => {
       this.fk_codigoIBGEMunicipio = (r.items ?? []).map(x => this.opcaoMunicipio(x));
+      if (this.model.codigoIBGEMunicipio != null) {
+        this.assegurarOpcaoMunicipio(
+          Number(this.model.codigoIBGEMunicipio),
+          this.model.nomeMunicipio);
+      }
     });
     const idBairro = this.route.snapshot.paramMap.get('idBairro');
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
@@ -149,11 +154,12 @@ export class BairroFormComponent implements OnInit {
       this.isEdit = true;
       this.refreshPermissions();
       this.pageLoad.run(this.service.getById(idBairro), (r) => {
-        this.model = r;
-        if (this.model.codigoIBGEMunicipio != null) {
-          this.model.codigoIBGEMunicipio = Number(this.model.codigoIBGEMunicipio);
+        if (r.codigoIBGEMunicipio != null) {
+          const codigo = Number(r.codigoIBGEMunicipio);
+          this.assegurarOpcaoMunicipio(codigo, r.nomeMunicipio);
+          r.codigoIBGEMunicipio = codigo;
         }
-        this.garantirMunicipioNasOpcoes();
+        this.model = r;
       }, () => this.toast.showError('Registro não encontrado.'));
     }
     this.pageLoad.seal();
@@ -201,10 +207,13 @@ export class BairroFormComponent implements OnInit {
     return m.codigoIBGEMunicipio != null ? String(m.codigoIBGEMunicipio) : '';
   }
 
-  private garantirMunicipioNasOpcoes(): void {
-    const codigo = this.model.codigoIBGEMunicipio;
-    if (codigo == null) return;
-    if (this.fk_codigoIBGEMunicipio.some(o => Number(o.value) === Number(codigo))) return;
+  private assegurarOpcaoMunicipio(codigo: number, nomeMunicipio?: string | null): void {
+    if (this.fk_codigoIBGEMunicipio.some(o => Number(o.value) === codigo)) return;
+    const nome = nomeMunicipio?.trim();
+    if (nome) {
+      this.fk_codigoIBGEMunicipio = [...this.fk_codigoIBGEMunicipio, { value: codigo, label: nome }];
+      return;
+    }
     this.municipioService.getById(codigo).subscribe(m => {
       if (m.codigoIBGEMunicipio == null) return;
       this.fk_codigoIBGEMunicipio = [...this.fk_codigoIBGEMunicipio, this.opcaoMunicipio(m)];

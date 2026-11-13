@@ -39,3 +39,5 @@ DocumentosOutros/Client ID - Bradesco - Homologacao.txt
 *.pem
 *.pfx
 *.key
+
+/secret/

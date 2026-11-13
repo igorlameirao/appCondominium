@@ -9,14 +9,16 @@ import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../sh
 import { PagedResult } from '../../core/models/paged-result';
 import { DadosBancariosService } from './dadosbancarios.service';
 import { DadosBancarios } from './dadosbancarios.model';
+import { BancoService } from '../banco/banco.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/confirmar-exclusao.component';
+import { LstSituacaoCadastralComponent } from '../../shared/lst-situacao-cadastral/lst-situacao-cadastral.component';
 
 @Component({
   selector: 'app-dadosbancarios-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent],
+  imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent, LstSituacaoCadastralComponent],
     template: `
     <div class="content-wrapper lst-wrapper" lstSgeViewport [tamanhoPagina]="pageSize" (tamanhoPaginaChange)="aplicarTamanhoPagina($event)" [totalItens]="totalCount" [itensNaPagina]="paged?.items?.length ?? 0" [filtrosRecolhidos]="filtrosRecolhidos">
       <div class="lst-page">
@@ -56,17 +58,20 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
           </div>
           <div class="lst-tabela__scroll" [class.is-loading]="loading">
             <table class="lst-grade" *ngIf="paged?.items?.length; else lstEmpty">
-              <thead><tr><th scope="col">Conta</th><th scope="col" class="lst-col--conteudo">CodigoBanco</th><th scope="col">Agencia</th><th scope="col">DigitoAgencia</th><th scope="col">DigitoConta</th><th scope="col">Ativo</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
+              <thead><tr><th scope="col">Conta</th><th scope="col" class="lst-col--conteudo">Banco</th><th scope="col">Agencia</th><th scope="col">DigitoAgencia</th><th scope="col">DigitoConta</th><th scope="col" class="lst-col--situacao">Situação</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
-                  <td>{{ item.conta }}</td><td class="lst-col--conteudo">{{ item.codigoBanco }}</td><td>{{ item.agencia }}</td><td>{{ item.digitoAgencia }}</td><td>{{ item.digitoConta }}</td><td>{{ item.ativo }}</td>
+                  <td>{{ item.conta }}</td><td class="lst-col--conteudo">{{ bancoExibicao(item.idBanco) }}</td><td>{{ item.agencia }}</td><td>{{ item.digitoAgencia }}</td><td>{{ item.digitoConta }}</td>
+                  <td class="lst-col--situacao"><app-lst-situacao-cadastral [valor]="item.ativo" /></td>
                   <td class="lst-grade__acoes">
-                    <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
+                    <div class="lst-acoes" role="group" aria-label="Ações da linha">
+<button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="trash" [tamanho]="16" />
                     </button>
                     <button type="button" class="lst-acao lst-acao--editar" title="Editar" aria-label="Editar" (click)="goEdit(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="pencil" [tamanho]="16" />
                     </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -119,7 +124,7 @@ export class DadosBancariosListComponent implements OnInit {
     const item = this.itemExcluir;
     if (this.excluindo || !item) return;
     this.excluindo = true;
-    this.service.delete(item.conta!, item.codigoBanco!, item.agencia!).subscribe({
+    this.service.delete(item.conta!, item.idBanco!, item.agencia!).subscribe({
       next: () => {
         this.excluindo = false;
         this.confirmarExclusao = false;
@@ -133,9 +138,20 @@ export class DadosBancariosListComponent implements OnInit {
     });
   }
 
-  constructor(private service: DadosBancariosService, private router: Router, private permissions: PermissionService, private toast: ToastService) {}
+  private bancos = new Map<number, string>();
 
-  ngOnInit(): void { this.loadPage(1); }
+  constructor(private service: DadosBancariosService, private bancoService: BancoService, private router: Router, private permissions: PermissionService, private toast: ToastService) {}
+
+  ngOnInit(): void {
+    this.bancoService.getPaged(1, 1000).subscribe(r => {
+      this.bancos = new Map(r.items.map(b => [b.idBanco!, b.codigoBanco ? `${b.codigoBanco} - ${b.nome ?? ''}` : (b.nome ?? '')]));
+    });
+    this.loadPage(1);
+  }
+
+  bancoExibicao(idBanco: number | undefined): string {
+    return idBanco == null ? '' : (this.bancos.get(idBanco) ?? '');
+  }
 
   applyFilter(): void { this.page = 1; this.loadPage(1); }
 
@@ -169,6 +185,6 @@ export class DadosBancariosListComponent implements OnInit {
 
   goNovo(): void { this.router.navigate(['/dadosbancarios', 'novo']); }
   goEdit(item: DadosBancarios): void {
-    this.router.navigate(['/dadosbancarios', item.conta, item.codigoBanco, item.agencia]);
+    this.router.navigate(['/dadosbancarios', item.conta, item.idBanco, item.agencia]);
   }
 }

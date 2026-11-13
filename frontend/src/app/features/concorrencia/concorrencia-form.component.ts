@@ -10,7 +10,6 @@ import { ToastService } from '../../core/services/toast.service';
 import { ConcorrenciaService } from './concorrencia.service';
 import { Concorrencia } from './concorrencia.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
@@ -18,7 +17,7 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
 @Component({
   selector: 'app-concorrencia-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -34,74 +33,135 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
           <p class="cad-subtitulo">Cadastre e mantenha as informações de concorrência</p>
         </header>
 
-        <section class="cad-card form-page">
+        <section class="cad-card form-page cad-card--secao-unica">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
             <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
               <app-icone nome="file-text" [tamanho]="16" />
-              <span>Dados de Concorrência</span>
+              <span>Dados da Concorrência</span>
             </button>
           </div>
           <div class="cad-conteudo" role="tabpanel">
             <div class="cad-secao">
               <app-icone class="cad-secao__icone" nome="file-text" [tamanho]="26" />
               <div>
-                <h2 class="cad-secao__titulo">Dados de Concorrência</h2>
-                <p class="cad-secao__texto">Informe as informações principais</p>
+                <h2 class="cad-secao__titulo">Dados da Concorrência</h2>
+                <p class="cad-secao__texto">Informe a descrição, classificação e prazos da concorrência</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
+            <div class="form-scroll cad-form-scroll">
+              <form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
+                @if (isEdit) {
+                  <input
+                    type="hidden"
+                    [(ngModel)]="model.idConcorrencia"
+                    name="idConcorrencia" />
+                }
+
+                <div class="cad-blocos concorrencia-dados">
+                  <div class="form-grid concorrencia-dados__linha concorrencia-dados__linha--1">
+                    <div class="form-group concorrencia-dados__campo">
+                      <label for="concorrencia-descricao">Descrição *</label>
+                      <textarea
+                        id="concorrencia-descricao"
+                        class="input-textarea"
+                        [(ngModel)]="model.descricao"
+                        name="descricao"
+                        rows="2"
+                        [readonly]="fieldDisabled('descricao')"
+                        required></textarea>
+                    </div>
+                  </div>
+                  <div class="form-grid concorrencia-dados__linha concorrencia-dados__linha--2">
+                    <div class="form-group concorrencia-dados__campo">
+                      <label>Tipo de Despesa *</label>
+                      <app-combobox-customizada
+                        [options]="fk_idTipoDespesa"
+                        [(value)]="model.idTipoDespesa"
+                        [disabled]="fieldDisabled('idTipoDespesa')"
+                        [required]="true"
+                        ariaLabel="Tipo de Despesa" />
+                    </div>
+                    <div class="form-group concorrencia-dados__campo">
+                      <label for="concorrencia-tipo">Tipo de Concorrência *</label>
+                      <select
+                        id="concorrencia-tipo"
+                        [(ngModel)]="model.tipoConcorrencia"
+                        name="tipoConcorrencia"
+                        [disabled]="fieldDisabled('tipoConcorrencia')"
+                        required>
+                        <option [ngValue]="null">Selecione…</option>
+                        <option [ngValue]="0">Preço</option>
+                        <option [ngValue]="1">Qualidade</option>
+                        <option [ngValue]="2">Prazo Entrega</option>
+                        <option [ngValue]="3">Capacidade Técnica</option>
+                      </select>
+                    </div>
+                    <div class="form-group concorrencia-dados__campo">
+                      <label for="concorrencia-fase">Fase *</label>
+                      <select
+                        id="concorrencia-fase"
+                        [(ngModel)]="model.fase"
+                        name="fase"
+                        [disabled]="fieldDisabled('fase')"
+                        required>
+                        <option [ngValue]="null">Selecione…</option>
+                        <option [ngValue]="0">Divulgação</option>
+                        <option [ngValue]="1">Recebimento Proposta</option>
+                        <option [ngValue]="2">Análise</option>
+                        <option [ngValue]="3">Escolha Vencedor</option>
+                        <option [ngValue]="4">Assinatura Contrato</option>
+                        <option [ngValue]="5">Finalizado</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="cad-secao cad-secao--apos">
+                  <app-icone class="cad-secao__icone" nome="calendar" [tamanho]="26" />
+                  <div>
+                    <h2 class="cad-secao__titulo">Prazos da Concorrência</h2>
+                  </div>
+                </div>
+
+                <div class="cad-blocos concorrencia-prazos">
+                  <div class="form-grid concorrencia-prazos__linha">
+                    <div class="form-group concorrencia-prazos__campo">
+                      <label>Data de Abertura *</label>
+                      <app-campo-data-hora
+                        [(ngModel)]="model.dataAbertura"
+                        name="dataAbertura"
+                        [disabled]="fieldDisabled('dataAbertura')"
+                        [required]="true"
+                        [feedbackVisual]="true" />
+                    </div>
+                    <div class="form-group concorrencia-prazos__campo">
+                      <label>Previsão de Encerramento *</label>
+                      <app-campo-data-hora
+                        [(ngModel)]="model.dataPrevistaEncerramento"
+                        name="dataPrevistaEncerramento"
+                        [disabled]="fieldDisabled('dataPrevistaEncerramento')"
+                        [required]="true"
+                        [feedbackVisual]="true" />
+                    </div>
+                    <div class="form-group concorrencia-prazos__campo">
+                      <label>Encerramento</label>
+                      <app-campo-data-hora
+                        [(ngModel)]="model.dataEncerramento"
+                        name="dataEncerramento"
+                        [disabled]="fieldDisabled('dataEncerramento')"
+                        [feedbackVisual]="true" />
+                    </div>
+                  </div>
+                </div>
+              </form>
             </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
-              <label>idTipoDespesa *</label>
-              <app-combobox-customizada
-                [options]="fk_idTipoDespesa"
-                [(value)]="model.idTipoDespesa"
-                [disabled]="fieldDisabled('idTipoDespesa')" [required]="true" />
-            </div>
-            <div style="grid-column: 9 / span 4; grid-row: 1" class="form-group fg-col-4">
-              <label>DataAbertura *</label>
-              <app-campo-data-hora [(ngModel)]="model.dataAbertura" name="dataAbertura" [disabled]="fieldDisabled('dataAbertura')" [required]="true" [feedbackVisual]="true"/>
-            </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
-              <label>Descricao *</label>
-              <input type="text" [(ngModel)]="model.descricao" name="descricao" [readonly]="fieldDisabled('descricao')" required />
-            </div>
-            <div style="grid-column: 1 / span 4; grid-row: 3" class="form-group fg-col-4">
-              <label>Data Prevista Encerramento *</label>
-              <app-campo-data-hora [(ngModel)]="model.dataPrevistaEncerramento" name="dataPrevistaEncerramento" [disabled]="fieldDisabled('dataPrevistaEncerramento')" [required]="true" [feedbackVisual]="true"/>
-            </div>
-            <div style="grid-column: 5 / span 4; grid-row: 3" class="form-group fg-col-4">
-              <label>DataEncerramento</label>
-              <app-campo-data-hora [(ngModel)]="model.dataEncerramento" name="dataEncerramento" [disabled]="fieldDisabled('dataEncerramento')" [feedbackVisual]="true"/>
-            </div>
-            <div style="grid-column: 9 / span 2; grid-row: 3" class="form-group fg-col-2">
-              <label>TipoConcorrencia *</label>
-              <select [(ngModel)]="model.tipoConcorrencia" name="tipoConcorrencia" [disabled]="fieldDisabled('tipoConcorrencia')" required>
-                <option [ngValue]="null">Selecione…</option>
-                <option [ngValue]="0">Preço</option><option [ngValue]="1">Qualidade</option><option [ngValue]="2">Prazo Entrega</option><option [ngValue]="3">Capacidade Técnica</option>
-              </select>
-            </div>
-            <div style="grid-column: 11 / span 2; grid-row: 3" class="form-group fg-col-2">
-              <label>Fase *</label>
-              <select [(ngModel)]="model.fase" name="fase" [disabled]="fieldDisabled('fase')" required>
-                <option [ngValue]="null">Selecione…</option>
-                <option [ngValue]="0">Divulgação</option><option [ngValue]="1">Recebimento Proposta</option><option [ngValue]="2">Análise</option><option [ngValue]="3">Escolha Vencedor</option><option [ngValue]="4">Assinatura Contrato</option><option [ngValue]="5">Finalizado</option>
-              </select>
-            </div>
-          </div>
-        </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
-        <span class="cad-acoes__espaco"></span>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
-        <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
-      </div>
+            <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
+            <span class="cad-acoes__espaco"></span>
+            <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
+            <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
+          </div>
         </section>
       </div>
     </div>
@@ -116,6 +176,43 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
     </div>
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
+  styles: [`
+    .concorrencia-dados,
+    .concorrencia-prazos {
+      gap: 12px;
+    }
+    .concorrencia-dados__linha--1 {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: end;
+    }
+    .concorrencia-dados__linha--2 {
+      grid-template-columns: minmax(0, 40fr) minmax(0, 35fr) minmax(0, 25fr);
+      align-items: end;
+    }
+    .concorrencia-dados__campo,
+    .concorrencia-prazos__campo {
+      min-width: 0;
+    }
+    .concorrencia-prazos__linha {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: end;
+      gap: 10px;
+    }
+    .concorrencia-prazos__campo > label {
+      display: block;
+      min-height: 2.5em;
+      line-height: 1.25;
+    }
+  @media (max-width: 720px) {
+      .concorrencia-dados__linha--2,
+      .concorrencia-prazos__linha {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .concorrencia-prazos__campo > label {
+        min-height: 0;
+      }
+    }
+  `],
 })
 export class ConcorrenciaFormComponent implements OnInit {
   model: Concorrencia = {} as Concorrencia;
@@ -151,8 +248,6 @@ export class ConcorrenciaFormComponent implements OnInit {
     this.canEdit = this.podeGravar;
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
-
-  get pkDisplay(): string { return String(this.model.idConcorrencia); }
 
   ngOnInit(): void {
     if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();

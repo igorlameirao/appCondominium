@@ -69,9 +69,11 @@ import { ehPerfilAdministrador, PerfilOpcao } from './permissoes.util';
                   <td class="lst-col--conteudo">{{ item.descricao }}</td>
                   <td>{{ situacao(item) }}</td>
                   <td class="lst-grade__acoes">
-                    <button type="button" class="lst-acao lst-acao--editar" title="Configurar permissões" aria-label="Configurar permissões" (click)="abrir(item)" (dblclick)="$event.stopPropagation()">
+                    <div class="lst-acoes" role="group" aria-label="Ações da linha">
+<button type="button" class="lst-acao lst-acao--editar" title="Configurar permissões" aria-label="Configurar permissões" (click)="abrir(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="pencil" [tamanho]="16" />
                     </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>

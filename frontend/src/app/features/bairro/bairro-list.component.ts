@@ -9,7 +9,6 @@ import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../sh
 import { PagedResult } from '../../core/models/paged-result';
 import { BairroService } from './bairro.service';
 import { Bairro } from './bairro.model';
-import { MunicipioService } from '../municipio/municipio.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/confirmar-exclusao.component';
@@ -60,14 +59,16 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
               <thead><tr><th scope="col">Bairro</th><th scope="col" class="lst-col--conteudo">Município</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
-                  <td>{{ item.nome }}</td><td class="lst-col--conteudo">{{ nomeMunicipio(item.codigoIBGEMunicipio) }}</td>
+                  <td>{{ item.nome }}</td><td class="lst-col--conteudo">{{ item.nomeMunicipio ?? '' }}</td>
                   <td class="lst-grade__acoes">
-                    <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
+                    <div class="lst-acoes" role="group" aria-label="Ações da linha">
+<button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="trash" [tamanho]="16" />
                     </button>
                     <button type="button" class="lst-acao lst-acao--editar" title="Editar" aria-label="Editar" (click)="goEdit(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="pencil" [tamanho]="16" />
                     </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -87,7 +88,6 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
     </div>
   `,})
 export class BairroListComponent implements OnInit {
-  private readonly municipioPorCodigo = new Map<number, string>();
   paged: PagedResult<Bairro> | null = null;
   loading = false;
   page = 1;
@@ -137,33 +137,13 @@ export class BairroListComponent implements OnInit {
 
   constructor(
     private service: BairroService,
-    private municipioService: MunicipioService,
     private router: Router,
     private permissions: PermissionService,
     private toast: ToastService
   ) {}
 
   ngOnInit(): void {
-    this.carregarMunicipios();
     this.loadPage(1);
-  }
-
-  nomeMunicipio(codigo?: number): string {
-    if (codigo == null) return '';
-    const nome = this.municipioPorCodigo.get(Number(codigo));
-    return nome ?? String(codigo);
-  }
-
-  private carregarMunicipios(): void {
-    this.municipioService.getPaged(1, 5000).subscribe({
-      next: r => {
-        for (const m of r.items ?? []) {
-          if (m.codigoIBGEMunicipio != null && m.nome?.trim()) {
-            this.municipioPorCodigo.set(Number(m.codigoIBGEMunicipio), m.nome.trim());
-          }
-        }
-      },
-    });
   }
 
   applyFilter(): void { this.page = 1; this.loadPage(1); }

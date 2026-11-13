@@ -10,7 +10,6 @@ import { ToastService } from '../../core/services/toast.service';
 import { GuardaEncomendaService } from './guardaencomenda.service';
 import { GuardaEncomenda } from './guardaencomenda.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { UnidadeService } from '../unidade/unidade.service';
@@ -20,7 +19,7 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
 @Component({
   selector: 'app-guardaencomenda-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataHoraComponent, ComboboxCustomizadaComponent],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -33,73 +32,126 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
             <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
           </nav>
           <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Guarda Encomenda</h1>
-          <p class="cad-subtitulo">Cadastre e mantenha as informações de guarda encomenda</p>
+          <p class="cad-subtitulo">Registre o recebimento, armazenamento e retirada de encomendas</p>
         </header>
 
-        <section class="cad-card form-page">
+        <section class="cad-card form-page cad-card--secao-unica">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
             <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
-              <app-icone nome="layers" [tamanho]="16" />
-              <span>Dados de Guarda Encomenda</span>
+              <app-icone nome="clipboard-list" [tamanho]="16" />
+              <span>Guarda Encomenda</span>
             </button>
           </div>
           <div class="cad-conteudo" role="tabpanel">
             <div class="cad-secao">
-              <app-icone class="cad-secao__icone" nome="layers" [tamanho]="26" />
+              <app-icone class="cad-secao__icone" nome="clipboard-list" [tamanho]="26" />
               <div>
-                <h2 class="cad-secao__titulo">Dados de Guarda Encomenda</h2>
-                <p class="cad-secao__texto">Informe as informações principais</p>
+                <h2 class="cad-secao__titulo">Dados da Encomenda</h2>
+                <p class="cad-secao__texto">Código, unidade e local onde a encomenda será armazenada</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
+            <div class="form-scroll cad-form-scroll">
+              <form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
+                <input
+                  *ngIf="isEdit"
+                  type="hidden"
+                  name="idGuardaEncomenda"
+                  [(ngModel)]="model.idGuardaEncomenda" />
+
+                <div class="cad-blocos ge-cad">
+                  <div class="form-grid ge-cad__linha ge-cad__linha--dados">
+                    <div class="form-group ge-cad__campo">
+                      <label for="ge-codigo-encomenda">Código da Encomenda *</label>
+                      <input
+                        id="ge-codigo-encomenda"
+                        type="text"
+                        [(ngModel)]="model.codigoEncomenda"
+                        name="codigoEncomenda"
+                        maxlength="255"
+                        [readonly]="fieldDisabled('codigoEncomenda')"
+                        required />
+                    </div>
+                    <div class="form-group ge-cad__campo">
+                      <label>Unidade *</label>
+                      <app-combobox-customizada
+                        [options]="fk_idUnidade"
+                        [(value)]="model.idUnidade"
+                        [disabled]="fieldDisabled('idUnidade')"
+                        [required]="true"
+                        ariaLabel="Unidade" />
+                    </div>
+                  </div>
+                  <div class="form-grid ge-cad__linha ge-cad__linha--unica">
+                    <div class="form-group ge-cad__campo">
+                      <label>Local de Armazenamento</label>
+                      <app-combobox-customizada
+                        [options]="fk_idLocal"
+                        [(value)]="model.idLocal"
+                        [disabled]="fieldDisabled('idLocal')"
+                        ariaLabel="Local de Armazenamento" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="cad-secao cad-secao--apos">
+                  <app-icone class="cad-secao__icone" nome="download" [tamanho]="26" />
+                  <div>
+                    <h2 class="cad-secao__titulo">Recebimento</h2>
+                  </div>
+                </div>
+
+                <div class="cad-blocos ge-cad">
+                  <div class="form-grid ge-cad__linha ge-cad__linha--fluxo">
+                    <div class="form-group ge-cad__campo">
+                      <label>Colaborador Responsável *</label>
+                      <app-combobox-customizada
+                        [options]="fk_idPessoaEntrada"
+                        [(value)]="model.idPessoaEntrada"
+                        [disabled]="fieldDisabled('idPessoaEntrada')"
+                        [required]="true"
+                        ariaLabel="Colaborador Responsável" />
+                    </div>
+                    <div class="form-group ge-cad__campo ge-cad__datahora">
+                      <label>Data/Hora de Entrada *</label>
+                      <app-campo-data-hora
+                        [(ngModel)]="model.dataHoraEntrada"
+                        name="dataHoraEntrada"
+                        [disabled]="fieldDisabled('dataHoraEntrada')"
+                        [required]="true"
+                        [feedbackVisual]="true" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="cad-secao cad-secao--apos">
+                  <app-icone class="cad-secao__icone" nome="upload" [tamanho]="26" />
+                  <div>
+                    <h2 class="cad-secao__titulo">Retirada da Encomenda</h2>
+                  </div>
+                </div>
+
+                <div class="cad-blocos ge-cad">
+                  <div class="form-grid ge-cad__linha ge-cad__linha--fluxo">
+                    <div class="form-group ge-cad__campo">
+                      <label>Retirado Por</label>
+                      <app-combobox-customizada
+                        [options]="fk_idPessoaSaida"
+                        [(value)]="model.idPessoaSaida"
+                        [disabled]="fieldDisabled('idPessoaSaida')"
+                        ariaLabel="Retirado Por" />
+                    </div>
+                    <div class="form-group ge-cad__campo ge-cad__datahora">
+                      <label>Data/Hora de Saída</label>
+                      <app-campo-data-hora
+                        [(ngModel)]="model.dataHoraSaida"
+                        name="dataHoraSaida"
+                        [disabled]="fieldDisabled('dataHoraSaida')"
+                        [feedbackVisual]="true" />
+                    </div>
+                  </div>
+                </div>
+              </form>
             </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
-              <label>Id Unidade *</label>
-              <app-combobox-customizada
-                [options]="fk_idUnidade"
-                [(value)]="model.idUnidade"
-                [disabled]="fieldDisabled('idUnidade')" [required]="true" />
-            </div>
-            <div style="grid-column: 9 / span 4; grid-row: 1" class="form-group fg-col-4">
-              <label>Data/Hora Saída</label>
-              <app-campo-data-hora [(ngModel)]="model.dataHoraSaida" name="dataHoraSaida" [disabled]="fieldDisabled('dataHoraSaida')" [feedbackVisual]="true"/>
-            </div>
-            <div style="grid-column: 1 / span 6; grid-row: 2" class="form-group fg-col-6">
-              <label>Id Local Armazenamento</label>
-              <app-combobox-customizada
-                [options]="fk_idLocal"
-                [(value)]="model.idLocal"
-                [disabled]="fieldDisabled('idLocal')" />
-            </div>
-            <div style="grid-column: 7 / span 6; grid-row: 2" class="form-group fg-col-6">
-              <label>Id Colaborador Entrada *</label>
-              <app-combobox-customizada
-                [options]="fk_idPessoaEntrada"
-                [(value)]="model.idPessoaEntrada"
-                [disabled]="fieldDisabled('idPessoaEntrada')" [required]="true" />
-            </div>
-            <div style="grid-column: 1 / span 6; grid-row: 3" class="form-group fg-col-6">
-              <label>Retirado Por</label>
-              <app-combobox-customizada
-                [options]="fk_idPessoaSaida"
-                [(value)]="model.idPessoaSaida"
-                [disabled]="fieldDisabled('idPessoaSaida')" />
-            </div>
-            <div style="grid-column: 7 / span 4; grid-row: 3" class="form-group fg-col-4">
-              <label>Data/Hora Entrada *</label>
-              <app-campo-data-hora [(ngModel)]="model.dataHoraEntrada" name="dataHoraEntrada" [disabled]="fieldDisabled('dataHoraEntrada')" [required]="true" [feedbackVisual]="true"/>
-            </div>
-            <div style="grid-column: 1 / span 12; grid-row: 4" class="form-group fg-col-12">
-              <label>Codigo da Encomenda *</label>
-              <input type="text" [(ngModel)]="model.codigoEncomenda" name="codigoEncomenda" maxlength="255" [readonly]="fieldDisabled('codigoEncomenda')" required />
-            </div>
-          </div>
-        </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
         <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
@@ -121,6 +173,33 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
     </div>
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
+  styles: [`
+    .ge-cad {
+      gap: 12px;
+    }
+    .ge-cad__linha--dados {
+      grid-template-columns: minmax(0, 40fr) minmax(0, 60fr);
+      align-items: end;
+    }
+    .ge-cad__linha--fluxo {
+      grid-template-columns: minmax(0, 65fr) minmax(13.25rem, 35fr);
+      align-items: end;
+    }
+    .ge-cad__linha--unica {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: end;
+    }
+    .ge-cad__campo,
+    .ge-cad__datahora {
+      min-width: 0;
+    }
+    @media (max-width: 720px) {
+      .ge-cad__linha--dados,
+      .ge-cad__linha--fluxo {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  `],
 })
 export class GuardaEncomendaFormComponent implements OnInit {
   model: GuardaEncomenda = {} as GuardaEncomenda;
@@ -161,8 +240,6 @@ export class GuardaEncomendaFormComponent implements OnInit {
     this.canEdit = this.podeGravar;
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
-
-  get pkDisplay(): string { return String(this.model.idGuardaEncomenda); }
 
   ngOnInit(): void {
     if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();

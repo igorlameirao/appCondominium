@@ -235,34 +235,6 @@
   min-width: min(100%, 64rem);
 }
 
-.lst-page--cobrancas .lst-grade thead .lst-grade__acoes,
-.lst-page--cobrancas .lst-grade th.lst-grade__acoes,
-.lst-page--cobrancas .lst-grade td.lst-grade__acoes {
-  text-align: center;
-}
-
-.lst-page--cobrancas .lst-grade td.lst-grade__acoes .lst-acoes {
-  justify-content: center;
-  width: 100%;
-}
-
-.lst-page--cobrancas .lst-acoes--fixa-dupla {
-  display: grid;
-  grid-template-columns: 28px 28px;
-  gap: 8px;
-  justify-content: center;
-  align-items: center;
-}
-
-.lst-page--cobrancas .lst-acao--reservada {
-  width: 28px;
-  height: 28px;
-}
-
-.lst-page--cobrancas .lst-grade__acoes {
-  min-width: 4.75rem;
-}
-
 .lst-filtros__grade--cobrancas {
   flex-wrap: wrap;
 }
@@ -539,6 +511,17 @@
   cursor: pointer;
 }
 
+.lst-wrapper .lst-filtros .combo.combo--invalido:not(.desabilitado) .combo-input {
+  border: 1px solid var(--cad-campo-erro, #dc3545) !important;
+  box-shadow: none !important;
+}
+
+.lst-wrapper .lst-filtros .combo-display {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
 .lst-filtros__acoes {
   display: flex;
   flex-wrap: nowrap;
@@ -647,6 +630,11 @@
   width: 100%;
 }
 
+.lst-grade th.lst-col--situacao,
+.lst-grade td.lst-col--situacao {
+  text-align: center;
+}
+
 .lst-grade th {
   position: sticky;
   top: 0;
@@ -673,32 +661,45 @@
 
 .lst-grade__acoes {
   width: 1px;
-  text-align: right;
+  min-width: 4.75rem;
+  text-align: center;
   white-space: nowrap;
 }
-
-.lst-grade thead .lst-grade__acoes { text-align: right; }
 
 .lst-grade td.lst-grade__acoes,
 .lst-grade th.lst-grade__acoes {
   position: sticky;
   right: 0;
+  text-align: center;
 }
 
 .lst-grade th.lst-grade__acoes {
   z-index: 3;
   background: #f8fafc;
 }
-.lst-grade td.lst-grade__acoes { background: #fff; }
-.lst-grade__acoes > .lst-acao:not(:last-child) { margin-inline-end: 8px; }
+
+.lst-grade td.lst-grade__acoes {
+  background: #fff;
+  vertical-align: middle;
+}
+
 .lst-grade tbody tr:nth-child(even) td.lst-grade__acoes { background: #f7faff; }
 .lst-grade tbody tr.row-click:hover td.lst-grade__acoes { background: #eaf2ff; }
 
-.lst-acoes {
+/* Wrapper interno: flex sem quebrar table-cell (th/td permanecem display: table-cell). */
+.lst-grade .lst-acoes {
+  --lst-acoes-largura-par: calc(28px * 2 + 8px);
   display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
+  min-width: var(--lst-acoes-largura-par);
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.lst-grade td.lst-grade__acoes > .lst-acao {
+  margin-inline: 0;
 }
 
 .lst-acao {
@@ -737,7 +738,6 @@
   color: #dc2626;
   background: #fef2f2;
   border-color: #fecaca;
-  margin-inline-end: 8px;
 }
 
 .lst-acao--excluir:hover { background: #fee2e2; }
@@ -1054,4 +1054,102 @@
   color: #475569;
   background: #f1f5f9;
   font-weight: 500;
+}
+
+/* Célula empilhada: linha principal + meta discreta (ex.: endereço na listagem de condomínios). */
+.lst-celula-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.lst-celula-stack__secundario {
+  font-size: 12.5px;
+  color: var(--cad-muted, #64748b);
+}
+
+/* Condomínios — listagem compacta centralizada (máx. 1100px); colunas 24 / 41 / 20 / 15. */
+.app-premium-main .content-wrapper.lst-wrapper:has(.lst-page--condominios) {
+  align-items: center;
+}
+
+.lst-page--condominios {
+  width: 100%;
+  max-width: 1100px;
+  min-width: 0;
+  margin-inline: auto;
+  align-self: center;
+}
+
+.lst-page--condominios .lst-cabecalho {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.lst-page--condominios .lst-painel {
+  width: 100%;
+  max-width: 100%;
+}
+
+.lst-page--condominios .lst-grade {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 0;
+}
+
+.lst-page--condominios .lst-grade th.lst-col--condominio-nome,
+.lst-page--condominios .lst-grade td.lst-col--condominio-nome,
+.lst-page--condominios .lst-grade th.lst-col--condominio-endereco,
+.lst-page--condominios .lst-grade td.lst-col--condominio-endereco,
+.lst-page--condominios .lst-grade th.lst-col--condominio-dominio,
+.lst-page--condominios .lst-grade td.lst-col--condominio-dominio {
+  white-space: normal;
+}
+
+.lst-page--condominios .lst-grade th.lst-col--condominio-acoes,
+.lst-page--condominios .lst-grade td.lst-col--condominio-acoes {
+  white-space: nowrap;
+}
+
+.lst-page--condominios .lst-grade .lst-col--condominio-nome {
+  width: 24%;
+  white-space: normal;
+}
+
+.lst-page--condominios .lst-grade .lst-col--condominio-endereco {
+  width: 41%;
+  white-space: normal;
+}
+
+.lst-page--condominios .lst-grade .lst-col--condominio-dominio {
+  width: 20%;
+  white-space: normal;
+}
+
+.lst-page--condominios .lst-col--condominio-dominio .lst-celula-truncada {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lst-page--condominios .lst-grade .lst-col--condominio-acoes,
+.lst-page--condominios .lst-grade th.lst-col--condominio-acoes,
+.lst-page--condominios .lst-grade td.lst-col--condominio-acoes {
+  width: 15%;
+  min-width: 4.75rem;
+}
+
+.lst-page--condominios .lst-celula-stack {
+  min-width: 0;
+  white-space: normal;
+}
+
+.lst-page--condominios .lst-celula-stack > span {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }

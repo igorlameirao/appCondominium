@@ -30,8 +30,8 @@ public partial class AppDbContext
         modelBuilder.Entity<TipoDespesa>().HasKey(e => e.IdTipoDespesa);
         modelBuilder.Entity<Despesa>().HasKey(e => e.IdDespesa);
         modelBuilder.Entity<OfertaConcorrencia>().HasKey(e => e.IdOfertaConcorrencia);
-        modelBuilder.Entity<Banco>().HasKey(e => e.CodigoBanco);
-        modelBuilder.Entity<DadosBancarios>().HasKey(e => new { e.Conta, e.CodigoBanco, e.Agencia });
+        modelBuilder.Entity<Banco>().HasKey(e => e.IdBanco);
+        modelBuilder.Entity<DadosBancarios>().HasKey(e => new { e.Conta, e.IdBanco, e.Agencia });
         modelBuilder.Entity<Cobranca>().HasKey(e => e.IdCobranca);
         modelBuilder.Entity<GuardaEncomenda>().HasKey(e => e.IdGuardaEncomenda);
         modelBuilder.Entity<Local>().HasKey(e => e.IdLocal);
