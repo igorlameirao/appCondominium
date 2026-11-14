@@ -33,21 +33,19 @@ export class ConfiguracaoCondominioService {
     return this.http.delete<void>(`${this.base}/${idConfiguracao}`);
   }
 
-  private arquivoUrl(idCondominio: number, tipo: 'imagem-login' | 'imagem-icone'): string {
-    return `${environment.apiUrl}/configuracao-condominio/${idCondominio}/${tipo}`;
-  }
+  private readonly arquivoBase = `${environment.apiUrl}/configuracao-condominio`;
 
   baixarImagem(idCondominio: number, tipo: 'imagem-login' | 'imagem-icone'): Observable<Blob> {
-    return this.http.get(this.arquivoUrl(idCondominio, tipo), { responseType: 'blob' });
+    return this.http.get(`${this.arquivoBase}/${idCondominio}/${tipo}`, { responseType: 'blob' });
   }
 
   enviarImagem(idCondominio: number, tipo: 'imagem-login' | 'imagem-icone', arquivo: File): Observable<void> {
-    const dados = new FormData();
-    dados.append('arquivo', arquivo, arquivo.name);
-    return this.http.put<void>(this.arquivoUrl(idCondominio, tipo), dados);
+    const fd = new FormData();
+    fd.append('arquivo', arquivo, arquivo.name);
+    return this.http.put<void>(`${this.arquivoBase}/${idCondominio}/${tipo}`, fd);
   }
 
   removerImagem(idCondominio: number, tipo: 'imagem-login' | 'imagem-icone'): Observable<void> {
-    return this.http.delete<void>(this.arquivoUrl(idCondominio, tipo));
+    return this.http.delete<void>(`${this.arquivoBase}/${idCondominio}/${tipo}`);
   }
 }

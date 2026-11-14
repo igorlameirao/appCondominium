@@ -122,10 +122,10 @@ public class RbacTests
             IdPermissionKey = 1,
             Visualizar = true
         });
-        db.PessoaCondominio.Add(new PessoaCondominio { IdPessoa = 5, IdCondominio = 1, IdPerfil = 2, DataInicio = new DateOnly(2024, 1, 1), TipoVinculo = 1 });
-        db.PessoaCondominio.Add(new PessoaCondominio { IdPessoa = 5, IdCondominio = 2, IdPerfil = 2, DataInicio = new DateOnly(2024, 1, 1), TipoVinculo = 1 });
-        db.PessoaCondominio.Add(new PessoaCondominio { IdPessoa = 9, IdCondominio = 1, IdPerfil = 1, DataInicio = new DateOnly(2024, 1, 1), TipoVinculo = 1 });
-        db.PessoaCondominio.Add(new PessoaCondominio { IdPessoa = 9, IdCondominio = 2, IdPerfil = 2, DataInicio = new DateOnly(2024, 1, 1), TipoVinculo = 1 });
+        db.PessoaVinculo.Add(new PessoaVinculo { IdPessoa = 5, IdCondominio = 1, IdPerfil = 2, CodigoPapelVinculo = 2, DataInicio = new DateOnly(2024, 1, 1), Responsavel = 0 });
+        db.PessoaVinculo.Add(new PessoaVinculo { IdPessoa = 5, IdCondominio = 2, IdPerfil = 2, CodigoPapelVinculo = 2, DataInicio = new DateOnly(2024, 1, 1), Responsavel = 0 });
+        db.PessoaVinculo.Add(new PessoaVinculo { IdPessoa = 9, IdCondominio = 1, IdPerfil = 1, CodigoPapelVinculo = 14, DataInicio = new DateOnly(2024, 1, 1), Responsavel = 0 });
+        db.PessoaVinculo.Add(new PessoaVinculo { IdPessoa = 9, IdCondominio = 2, IdPerfil = 2, CodigoPapelVinculo = 2, DataInicio = new DateOnly(2024, 1, 1), Responsavel = 0 });
         db.PessoaPermissaoExcecao.Add(new PessoaPermissaoExcecao
         {
             IdPessoa = 5,

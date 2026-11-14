@@ -12,5 +12,5 @@ public class EntradaSaidaMaterialConsumo
     public decimal? ValorUnitarioAquisicao { get; set; }
     public decimal? Quantidade { get; set; }
     public byte? UnidadeMedida { get; set; }
-    public uint? IdPessoa { get; set; }
+    public uint? IdVinculo { get; set; }
 }

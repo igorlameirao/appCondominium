@@ -17,8 +17,8 @@ export class FornecedorService {
     return this.http.get<PagedResult<Fornecedor>>(this.base, { params });
   }
 
-  getById(idPessoa: number | string): Observable<Fornecedor> {
-    return this.http.get<Fornecedor>(`${this.base}/${idPessoa}`);
+  getById(idFornecedor: number | string): Observable<Fornecedor> {
+    return this.http.get<Fornecedor>(`${this.base}/${idFornecedor}`);
   }
 
   create(item: Fornecedor): Observable<Fornecedor> {
@@ -26,10 +26,10 @@ export class FornecedorService {
   }
 
   update(item: Fornecedor): Observable<void> {
-    return this.http.put<void>(`${this.base}/${item.idPessoa}`, item);
+    return this.http.put<void>(`${this.base}/${item.idFornecedor}`, item);
   }
 
-  delete(idPessoa: number | string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${idPessoa}`);
+  delete(idFornecedor: number | string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${idFornecedor}`);
   }
 }

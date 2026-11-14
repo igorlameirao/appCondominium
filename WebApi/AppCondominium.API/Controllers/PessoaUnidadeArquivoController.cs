@@ -63,8 +63,10 @@ public class PessoaUnidadeArquivoController : ControllerBase
 
     private async Task<string?> RadicalAsync(uint idPessoa, uint idUnidade, CancellationToken ct)
     {
-        var vinculo = await _db.PessoaUnidade.AsNoTracking()
-            .AnyAsync(p => p.IdPessoa == idPessoa && p.IdUnidade == idUnidade, ct);
+        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
+        var vinculo = await _db.PessoaVinculo.AsNoTracking()
+            .AnyAsync(p => p.IdPessoa == idPessoa && p.IdUnidade == idUnidade
+                && p.DataInicio <= hoje && (p.DataFim == null || p.DataFim >= hoje), ct);
         if (!vinculo || _tenant.IdCondominio is not uint idCondominio)
             return null;
 

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using AppCondominium.Application.Common;
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Domain.Entities;
+using AppCondominium.Domain.Vinculos;
 using AppCondominium.Infrastructure.Persistence;
 
 namespace AppCondominium.Infrastructure.Repositories.Generated;
@@ -44,7 +45,10 @@ public class CondominioRepository
         return await q.FirstOrDefaultAsync(e => e.IdCondominio == idCondominio, ct);
     }
 
-    public async Task<Condominio> AddAsync(Condominio entity, uint? idPessoaCriador = null, CancellationToken ct = default)
+    public Task<Condominio> AddAsync(Condominio entity, CancellationToken ct = default)
+        => AddAsync(entity, null, ct);
+
+    public async Task<Condominio> AddAsync(Condominio entity, uint? idPessoaCriador, CancellationToken ct = default)
     {
         var tenantAtual = _condominio.RequireTenantId();
         entity.IdCondominio = null;
@@ -58,8 +62,10 @@ public class CondominioRepository
         uint? idPerfil = null;
         if (idPessoaCriador is uint idPessoa)
         {
-            idPerfil = await _ctx.Set<PessoaCondominio>().AsNoTracking()
-                .Where(v => v.IdPessoa == idPessoa && v.IdCondominio == tenantAtual)
+            var hoje = PessoaVinculoAtivo.HojeUtc();
+            idPerfil = await _ctx.Set<PessoaVinculo>().IgnoreQueryFilters().AsNoTracking()
+                .Where(v => v.IdPessoa == idPessoa && v.IdCondominio == tenantAtual
+                    && v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje))
                 .Select(v => v.IdPerfil)
                 .FirstOrDefaultAsync(ct);
             if (idPerfil == null)
@@ -79,28 +85,27 @@ public class CondominioRepository
         return entity;
     }
 
-    /// <summary>
-    /// O condomínio novo tem outro IdCondominio. O vínculo usa o filtro do tenant ativo,
-    /// então a gravação ocorre com o contexto apontando para o registro recém-criado.
-    /// </summary>
     private async Task VincularCriadorAsync(uint idPessoa, uint idCondominio, uint idPerfil, CancellationToken ct)
     {
         var tenantAnterior = _condominio.IdCondominio;
         _condominio.SetCondominio(idCondominio);
         try
         {
-            var existe = await _ctx.Set<PessoaCondominio>()
-                .AnyAsync(v => v.IdPessoa == idPessoa && v.IdCondominio == idCondominio, ct);
+            var hoje = PessoaVinculoAtivo.HojeUtc();
+            var existe = await _ctx.Set<PessoaVinculo>().IgnoreQueryFilters()
+                .AnyAsync(v => v.IdPessoa == idPessoa && v.IdCondominio == idCondominio
+                    && v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje), ct);
             if (existe)
                 return;
 
-            await _ctx.Set<PessoaCondominio>().AddAsync(new PessoaCondominio
+            await _ctx.Set<PessoaVinculo>().AddAsync(new PessoaVinculo
             {
                 IdPessoa = idPessoa,
                 IdCondominio = idCondominio,
+                CodigoPapelVinculo = PapelVinculoCodigos.Funcionario,
                 IdPerfil = idPerfil,
-                DataInicio = DateOnly.FromDateTime(DateTime.UtcNow),
-                TipoVinculo = 1
+                DataInicio = hoje,
+                Responsavel = 0
             }, ct);
             await _ctx.SaveChangesAsync(ct);
         }

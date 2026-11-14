@@ -9,5 +9,5 @@ export interface EntradaSaidaMaterialConsumo {
   valorUnitarioAquisicao?: number;
   quantidade?: number;
   unidadeMedida?: number;
-  idPessoa?: number;
+  idVinculo?: number;
 }

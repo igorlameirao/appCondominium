@@ -13,7 +13,7 @@ public interface ITenantAccessService
 
     /// <summary>
     /// Condomínios do usuário e os perfis com que ele pode entrar em cada um.
-    /// O vínculo PessoaCondominio guarda um perfil; ocupar uma unidade acrescenta Morador quando esse não é o perfil já cadastrado.
+    /// PessoaVinculo.IdPerfil guarda o RBAC explícito; vínculo por unidade pode acrescentar perfil Morador na lista de escolha (RN-Gerais 17).
     /// </summary>
     Task<IReadOnlyList<CondominioVinculo>> ListarVinculosAsync(uint idPessoa, CancellationToken ct = default);
 

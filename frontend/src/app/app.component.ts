@@ -48,9 +48,11 @@ export class AppComponent implements OnInit {
       { label: 'Tipo Unidade', route: '/tipounidade' }, { label: 'Unidade', route: '/unidade' },
       { label: 'Hidrômetro', route: '/hidrometro' }, { label: 'Consumo Água', route: '/consumoagua' }
     ]},
-    { label: 'Pessoas', icon: 'users', links: [
-      { label: 'Pessoa Física', route: '/pessoafisica' }, { label: 'Pessoa Jurídica', route: '/pessoajuridica' },
-      { label: 'Pessoa Condomínio', route: '/pessoacondominio' }, { label: 'Fornecedor', route: '/fornecedor' }
+    { label: 'Pessoas e Vínculos', icon: 'users', links: [
+      { label: 'Pessoas', route: '/pessoas' },
+      { label: 'Vínculos', route: '/pessoavinculo' },
+      { label: 'Fornecedores', route: '/fornecedor' },
+      { label: 'Autorizações Temporárias', route: '/autorizacaoacessotemporario' }
     ]},
     { label: 'Financeiro', icon: 'wallet', links: [
       { label: 'Banco', route: '/banco' }, { label: 'Dados Bancários', route: '/dadosbancarios' },
@@ -185,7 +187,15 @@ export class AppComponent implements OnInit {
   isGroupOpen(label: string): boolean { return this.openGroups.has(label); }
 
   visibleLinks(group: { links: MenuLink[] }): MenuLink[] {
-    return group.links.filter(link => this.permissions.can(this.keyOf(link.route), 'Visualizar'));
+    return group.links.filter(link => this.canVisualizarRota(link.route));
+  }
+
+  private canVisualizarRota(route: string): boolean {
+    const path = route.replace(/^\//, '').toLowerCase();
+    if (path === 'pessoas') {
+      return this.permissions.canAny(['PESSOAFISICA', 'PESSOAJURIDICA'], 'Visualizar');
+    }
+    return this.permissions.can(this.keyOf(route), 'Visualizar');
   }
 
   private keyOf(route: string): string {

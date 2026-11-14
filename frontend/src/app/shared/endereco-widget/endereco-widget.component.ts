@@ -86,7 +86,7 @@ interface ViaCep {
     <div class="cep-list" *ngIf="cepMatches.length">
       <p>CEP encontrado — selecione:</p>
       <button type="button" *ngFor="let e of cepMatches" (click)="applyEndereco(e)">
-        {{ e.logradouro }} — {{ e.cep }}
+        {{ e.logradouro }} — {{ e.cEP }}
       </button>
     </div>
     <div class="cep-list" *ngIf="viaCepOpcoes.length">
@@ -237,7 +237,7 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
     this.viaCepOpcoes = [];
     this.enderecoSvc.getPaged(1, 20, cep).pipe(timeout(2500)).subscribe({
       next: r => {
-        this.cepMatches = (r.items ?? []).filter(e => somenteDigitos(e.cep ?? '') === cep);
+        this.cepMatches = (r.items ?? []).filter(e => somenteDigitos(e.cEP ?? '') === cep);
         this.viaCepOpcoes = [];
         if (this.cepMatches.length === 1) {
           this.applyEndereco(this.cepMatches[0]);
@@ -455,7 +455,7 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
       return;
     }
     if (!nomeBusca || !codigoMunicipio) { done(); return; }
-    this.bairroSvc.getPaged(1, 50, nomeBusca, codigoMunicipio).subscribe({
+    this.bairroSvc.getPaged(1, 50, nomeBusca).subscribe({
       next: r => {
         const achado = (r.items ?? []).find(b => this.mesmoBairro(b, nomeBusca, codigoMunicipio));
         if (achado) {
@@ -504,7 +504,7 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
 
   applyEndereco(e: Endereco, done: () => void = () => {}): void {
     if (this.modo === 'vinculo') this.idEndereco = e.idEndereco ?? null;
-    this.cepDisplay = mascaraCep(e.cep ?? '');
+    this.cepDisplay = mascaraCep(e.cEP ?? '');
     this.logradouro = e.logradouro ?? '';
     this.aplicarBairro(e.idBairro ?? null, done);
     this.cepMatches = [];

@@ -98,7 +98,7 @@ public sealed class ArquivoCleanupInterceptor : SaveChangesInterceptor
             _depois.Add(ct => _arquivos.ExcluirAsync(radical, ct));
         }
 
-        foreach (var entry in context.ChangeTracker.Entries<PessoaUnidade>())
+        foreach (var entry in context.ChangeTracker.Entries<PessoaVinculo>())
         {
             if (entry.State != EntityState.Deleted
                 || entry.Entity.IdPessoa is not uint idPessoa

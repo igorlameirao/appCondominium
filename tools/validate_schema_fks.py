@@ -26,12 +26,10 @@ FK_LINE = re.compile(
 COMPOSITE_PK = {
     "PessoaEndereco": ("IdPessoa", "IdEndereco"),
     "FornecedorAtividade": ("IdPessoa", "CodigoAtividadeEconomica"),
-    "PessoaCondominio": ("IdPessoa", "IdCondominio"),
     "DadosBancarios": ("Conta", "CodigoBanco", "Agencia"),
     "TipoMaterialCondominio": ("IdTipoMaterial", "IdCondominio"),
     "PerfilPermissao": ("IdPerfil", "IdPermissionKey"),
     "PessoaPermissaoExcecao": ("IdPessoa", "IdCondominio", "IdPermissionKey"),
-    "PessoaUnidade": ("IdPessoa", "IdUnidade"),
 }
 
 # Junção: duas FKs simples para as entidades pai (padrão válido no schema).
@@ -147,26 +145,20 @@ def validate() -> list[str]:
                 f"(PK {pk}) — use FK composta com {pk}"
             )
 
-    expected_composite = {
-        ("AlocacaoMaterial", "fk_AlocacaoMaterial_IdPessoa"): ("IdPessoa", "IdCondominio"),
-        ("EntradaSaidaMaterialConsumo", "fk_EntradaSaidaMaterialConsumo_IdPessoa"): (
-            "IdPessoa",
-            "IdCondominio",
-        ),
-        ("GuardaEncomenda", "fk_GuardaEncomenda_IdPessoaSaida"): ("IdPessoaSaida", "IdUnidade"),
+    expected_simple = {
+        ("AlocacaoMaterial", "fk_AlocacaoMaterial_IdVinculo"): ("IdVinculo",),
+        ("EntradaSaidaMaterialConsumo", "fk_EntradaSaidaMaterialConsumo_IdVinculo"): ("IdVinculo",),
+        ("GuardaEncomenda", "fk_GuardaEncomenda_IdVinculoRetirada"): ("IdVinculoRetirada",),
     }
     by_name = {(fk["table"], fk["name"]): fk for fk in fks}
-    for key, local in expected_composite.items():
+    for key, local in expected_simple.items():
         fk = by_name.get(key)
         if not fk:
-            errors.append(f"FK composta ausente: {key[0]}.{key[1]}")
+            errors.append(f"FK ausente: {key[0]}.{key[1]}")
         elif tuple(fk["local_cols"]) != local:
             errors.append(
                 f"{key[0]}.{key[1]}: esperado local {local}, encontrado {tuple(fk['local_cols'])}"
             )
-
-    if not composite_fks:
-        errors.append("Nenhuma FK composta encontrada — revisão incompleta.")
 
     return errors
 

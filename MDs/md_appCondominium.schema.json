@@ -154,7 +154,7 @@
         "VinculoTenant": {
           "type": "string",
           "minLength": 1,
-          "description": "Entidade usada para isolar escopo Indireto (ex.: PessoaCondominio, Unidade, Fornecedor, Cobranca)."
+          "description": "Entidade usada para isolar escopo Indireto (ex.: PessoaVinculo, Unidade, Fornecedor, Cobranca)."
         },
         "PerfisAcesso": {
           "type": "array",

@@ -273,8 +273,36 @@
       }
     },
     {
-      "permissionKey": "PESSOACONDOMINIO",
-      "displayName": "Pessoa Condominio",
+      "permissionKey": "PAPELVINCULO",
+      "displayName": "Papel de Vínculo",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "PESSOAVINCULO",
+      "displayName": "Vínculo de Pessoa",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Sim",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
+      "permissionKey": "AUTORIZACAOACESSOTEMPORARIO",
+      "displayName": "Autorização de Acesso Temporário",
       "permissions": {
         "Visualizar": "Sim",
         "Incluir": "Sim",

@@ -7,5 +7,5 @@ export interface GuardaEncomenda {
   dataHoraEntrada?: string;
   dataHoraSaida?: string;
   idPessoaEntrada?: number;
-  idPessoaSaida?: number;
+  idVinculoRetirada?: number;
 }
