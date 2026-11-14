@@ -1,0 +1,80 @@
+---
+description: Hug – Estilo-Mobile — identidade minimalista AppCondominium (Flutter). Tokens, Home aprovada, auth, temas e responsividade.
+globs: mobile/lib/**/*.dart,mobile/test/**/*.dart
+alwaysApply: false
+---
+
+# Hug – Estilo-Mobile (Flutter `mobile/`)
+
+**Referências visuais aprovadas (não redesenhar):** Home minimalista (`HomePage`) e Login (`LoginPage`).
+
+**Documentação completa:** `mobile/docs/hug-estilo-mobile.md`
+
+**Escopo:** só o app Flutter em `mobile/`. Não confundir com `hug-estilo-AppCondominium.mdc` (Angular).
+
+## Antes de criar UI nova
+
+1. Ler `mobile/docs/hug-estilo-mobile.md` e inspecionar widgets em `lib/shared/` e tokens em `lib/app/theme/`.
+2. Reutilizar `AppColors`, `AppSpacing`, `AppTheme`, `AppTypography` — evitar literais de cor, raio e padding na tela.
+3. Tema claro **e** escuro: `Theme.of(context).brightness` ou helpers existentes (`HomeSurface`, `AuthBackground`).
+4. Responsividade: preferir `LayoutBuilder` + interpolação (`HomeLayout.verticalRelaxation` / `_lerpMetric`) em vez de breakpoints binários.
+5. Manter arquitetura **feature-first** + Riverpod; não duplicar widgets paralelos em `shared/` sem necessidade.
+6. Não alterar Home/Login aprovados nem fluxos, salvo pedido explícito.
+
+## Tokens canônicos
+
+| Área | Onde |
+|------|------|
+| Cores marca (azul/ciano/navy) | `lib/app/theme/app_colors.dart` |
+| Espaçamentos e raios globais | `lib/app/theme/app_spacing.dart` |
+| Material 3 claro/escuro | `lib/app/theme/app_theme.dart` |
+| Tipografia base | `lib/app/theme/app_typography.dart` |
+| Tema sistema / persistência | `lib/app/theme/theme_mode_controller.dart` |
+| Superfícies minimalistas Home | `lib/features/home/presentation/theme/home_surface.dart` |
+| Métricas responsivas Home | `lib/features/home/presentation/theme/home_layout.dart` |
+| Fundo Home (ondas) | `lib/features/home/presentation/widgets/home_background.dart` |
+
+## Minimalismo (regra de ouro)
+
+- Poucos cards brancos; preferir fundo da página + bordas/sombras **leves** (`minimalShadow`, `minimalRadius` 14).
+- Ondas decorativas só em cantos, opacidade baixa; camadas em altura completa com `alignment` (sem `height` fixo que corte o fundo).
+- Atalhos: ícone em caixa azul suave (`shortcutIconBoxDecoration`), rótulo no fundo — não card completo por item.
+- Ações secundárias: texto + seta ou `InkWell` transparente; evitar botões pesados fora de auth.
+
+## Navegação e shell
+
+- **Login:** `AuthBackground` + `SafeArea` + scroll com teclado (`resizeToAvoidBottomInset`, `MediaQuery.viewInsetsOf`).
+- **Home:** `Scaffold` + `HomeBackground` + `CustomScrollView` + `HomeBottomNavigation` fixa; drawer `HomeDrawer`.
+- **Rotas:** `go_router` em `lib/app/router.dart`; protótipo usa `showComingSoonMessage` para itens pendentes.
+
+## Widgets compartilhados (reutilizar)
+
+`lib/shared/widgets/auth/*` (campos, botões, card, fundo), `app_loading_indicator.dart`, `app_brand_mark.dart`, `coming_soon_message.dart`.
+
+Componentes `home_*` permanecem em `features/home/` até outra feature precisar do mesmo padrão — então extrair com nome neutro para `shared/`.
+
+## Feedback
+
+- Carregamento: `AppLoadingIndicator`.
+- “Em breve” / protótipo: `showComingSoonMessage` (SnackBar flutuante do tema).
+- Erros de rede: `ApiException` / `AppFailure` (core) — UI de erro global ainda não padronizada.
+
+## Acessibilidade e toque
+
+- Alvos de toque confortáveis (`InkWell` + padding; ícones ~23–26).
+- `maxLines` + `TextOverflow.ellipsis` em rótulos estreitos.
+- `SafeArea`: Home usa `bottom: false` no corpo quando a barra inferior já trata o inset.
+
+## Não fazer
+
+- Dependências novas só para UI; cores/spacing copiados de outras telas; sombras/bordas fortes estilo “card dashboard”.
+- Gradiente/overlay extra para mascarar bug de fundo — corrigir camada (`HomeBackground`).
+- Mudar backend, Angular ou pacotes fora de `mobile/` nesta rule.
+
+## Checklist do Agent (nova tela)
+
+- [ ] Tokens e tema claro/escuro
+- [ ] Layout responsivo (constraints, não largura fixa de aparelho)
+- [ ] SafeArea e teclado testados em formulário
+- [ ] Widgets existentes consultados; duplicação evitada
+- [ ] `flutter analyze` / testes pertinentes
