@@ -23,7 +23,9 @@ public partial class AppDbContext : DbContext
     public DbSet<Fornecedor> Fornecedor { get; set; } = null!;
     public DbSet<TipoAtividadeEconomica> TipoAtividadeEconomica { get; set; } = null!;
     public DbSet<AtividadeEconomica> AtividadeEconomica { get; set; } = null!;
-    public DbSet<PessoaCondominio> PessoaCondominio { get; set; } = null!;
+    public DbSet<PapelVinculo> PapelVinculo { get; set; } = null!;
+    public DbSet<PessoaVinculo> PessoaVinculo { get; set; } = null!;
+    public DbSet<AutorizacaoAcessoTemporario> AutorizacaoAcessoTemporario { get; set; } = null!;
     public DbSet<Equipamento> Equipamento { get; set; } = null!;
     public DbSet<AluguelEquipamento> AluguelEquipamento { get; set; } = null!;
     public DbSet<Concorrencia> Concorrencia { get; set; } = null!;

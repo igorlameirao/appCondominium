@@ -80,4 +80,12 @@ public static class DocumentoValidator
     }
 
     private static int Valor(char c) => char.IsDigit(c) ? c - '0' : c - 'A' + 10;
+
+    public static string? NormalizarCpfCnpj(string? documento)
+    {
+        if (string.IsNullOrWhiteSpace(documento))
+            return null;
+        var limpo = new string(documento.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
+        return limpo.Length == 0 ? null : limpo;
+    }
 }

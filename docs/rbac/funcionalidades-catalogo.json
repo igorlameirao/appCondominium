@@ -155,11 +155,27 @@
       "status": "ativo"
     },
     {
-      "permissionKey": "PESSOACONDOMINIO",
-      "displayName": "Pessoa Condominio",
+      "permissionKey": "PAPELVINCULO",
+      "displayName": "Papel de Vínculo",
       "module": "Pessoas",
       "tipo": "Tela — CRUD",
-      "route": "/pessoacondominio",
+      "route": "/papelvinculo",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "PESSOAVINCULO",
+      "displayName": "Vínculo de Pessoa",
+      "module": "Pessoas",
+      "tipo": "Tela — CRUD",
+      "route": "/pessoavinculo",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "AUTORIZACAOACESSOTEMPORARIO",
+      "displayName": "Autorização de Acesso Temporário",
+      "module": "Portaria",
+      "tipo": "Tela — CRUD",
+      "route": "/autorizacaoacessotemporario",
       "status": "ativo"
     },
     {

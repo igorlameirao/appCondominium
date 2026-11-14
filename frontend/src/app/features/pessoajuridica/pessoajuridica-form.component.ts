@@ -1,24 +1,19 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Icone } from '../../shared/icone';
-import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
-import { FormInitialLoad } from '../../shared/form-initial-load';
 import { FormsModule, NgForm } from '@angular/forms';
-import { CampoDataComponent } from '../../shared/campo-data/campo-data.component';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ToastService } from '../../core/services/toast.service';
-import { PessoaJuridicaService } from './pessoajuridica.service';
-import { PessoaJuridica } from './pessoajuridica.model';
-import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
+import { ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
 import { PermissionService } from '../../core/services/permission.service';
-import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
+import { PessoaCadastroIntegradoService, PessoaJuridicaIntegradaRequest } from '../../core/services/pessoa-cadastro-integrado.service';
+import { ToastService } from '../../core/services/toast.service';
+import { PessoaPjCamposComponent } from '../pessoas/pessoa-pj-campos.component';
 
 @Component({
   selector: 'app-pessoajuridica-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [CommonModule, RouterLink, Icone, FormsModule, PessoaPjCamposComponent],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -26,178 +21,106 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
           <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
             <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
             <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
-            <a [routerLink]="'/pessoajuridica'">Pessoa Jurídica</a>
+            <a routerLink="/pessoas">Pessoas</a>
             <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
-            <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
+            <span aria-current="page">Nova pessoa jurídica</span>
           </nav>
-          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Pessoa Jurídica</h1>
-          <p class="cad-subtitulo">Cadastre e mantenha as informações de pessoa jurídica</p>
+          <h1 class="cad-titulo">Nova pessoa jurídica</h1>
+          <p class="cad-subtitulo">Inclua uma pessoa jurídica e retorne ao hub de pessoas</p>
         </header>
-
         <section class="cad-card form-page">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
             <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
               <app-icone nome="briefcase" [tamanho]="16" />
-              <span>Dados de Pessoa Jurídica</span>
+              <span>Dados da pessoa jurídica</span>
             </button>
           </div>
           <div class="cad-conteudo" role="tabpanel">
             <div class="cad-secao">
               <app-icone class="cad-secao__icone" nome="briefcase" [tamanho]="26" />
               <div>
-                <h2 class="cad-secao__titulo">Dados de Pessoa Jurídica</h2>
-                <p class="cad-secao__texto">Informe as informações principais</p>
+                <h2 class="cad-secao__titulo">Dados da pessoa jurídica</h2>
+                <p class="cad-secao__texto">Informe identificação, contato e responsável legal</p>
               </div>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>IdPessoa *</label>
-              <input type="number" [(ngModel)]="model.idPessoa" name="idPessoa" [readonly]="fieldDisabled('idPessoa')" required />
+            <div class="form-scroll cad-form-scroll">
+              <form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
+                <app-pessoa-pj-campos [model]="model" secao="completo"
+                  [documentoBloqueado]="false" [desabilitado]="!podeGravar" [responsaveis]="fkResponsavel" />
+              </form>
             </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
-              <label>IdResponsavel *</label>
-              <app-combobox-customizada
-                [options]="fk_idResponsavel"
-                [(value)]="model.idResponsavel"
-                [disabled]="fieldDisabled('idResponsavel')" [required]="true" />
-            </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
-              <label>Nome Fantasia</label>
-              <input type="text" [(ngModel)]="model.nomeFantasia" name="nomeFantasia" maxlength="255" [readonly]="fieldDisabled('nomeFantasia')" />
-            </div>
-            <div style="grid-column: 1 / span 3; grid-row: 3" class="form-group fg-col-3">
-              <label>Inscrição Estadual</label>
-              <input type="text" [(ngModel)]="model.inscricaoEstadual" name="inscricaoEstadual" maxlength="40" [readonly]="fieldDisabled('inscricaoEstadual')" />
-            </div>
-            <div style="grid-column: 4 / span 3; grid-row: 3" class="form-group fg-col-3">
-              <label>Inscrição Municipal</label>
-              <input type="text" [(ngModel)]="model.inscricaoMunicipal" name="inscricaoMunicipal" maxlength="40" [readonly]="fieldDisabled('inscricaoMunicipal')" />
-            </div>
-            <div style="grid-column: 7 / span 2; grid-row: 3" class="form-group fg-col-2">
-              <label>Data de Fundacao</label>
-              <app-campo-data [(ngModel)]="model.dataFundacao" name="dataFundacao" [disabled]="fieldDisabled('dataFundacao')" [feedbackVisual]="true" />
-            </div>
-          </div>
-        </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
-        <span class="cad-acoes__espaco"></span>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
-        <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
-      </div>
+            <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
+            <span class="cad-acoes__espaco"></span>
+            <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
+          </div>
         </section>
       </div>
     </div>
-    <div class="confirm-overlay" *ngIf="showDeleteConfirm">
-      <div class="confirm-modal">
-        <p>Deseja realmente excluir este registro?</p>
-        <div class="confirm-actions">
-          <button type="button" class="btn-cancelar-modal" (click)="showDeleteConfirm=false">Cancelar</button>
-          <button type="button" class="btn-confirm-danger" (click)="confirmDelete()">Excluir</button>
-        </div>
-      </div>
-    </div>
-    <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
-  `,
+    <p class="msg-erro cad-erro" *ngIf="formError">{{ formError }}</p>
+  `
 })
 export class PessoaJuridicaFormComponent implements OnInit {
-  model: PessoaJuridica = {} as PessoaJuridica;
-  isEdit = false;
+  model: PessoaJuridicaIntegradaRequest = {};
   saving = false;
-  readonly pageLoad = new FormInitialLoad();
-  private readonly toast = inject(ToastService);
-  private readonly entityTitle = 'Pessoa Jurídica';
-  showDeleteConfirm = false;
+  formError = '';
   readonly permissionKey = 'PESSOAJURIDICA';
-  canEdit = true;
-  canDelete = true;
-  fk_idResponsavel: ComboboxOption[] = [];
+  private retorno = '/pessoas';
+  fkResponsavel: ComboboxOption[] = [];
 
   constructor(
-    private service: PessoaJuridicaService,
+    private cadastro: PessoaCadastroIntegradoService,
     private route: ActivatedRoute,
     private router: Router,
     private permissions: PermissionService,
-    private condominioCtx: CondominioContextService,
-    private pessoafisicaService: PessoafisicaService,
-  ) {
-    this.refreshPermissions();
-  }
+    private pfService: PessoafisicaService,
+    private toast: ToastService
+  ) {}
 
   get podeGravar(): boolean {
-    return this.isEdit
-      ? this.permissions.can(this.permissionKey, 'Alterar')
-      : this.permissions.can(this.permissionKey, 'Incluir');
+    return this.permissions.can(this.permissionKey, 'Incluir');
   }
-
-  private refreshPermissions(): void {
-    this.canEdit = this.podeGravar;
-    this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
-  }
-
-  get pkDisplay(): string { return String(this.model.idPessoa); }
 
   ngOnInit(): void {
-    if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();
-
-    
-    this.pageLoad.run(this.pessoafisicaService.getPaged(1, 200), r => {
-      this.fk_idResponsavel = r.items.map((x: any) => ({
-        value: x.idResponsavel,
-        label: this.fkLabel_idResponsavel(x)
-      }));
-    });
-    const idPessoa = this.route.snapshot.paramMap.get('idPessoa');
-    const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
-    if (isNovo) {
-      this.isEdit = false;
-      this.refreshPermissions();
-      
+    const id = this.route.snapshot.paramMap.get('idPessoa');
+    if (id && !this.route.snapshot.url.some(s => s.path === 'novo')) {
+      void this.router.navigate(['/pessoas', id], { queryParams: { tipo: 'PJ' }, replaceUrl: true });
       return;
     }
-    if (idPessoa) {
-      this.isEdit = true;
-      this.refreshPermissions();
-      this.pageLoad.run(this.service.getById(idPessoa), (r) => this.model = r, () => this.toast.showError('Registro não encontrado.'));
-    }
-    this.pageLoad.seal();
+    const ret = this.route.snapshot.queryParamMap.get('retorno');
+    if (ret) this.retorno = ret;
+    this.pfService.getPaged(1, 200).subscribe(r => {
+      this.fkResponsavel = (r.items ?? [])
+        .filter(x => x.idPessoa != null)
+        .map(x => ({
+          value: x.idPessoa as number,
+          label: String(x.idPessoa) + ((x as { email?: string }).email ? ` · ${(x as { email?: string }).email}` : '')
+        }));
+    });
   }
 
-  fieldDisabled(field: string): boolean {
-    if (!this.canEdit) return true;
-    if (!this.isEdit) return false;
-    const roFields: string[] = [];
-    return roFields.includes(field);
+  private extrairErro(e: unknown): string {
+    const body = (e as { error?: string | { title?: string } })?.error;
+    if (typeof body === 'string') return body;
+    return body?.title ?? 'Erro ao gravar';
   }
 
   submit(f: NgForm): void {
-    if (!f.valid) { this.toast.showError('Preencha os campos obrigatórios antes de gravar.'); return; }
+    if (!f.valid) { this.formError = 'Preencha os campos obrigatórios.'; return; }
     this.saving = true;
-    if (this.isEdit) {
-      this.service.update(this.model).subscribe({
-        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/pessoajuridica']); },
-        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
-        complete: () => this.saving = false
-      });
-    } else {
-      this.service.create(this.model).subscribe({
-        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/pessoajuridica']); },
-        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
-        complete: () => this.saving = false
-      });
-    }
+    this.formError = '';
+    this.cadastro.criarPj(this.model).subscribe({
+      next: r => {
+        this.toast.showSuccess('Pessoa jurídica gravada com sucesso.');
+        void this.router.navigate([this.retorno === '/pessoas' ? `/pessoas/${r.idPessoa}` : this.retorno], {
+          queryParams: { tipo: 'PJ' }
+        });
+      },
+      error: e => { this.formError = this.extrairErro(e); this.saving = false; },
+      complete: () => this.saving = false
+    });
   }
 
-  cancel(): void { this.router.navigate(['/pessoajuridica']); }
-
-  confirmDelete(): void {
-    this.service.delete(this.model.idPessoa!).subscribe({ next: () => this.router.navigate(['/pessoajuridica']), error: () => this.toast.showError('Não foi possível excluir. Tente novamente.') });
-  }
-
-  fkLabel_idResponsavel(x: any): string {
-    return String(x?.descricao ?? x?.nome ?? x?.siglaUF ?? x?.cep ?? x?.idPessoafisica ?? '');
-  }
+  cancel(): void { void this.router.navigateByUrl(this.retorno); }
 }

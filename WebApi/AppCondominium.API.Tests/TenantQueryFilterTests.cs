@@ -33,7 +33,7 @@ public class TenantQueryFilterTests
     }
 
     [Fact]
-    public async Task PessoaUnidade_is_limited_to_units_of_the_tenant()
+    public async Task PessoaVinculo_is_limited_to_active_tenant()
     {
         var tenant = new MutableTenant();
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -42,17 +42,31 @@ public class TenantQueryFilterTests
 
         await using (var seed = new AppDbContext(options, tenant))
         {
-            seed.Unidade.Add(new Unidade { IdUnidade = 10, IdCondominio = 1 });
-            seed.Unidade.Add(new Unidade { IdUnidade = 20, IdCondominio = 2 });
-            seed.PessoaUnidade.Add(new PessoaUnidade { IdPessoa = 5, IdUnidade = 10 });
-            seed.PessoaUnidade.Add(new PessoaUnidade { IdPessoa = 5, IdUnidade = 20 });
+            seed.PessoaVinculo.Add(new PessoaVinculo
+            {
+                IdVinculo = 1,
+                IdPessoa = 5,
+                IdCondominio = 1,
+                CodigoPapelVinculo = 14,
+                DataInicio = new DateOnly(2024, 1, 1),
+                Responsavel = 0
+            });
+            seed.PessoaVinculo.Add(new PessoaVinculo
+            {
+                IdVinculo = 2,
+                IdPessoa = 6,
+                IdCondominio = 2,
+                CodigoPapelVinculo = 14,
+                DataInicio = new DateOnly(2024, 1, 1),
+                Responsavel = 0
+            });
             await seed.SaveChangesAsync();
         }
 
         tenant.SetCondominio(1);
         await using var db = new AppDbContext(options, tenant);
-        var links = await db.PessoaUnidade.Select(p => p.IdUnidade).ToListAsync();
-        Assert.Equal(new uint?[] { 10 }, links);
+        var links = await db.PessoaVinculo.Select(p => p.IdVinculo).ToListAsync();
+        Assert.Equal(new uint?[] { 1 }, links);
     }
 
     private sealed class MutableTenant : ICondominioContext

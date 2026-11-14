@@ -5,32 +5,6 @@ import { environment } from '../../../environments/environment';
 import { PagedResult } from '../../core/models/paged-result';
 import { Unidade } from './unidade.model';
 
-export interface BlocoComUnidades {
-  idBloco: number;
-  descricao?: string;
-}
-
-export interface UnidadeCopiaLinha {
-  numero?: number;
-  idTipoUnidadeOrigem?: number;
-  tipoUnidadeOrigem?: string;
-  idTipoUnidadeDestino?: number;
-  tipoUnidadeDestino?: string;
-  idUnidadeDestino?: number;
-}
-
-export interface CopiarBlocoPrevia {
-  criar: UnidadeCopiaLinha[];
-  alterar: UnidadeCopiaLinha[];
-  ignorar: UnidadeCopiaLinha[];
-}
-
-export interface CopiarBlocoResult {
-  criadas: number;
-  alteradas: number;
-  ignoradas: number;
-}
-
 @Injectable({ providedIn: 'root' })
 export class UnidadeService {
   private base = `${environment.apiUrl}/unidade`;
@@ -73,4 +47,30 @@ export class UnidadeService {
   copiarBloco(idBlocoOrigem: number, idBlocoDestino: number): Observable<CopiarBlocoResult> {
     return this.http.post<CopiarBlocoResult>(`${this.base}/copiar-bloco`, { idBlocoOrigem, idBlocoDestino });
   }
+}
+
+export interface BlocoComUnidades {
+  idBloco: number;
+  descricao?: string | null;
+}
+
+export interface UnidadeCopiaLinha {
+  numero?: number | null;
+  idTipoUnidadeOrigem?: number | null;
+  tipoUnidadeOrigem?: string | null;
+  idTipoUnidadeDestino?: number | null;
+  tipoUnidadeDestino?: string | null;
+  idUnidadeDestino?: number | null;
+}
+
+export interface CopiarBlocoPrevia {
+  criar: UnidadeCopiaLinha[];
+  alterar: UnidadeCopiaLinha[];
+  ignorar: UnidadeCopiaLinha[];
+}
+
+export interface CopiarBlocoResult {
+  criadas: number;
+  alteradas: number;
+  ignoradas: number;
 }

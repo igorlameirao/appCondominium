@@ -74,11 +74,16 @@ def tenant_filter_csharp(entity):
         return """        var tenantId = _condominio.RequireTenantId();
         query = query.Where(e => _ctx.Set<Cobranca>().Any(c => c.IdCobranca == e.IdCobranca && c.IdCondominio == tenantId));
 """
+    return pessoa_vinculo_tenant_filter_body()
+
+
+def pessoa_vinculo_tenant_filter_body():
     return """        var tenantId = _condominio.RequireTenantId();
+        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
         query = query.Where(e =>
-            _ctx.Set<PessoaCondominio>().Any(v => v.IdPessoa == e.IdPessoa && v.IdCondominio == tenantId)
-            || _ctx.Set<Fornecedor>().Any(f => f.IdPessoa == e.IdPessoa && f.IdCondominio == tenantId)
-            || _ctx.Set<Unidade>().Any(u => _ctx.Set<PessoaUnidade>().Any(pu => pu.IdUnidade == u.IdUnidade && pu.IdPessoa == e.IdPessoa) && u.IdCondominio == tenantId));
+            _ctx.Set<PessoaVinculo>().Any(v => v.IdPessoa == e.IdPessoa && v.IdCondominio == tenantId
+                && v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje))
+            || _ctx.Set<Fornecedor>().Any(f => f.IdPessoa == e.IdPessoa && f.IdCondominio == tenantId));
 """
 
 
@@ -305,7 +310,7 @@ def fk_service_name(fk_entity: str) -> str:
         "Pessoa": "Pessoafisica",
         "PessoaFisica": "Pessoafisica",
         "pessoafisica": "Pessoafisica",
-        "PessoaUnidade": "Pessoafisica",
+        "PessoaVinculo": "PessoaVinculo",
     }
     return m.get(fk_entity, pascal(fk_entity))
 
@@ -699,9 +704,30 @@ def gen_angular_model(entity):
 
 
 SQL_EXTRA_TABLES = frozenset(
-    {"PessoaEndereco", "PessoaUnidade", "FornecedorAtividade", "CobrancaDetalhe",
+    {"PessoaEndereco", "FornecedorAtividade", "CobrancaDetalhe",
      "PermissionKey", "PerfilPermissao", "PessoaPermissaoExcecao"}
 )
+
+PAPEL_VINCULO_SEEDS = [
+    (1, "Proprietário", 2),
+    (2, "Morador", 2),
+    (3, "Locatário", 2),
+    (4, "Dependente", 2),
+    (5, "Familiar", 2),
+    (6, "Hóspede", 2),
+    (7, "Corretor", 2),
+    (10, "Síndico", 1),
+    (11, "Subsíndico", 1),
+    (12, "Conselheiro", 1),
+    (13, "Administradora", 1),
+    (14, "Funcionário", 1),
+    (15, "Prestador", 1),
+    (16, "Terceirizado", 1),
+    (17, "Fornecedor", 1),
+    (20, "Representante Legal", 3),
+    (21, "Familiar (pessoa)", 3),
+    (22, "Dependente (pessoa)", 3),
+]
 
 FK_ENTITY_ALIASES = {
     "PessoaFisica": "pessoafisica",
@@ -987,6 +1013,15 @@ def gen_sql(entities):
             desc = r.replace("'", "''")
             lines.append(f"INSERT IGNORE INTO `{tn}` (Descricao) VALUES ('{desc}');")
 
+        if tn == "PapelVinculo":
+            for codigo, desc, escopo in PAPEL_VINCULO_SEEDS:
+                d = desc.replace("'", "''")
+                lines.append(
+                    f"INSERT IGNORE INTO `PapelVinculo` "
+                    f"(`CodigoPapelVinculo`, `Descricao`, `EscopoPapel`) VALUES ({codigo}, '{d}', {escopo});"
+                )
+            lines.append("")
+
     lines.append("SET FOREIGN_KEY_CHECKS = 1;")
     lines.append("")
     write(ROOT / "database" / "schema.sql", "\n".join(lines))
@@ -1053,12 +1088,13 @@ def gen_tenant_filters(entities):
         escopo = escopo_tenant(e)
         if escopo == "Condominio" and has_id_condominio(e):
             lines.append(f"        modelBuilder.Entity<{name}>().HasQueryFilter(e => e.IdCondominio == CurrentTenantId);")
-        elif escopo == "Indireto" and (e.get("VinculoTenant") or "") == "PessoaCondominio":
+        elif escopo == "Indireto" and (e.get("VinculoTenant") or "") in ("PessoaVinculo", "PessoaCondominio"):
             lines.append(
                 f"        modelBuilder.Entity<{name}>().HasQueryFilter(e =>"
-                f" Set<PessoaCondominio>().Any(v => v.IdPessoa == e.IdPessoa && v.IdCondominio == CurrentTenantId)"
-                f" || Set<Fornecedor>().Any(f => f.IdPessoa == e.IdPessoa && f.IdCondominio == CurrentTenantId)"
-                f" || Set<Unidade>().Any(u => Set<PessoaUnidade>().Any(pu => pu.IdUnidade == u.IdUnidade && pu.IdPessoa == e.IdPessoa) && u.IdCondominio == CurrentTenantId));"
+                f" Set<PessoaVinculo>().Any(v => v.IdPessoa == e.IdPessoa && v.IdCondominio == CurrentTenantId"
+                f" && v.DataInicio <= DateOnly.FromDateTime(DateTime.UtcNow)"
+                f" && (v.DataFim == null || v.DataFim >= DateOnly.FromDateTime(DateTime.UtcNow)))"
+                f" || Set<Fornecedor>().Any(f => f.IdPessoa == e.IdPessoa && f.IdCondominio == CurrentTenantId));"
             )
         elif escopo == "Indireto" and e.get("VinculoTenant") == "Fornecedor":
             lines.append(
@@ -1460,6 +1496,24 @@ def gen_angular_routes_file(crud_entities):
     write(FE.parent / "entity-routes.generated.ts", "\n".join(lines))
 
 
+def gen_condominio_repository_custom():
+    """CondominioRepository tem lógica de provisionamento (não sobrescrever no padrão CRUD)."""
+    path = SRC / "AppCondominium.Infrastructure" / "Repositories" / "Generated" / "CondominioRepository.cs"
+    if path.exists() and "VincularCriadorAsync" in path.read_text(encoding="utf-8"):
+        print("  skip CondominioRepository (customizado)")
+        return
+    print("  aviso: CondominioRepository perdido; restaure de git ou template customizado.")
+
+
+def gen_fornecedor_repository_custom():
+    """FornecedorRepository bloqueia POST/PUT genérico (usar cadastro-integrado)."""
+    path = SRC / "AppCondominium.Infrastructure" / "Repositories" / "Generated" / "FornecedorRepository.cs"
+    if path.exists() and "cadastro-integrado" in path.read_text(encoding="utf-8"):
+        print("  skip FornecedorRepository (customizado)")
+        return
+    print("  aviso: FornecedorRepository perdeu bloqueio de CRUD; restaure o template customizado.")
+
+
 def main():
     spec = load_spec()
     entities = spec["Entidades"]
@@ -1468,7 +1522,8 @@ def main():
     for e in crud_entities:
         print(e["Entidade"])
         gen_entity(e)
-        gen_repository(e)
+        if e["Entidade"] != "Condominio":
+            gen_repository(e)
         gen_controller(e)
         gen_angular_model(e)
         gen_angular_service(e)
@@ -1479,6 +1534,8 @@ def main():
     gen_di(crud_entities)
     gen_sql(entities)
     gen_angular_routes_file(crud_entities)
+    gen_condominio_repository_custom()
+    gen_fornecedor_repository_custom()
     print("Concluído.")
 
 

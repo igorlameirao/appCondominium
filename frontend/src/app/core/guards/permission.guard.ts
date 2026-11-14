@@ -15,6 +15,10 @@ export const entityPermissionGuard: CanActivateChildFn = (child) => {
 
   if (key === 'HOME' || segment === 'minha-conta') return true;
   const permissions = inject(PermissionService);
+  if (segment === 'pessoas') {
+    if (permissions.canAny(['PESSOAFISICA', 'PESSOAJURIDICA'], 'Visualizar')) return true;
+    return inject(Router).createUrlTree(['/inicio']);
+  }
   if (permissions.can(key, 'Visualizar')) return true;
   return inject(Router).createUrlTree(['/inicio']);
 };

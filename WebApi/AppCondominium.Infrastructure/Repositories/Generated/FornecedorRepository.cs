@@ -35,33 +35,21 @@ public class FornecedorRepository
         return new PagedResult<Fornecedor> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
     }
 
-    public async Task<Fornecedor?> GetByIdAsync(uint? idPessoa, CancellationToken ct = default)
+    public async Task<Fornecedor?> GetByIdAsync(uint? idFornecedor, CancellationToken ct = default)
     {
         var q = ApplyCondominioFilter(BaseQuery());
-        return await q.FirstOrDefaultAsync(e => e.IdPessoa == idPessoa, ct);
+        return await q.FirstOrDefaultAsync(e => e.IdFornecedor == idFornecedor, ct);
     }
 
-    public async Task<Fornecedor> AddAsync(Fornecedor entity, CancellationToken ct = default)
-    {
-        var tenantId = _condominio.RequireTenantId();
-        entity.IdCondominio = tenantId;
+    public Task<Fornecedor> AddAsync(Fornecedor entity, CancellationToken ct = default)
+        => throw new InvalidOperationException("Use POST api/fornecedor/cadastro-integrado para incluir fornecedor.");
 
-        await _ctx.Set<Fornecedor>().AddAsync(entity, ct);
-        await _ctx.SaveChangesAsync(ct);
-        return entity;
-    }
+    public Task UpdateAsync(Fornecedor entity, CancellationToken ct = default)
+        => throw new InvalidOperationException("Use PUT api/fornecedor/cadastro-integrado/{id} para alterar fornecedor.");
 
-    public async Task UpdateAsync(Fornecedor entity, CancellationToken ct = default)
+    public async Task<bool> DeleteAsync(uint? idFornecedor, CancellationToken ct = default)
     {
-        var tenantId = _condominio.RequireTenantId();
-        entity.IdCondominio = tenantId;
-        _ctx.Set<Fornecedor>().Update(entity);
-        await _ctx.SaveChangesAsync(ct);
-    }
-
-    public async Task<bool> DeleteAsync(uint? idPessoa, CancellationToken ct = default)
-    {
-        var e = await GetByIdAsync(idPessoa, ct);
+        var e = await GetByIdAsync(idFornecedor, ct);
         if (e == null) return false;
         _ctx.Set<Fornecedor>().Remove(e);
         await _ctx.SaveChangesAsync(ct);

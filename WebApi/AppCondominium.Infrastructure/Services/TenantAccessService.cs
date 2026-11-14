@@ -1,5 +1,6 @@
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Domain.Entities;
+using AppCondominium.Domain.Vinculos;
 using AppCondominium.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,49 +14,30 @@ public class TenantAccessService : ITenantAccessService
 
     public async Task<bool> UsuarioTemAcessoAsync(uint idPessoa, uint idCondominio, CancellationToken ct = default)
     {
-        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        var viaCondominio = await _db.PessoaCondominio.IgnoreQueryFilters()
+        var hoje = PessoaVinculoAtivo.HojeUtc();
+        return await _db.PessoaVinculo.IgnoreQueryFilters().AsNoTracking()
             .AnyAsync(v => v.IdPessoa == idPessoa
-                           && v.IdCondominio == idCondominio
-                           && (v.DataInicio == null || v.DataInicio <= hoje)
-                           && (v.DataFim == null || v.DataFim >= hoje), ct);
-        if (viaCondominio)
-            return true;
-
-        return await (
-            from pu in _db.PessoaUnidade.IgnoreQueryFilters()
-            join u in _db.Unidade.IgnoreQueryFilters() on pu.IdUnidade equals u.IdUnidade
-            where pu.IdPessoa == idPessoa
-                  && u.IdCondominio == idCondominio
-                  && (pu.DataInicio == null || pu.DataInicio <= hoje)
-                  && (pu.DataFim == null || pu.DataFim >= hoje)
-            select pu).AnyAsync(ct);
+                && v.IdCondominio == idCondominio
+                && v.DataInicio <= hoje
+                && (v.DataFim == null || v.DataFim >= hoje), ct);
     }
 
     public async Task<IReadOnlyList<Condominio>> ListarCondominiosAutorizadosAsync(
         uint idPessoa, string? filtroNome, CancellationToken ct = default)
     {
-        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        var porVinculo = await _db.PessoaCondominio.IgnoreQueryFilters()
+        var hoje = PessoaVinculoAtivo.HojeUtc();
+        var ids = await _db.PessoaVinculo.IgnoreQueryFilters().AsNoTracking()
             .Where(v => v.IdPessoa == idPessoa
-                        && v.IdCondominio != null
-                        && (v.DataInicio == null || v.DataInicio <= hoje)
-                        && (v.DataFim == null || v.DataFim >= hoje))
+                && v.IdCondominio != null
+                && v.DataInicio <= hoje
+                && (v.DataFim == null || v.DataFim >= hoje))
             .Select(v => v.IdCondominio!.Value)
+            .Distinct()
             .ToListAsync(ct);
 
-        var porUnidade = await (
-            from pu in _db.PessoaUnidade.IgnoreQueryFilters()
-            join u in _db.Unidade.IgnoreQueryFilters() on pu.IdUnidade equals u.IdUnidade
-            where pu.IdPessoa == idPessoa
-                  && u.IdCondominio != null
-                  && (pu.DataInicio == null || pu.DataInicio <= hoje)
-                  && (pu.DataFim == null || pu.DataFim >= hoje)
-            select u.IdCondominio!.Value).ToListAsync(ct);
+        if (ids.Count == 0)
+            return Array.Empty<Condominio>();
 
-        var ids = porVinculo.Concat(porUnidade).Distinct().ToList();
         var query = _db.Condominio.IgnoreQueryFilters().AsNoTracking()
             .Where(c => c.IdCondominio != null && ids.Contains(c.IdCondominio.Value));
 
@@ -67,25 +49,15 @@ public class TenantAccessService : ITenantAccessService
 
     public async Task<IReadOnlyList<CondominioVinculo>> ListarVinculosAsync(uint idPessoa, CancellationToken ct = default)
     {
-        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        var porCondominio = await _db.PessoaCondominio.IgnoreQueryFilters().AsNoTracking()
+        var hoje = PessoaVinculoAtivo.HojeUtc();
+        var vinculos = await _db.PessoaVinculo.IgnoreQueryFilters().AsNoTracking()
             .Where(v => v.IdPessoa == idPessoa
-                        && v.IdCondominio != null
-                        && (v.DataInicio == null || v.DataInicio <= hoje)
-                        && (v.DataFim == null || v.DataFim >= hoje))
+                && v.IdCondominio != null
+                && v.DataInicio <= hoje
+                && (v.DataFim == null || v.DataFim >= hoje))
             .ToListAsync(ct);
 
-        var porUnidade = await (
-            from pu in _db.PessoaUnidade.IgnoreQueryFilters()
-            join u in _db.Unidade.IgnoreQueryFilters() on pu.IdUnidade equals u.IdUnidade
-            where pu.IdPessoa == idPessoa
-                  && u.IdCondominio != null
-                  && (pu.DataInicio == null || pu.DataInicio <= hoje)
-                  && (pu.DataFim == null || pu.DataFim >= hoje)
-            select u.IdCondominio!.Value).Distinct().ToListAsync(ct);
-
-        var ids = porCondominio.Select(v => v.IdCondominio!.Value).Concat(porUnidade).Distinct().ToList();
+        var ids = vinculos.Select(v => v.IdCondominio!.Value).Distinct().ToList();
         if (ids.Count == 0)
             return Array.Empty<CondominioVinculo>();
 
@@ -98,7 +70,8 @@ public class TenantAccessService : ITenantAccessService
         var porId = perfis.ToDictionary(p => p.IdPerfil);
         var morador = perfis.FirstOrDefault(p =>
             string.Equals(p.Descricao?.Trim(), "Morador", StringComparison.OrdinalIgnoreCase));
-        var idsUnidade = porUnidade.ToHashSet();
+        var proprietario = perfis.FirstOrDefault(p =>
+            string.Equals(p.Descricao?.Trim(), "Proprietário", StringComparison.OrdinalIgnoreCase));
 
         var resultado = new List<CondominioVinculo>(condominios.Count);
         foreach (var condo in condominios)
@@ -106,15 +79,24 @@ public class TenantAccessService : ITenantAccessService
             if (condo.IdCondominio is not uint idCondominio)
                 continue;
 
-            var vinculo = porCondominio.FirstOrDefault(v => v.IdCondominio == idCondominio);
             var lista = new List<PerfilVinculo>();
-            if (vinculo?.IdPerfil is uint idPerfil && porId.TryGetValue(idPerfil, out var perfil))
-                lista.Add(new PerfilVinculo(perfil.IdPerfil, NomePerfil(perfil)));
+            var noCondo = vinculos.Where(v => v.IdCondominio == idCondominio).ToList();
 
-            var semPerfilExplicito = vinculo == null || vinculo.IdPerfil == null;
-            var temUnidade = idsUnidade.Contains(idCondominio);
-            if (morador != null
-                && (semPerfilExplicito || temUnidade)
+            foreach (var idPerfil in noCondo.Where(v => v.IdPerfil != null).Select(v => v.IdPerfil!.Value).Distinct())
+            {
+                if (porId.TryGetValue(idPerfil, out var perfil))
+                    lista.Add(new PerfilVinculo(perfil.IdPerfil, NomePerfil(perfil)));
+            }
+
+            if (lista.Count == 0)
+            {
+                var temProprietarioPadrao = noCondo.Any(v =>
+                    v.CodigoPapelVinculo is uint cod && PapelVinculoCodigos.PapeisProprietarioPadrao.Contains(cod));
+                var perfilPadrao = temProprietarioPadrao ? proprietario : morador;
+                if (perfilPadrao?.IdPerfil is uint idPerfilPadrao)
+                    lista.Add(new PerfilVinculo(idPerfilPadrao, NomePerfil(perfilPadrao)));
+            }
+            else if (morador != null && noCondo.Any(v => v.IdUnidade != null)
                 && lista.All(p => p.IdPerfil != morador.IdPerfil))
             {
                 lista.Add(new PerfilVinculo(morador.IdPerfil, NomePerfil(morador)));
@@ -130,9 +112,6 @@ public class TenantAccessService : ITenantAccessService
 
     public async Task<bool> UsuarioTemPerfilAsync(uint idPessoa, uint idCondominio, uint idPerfil, CancellationToken ct = default)
     {
-        if (!await UsuarioTemAcessoAsync(idPessoa, idCondominio, ct))
-            return false;
-
         var vinculos = await ListarVinculosAsync(idPessoa, ct);
         return vinculos.Any(v => v.IdCondominio == idCondominio && v.Perfis.Any(p => p.IdPerfil == idPerfil));
     }

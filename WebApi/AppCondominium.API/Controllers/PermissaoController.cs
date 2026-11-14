@@ -74,21 +74,23 @@ public class PermissaoController : ControllerBase
     {
         if (_tenant.IdCondominio is not uint idCondominio)
             return Unauthorized();
+        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
         var pessoas = await (
-            from v in _db.PessoaCondominio.AsNoTracking()
+            from v in _db.PessoaVinculo.IgnoreQueryFilters().AsNoTracking()
             join p in _db.Pessoa.IgnoreQueryFilters().AsNoTracking() on v.IdPessoa equals p.IdPessoa
-            join pf in _db.PerfilAcesso.AsNoTracking() on v.IdPerfil equals pf.IdPerfil into perfis
-            from pf in perfis.DefaultIfEmpty()
+            join pa in _db.PerfilAcesso.AsNoTracking() on v.IdPerfil equals pa.IdPerfil into perfis
+            from pa in perfis.DefaultIfEmpty()
             where v.IdCondominio == idCondominio && v.IdPessoa != null
+                && v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje)
             orderby p.Nome
             select new
             {
                 idPessoa = v.IdPessoa!.Value,
                 nome = p.Nome,
                 idPerfil = v.IdPerfil,
-                perfilDescricao = pf != null ? pf.Descricao : null
+                perfilDescricao = pa != null ? pa.Descricao : null
             }).ToListAsync(ct);
-        return Ok(pessoas);
+        return Ok(pessoas.DistinctBy(x => x.idPessoa));
     }
 
     [HttpGet("pessoa/{idPessoa}/excecoes")]
@@ -123,5 +125,10 @@ public class PermissaoController : ControllerBase
     }
 
     private Task<bool> PessoaNoTenant(uint idPessoa, uint idCondominio, CancellationToken ct)
-        => _db.PessoaCondominio.IgnoreQueryFilters().AnyAsync(v => v.IdPessoa == idPessoa && v.IdCondominio == idCondominio, ct);
+    {
+        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
+        return _db.PessoaVinculo.IgnoreQueryFilters().AnyAsync(v => v.IdPessoa == idPessoa
+            && v.IdCondominio == idCondominio
+            && v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje), ct);
+    }
 }

@@ -21,10 +21,10 @@ public class FornecedorController : ControllerBase
     public async Task<ActionResult<PagedResult<Fornecedor>>> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? filter = null, CancellationToken ct = default)
         => Ok(await _repo.GetPagedAsync(page, pageSize, filter, ct));
 
-    [HttpGet("{idPessoa}")]
-    public async Task<ActionResult<Fornecedor>> GetById([FromRoute] uint? idPessoa, CancellationToken ct = default)
+    [HttpGet("{idFornecedor}")]
+    public async Task<ActionResult<Fornecedor>> GetById([FromRoute] uint? idFornecedor, CancellationToken ct = default)
     {
-        var item = await _repo.GetByIdAsync(idPessoa, ct);
+        var item = await _repo.GetByIdAsync(idFornecedor, ct);
         return item == null ? NotFound() : Ok(item);
     }
 
@@ -32,17 +32,17 @@ public class FornecedorController : ControllerBase
     public async Task<ActionResult<Fornecedor>> Create([FromBody] Fornecedor entity, CancellationToken ct = default)
     {
         var created = await _repo.AddAsync(entity, ct);
-        return CreatedAtAction(nameof(GetById), new { idPessoa = created.IdPessoa }, created);
+        return CreatedAtAction(nameof(GetById), new { idFornecedor = created.IdFornecedor }, created);
     }
 
-    [HttpPut("{idPessoa}")]
-    public async Task<IActionResult> Update([FromRoute] uint? idPessoa, [FromBody] Fornecedor entity, CancellationToken ct = default)
+    [HttpPut("{idFornecedor}")]
+    public async Task<IActionResult> Update([FromRoute] uint? idFornecedor, [FromBody] Fornecedor entity, CancellationToken ct = default)
     {
         await _repo.UpdateAsync(entity, ct);
         return NoContent();
     }
 
-    [HttpDelete("{idPessoa}")]
-    public async Task<IActionResult> Delete([FromRoute] uint? idPessoa, CancellationToken ct = default)
-        => await _repo.DeleteAsync(idPessoa, ct) ? NoContent() : NotFound();
+    [HttpDelete("{idFornecedor}")]
+    public async Task<IActionResult> Delete([FromRoute] uint? idFornecedor, CancellationToken ct = default)
+        => await _repo.DeleteAsync(idFornecedor, ct) ? NoContent() : NotFound();
 }

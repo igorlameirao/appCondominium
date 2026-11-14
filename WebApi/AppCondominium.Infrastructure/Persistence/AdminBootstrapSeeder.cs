@@ -1,5 +1,6 @@
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Domain.Entities;
+using AppCondominium.Domain.Vinculos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace AppCondominium.Infrastructure.Persistence;
 
 /// <summary>
-/// Condomínio mínimo + usuário Administrador (Pessoa / PessoaFísica / PessoaCondominio).
+/// Condomínio mínimo + usuário Administrador (Pessoa / PessoaFísica / PessoaVinculo).
 /// </summary>
 public static class AdminBootstrapSeeder
 {
@@ -96,28 +97,31 @@ public static class AdminBootstrapSeeder
             }
         }
 
-        var vinculo = await db.PessoaCondominio.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(v => v.IdPessoa == idPessoa && v.IdCondominio == idCondominio, ct);
+        var hoje = PessoaVinculoAtivo.HojeUtc();
+        var vinculo = await db.PessoaVinculo.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(v => v.IdPessoa == idPessoa && v.IdCondominio == idCondominio
+                && v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje), ct);
         if (vinculo == null)
         {
-            db.PessoaCondominio.Add(new PessoaCondominio
+            db.PessoaVinculo.Add(new PessoaVinculo
             {
                 IdPessoa = idPessoa,
                 IdCondominio = idCondominio,
+                CodigoPapelVinculo = PapelVinculoCodigos.Funcionario,
                 IdPerfil = perfilAdmin.IdPerfil,
-                DataInicio = DateOnly.FromDateTime(DateTime.UtcNow),
-                TipoVinculo = 1,
+                DataInicio = hoje,
+                Responsavel = 0,
                 DataFim = null
             });
             await db.SaveChangesAsync(ct);
             logger.LogInformation(
-                "Vínculo PessoaCondominio admin: IdPessoa={IdPessoa}, IdCondominio={IdCondominio}, Perfil=Administrador",
+                "Vínculo PessoaVinculo admin: IdPessoa={IdPessoa}, IdCondominio={IdCondominio}, Perfil=Administrador",
                 idPessoa, idCondominio);
         }
         else if (vinculo.IdPerfil != perfilAdmin.IdPerfil)
         {
             vinculo.IdPerfil = perfilAdmin.IdPerfil;
-            db.PessoaCondominio.Update(vinculo);
+            db.PessoaVinculo.Update(vinculo);
             await db.SaveChangesAsync(ct);
         }
     }

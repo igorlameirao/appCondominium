@@ -7,7 +7,7 @@
     "BancoDados": "MySQL (localhost, usuário: root e senha:mysql)",
     "VersaoMobile": "Flutter 3.44 + Dart",
     "Arquitetura": "clean architeture e clean code",
-    "Observacao": "Multi-tenant: o tenant é a entidade Condominio (IdCondominio). Cada entidade declara EscopoTenant Global, Condominio ou Indireto. No escopo Indireto, VinculoTenant indica a entidade usada no isolamento. RBAC: o catálogo PermissionKey e a matriz PerfilPermissao são globais; o perfil da pessoa (PessoaCondominio.IdPerfil) e as exceções PessoaPermissaoExcecao pertencem ao condomínio ativo. A autorização não amplia o isolamento de tenant.",
+    "Observacao": "Multi-tenant: o tenant é a entidade Condominio (IdCondominio). Cada entidade declara EscopoTenant Global, Condominio ou Indireto. No escopo Indireto, VinculoTenant indica a entidade usada no isolamento. Papéis operacionais: catálogo global PapelVinculo e instâncias PessoaVinculo (IdVinculo), com vigência e histórico; não confundir com RBAC. RBAC: o catálogo PermissionKey e a matriz PerfilPermissao são globais; o perfil da pessoa no tenant (PessoaVinculo.IdPerfil, quando informado) e as exceções PessoaPermissaoExcecao pertencem ao condomínio ativo. A autorização não amplia o isolamento de tenant. Acessos temporários (visitas, entregas, prestadores eventuais) usam AutorizacaoAcessoTemporario, não PessoaVinculo.",
     "RegrasGerais": [
       {
         "Regra": "RN-Gerais 01",
@@ -67,12 +67,12 @@
       {
         "Regra": "RT-Gerais 12 (Regra de Ouro)",
         "Tipo": "Regra de Tela",
-        "Descricao": "Multi-tenant: o tenant é a entidade Condomínio e a chave é IdCondominio. Deverá haver uma variável global (ICondominioContext / sessão do cliente) que armazenará o IdCondominio ativo. Essa variável filtra consultas, inclusões e alterações das entidades com EscopoTenant=Condominio, gravando IdCondominio a partir do contexto e ocultando o campo na tela. Entidades com EscopoTenant=Global são catálogos compartilhados e não recebem esse filtro. Entidades com EscopoTenant=Indireto não possuem IdCondominio próprio e são isoladas pelo vínculo indicado em VinculoTenant (PessoaCondominio, Unidade ou Fornecedor), inclusive Pessoa, pessoafisica, PessoaJuridica e PessoaUnidade. O usuário autenticado opera sempre em um único tenant ativo. A informação de um condomínio não pode ser vista por usuário de outro condomínio."
+        "Descricao": "Multi-tenant: o tenant é a entidade Condomínio e a chave é IdCondominio. Deverá haver uma variável global (ICondominioContext / sessão do cliente) que armazenará o IdCondominio ativo. Essa variável filtra consultas, inclusões e alterações das entidades com EscopoTenant=Condominio, gravando IdCondominio a partir do contexto e ocultando o campo na tela. Entidades com EscopoTenant=Global são catálogos compartilhados e não recebem esse filtro. Entidades com EscopoTenant=Indireto não possuem IdCondominio próprio e são isoladas pelo vínculo indicado em VinculoTenant (PessoaVinculo, Unidade ou Fornecedor), inclusive Pessoa, pessoafisica, PessoaJuridica e PessoaEndereco. O usuário autenticado opera sempre em um único tenant ativo. A informação de um condomínio não pode ser vista por usuário de outro condomínio."
       },
       {
         "Regra": "RT-Gerais 13",
         "Tipo": "Regra de Tela",
-        "Descricao": "Deverá haver dua telas de login: na primeira o sistema deverá exibir os campos usuário, senha e o condomínio (Combobox_customizada) ao qual o usuário está se logando; a lista de condomínios deve conter somente aqueles em que o e-mail informado tem vínculo (PessoaCondominio ou PessoaUnidade), após digitar ao menos 3 letras do nome; o layout de Tela será o padrão/fixo (URL da plataforma, ex.: /login). Na segunda o sistema resolve o condomínio pelo primeiro segmento da URL (campo Dominio = identificador estável, ex.: appcondominium.com.br/{identificador}/entrar), podendo ainda aceitar idCondominio por querystring em fallback, e deverá exibir somente usuário e senha; o layout da tela mudará para as configurações de cor e imagem que o usuário escolherá e editará na entidade Configuração do Condomínio. O JWT e o header X-Id-Condominio devem coincidir com o condomínio resolvido pela URL."
+        "Descricao": "Deverá haver dua telas de login: na primeira o sistema deverá exibir os campos usuário, senha e o condomínio (Combobox_customizada) ao qual o usuário está se logando; a lista de condomínios deve conter somente aqueles em que o e-mail informado possui PessoaVinculo ativo (vigente) naquele IdCondominio, após digitar ao menos 3 letras do nome; o layout de Tela será o padrão/fixo (URL da plataforma, ex.: /login). Na segunda o sistema resolve o condomínio pelo primeiro segmento da URL (campo Dominio = identificador estável, ex.: appcondominium.com.br/{identificador}/entrar), podendo ainda aceitar idCondominio por querystring em fallback, e deverá exibir somente usuário e senha; o layout da tela mudará para as configurações de cor e imagem que o usuário escolherá e editará na entidade Configuração do Condomínio. O JWT e o header X-Id-Condominio devem coincidir com o condomínio resolvido pela URL."
       },
       {
         "Regra": "RN-Gerais 14",
@@ -85,9 +85,9 @@
         "Descricao": "O campo CPF deverá possuir uma máscara de exibição: 999.999.999-99. Ao receber o foco o sistema deverá retirar a máscara deixando apenas os números/letras e ao perder o foco o sistema deve reestabelecer a máscara. Esse campo deverá ser validado, para tanto utilize o arquivo DocumentoValidator.cs. No banco de dados esse campo deverá ser gravado sem a máscara."
       },
       {
-        "Regra": "RN-Gerais 1e",
+        "Regra": "RN-Gerais 17",
         "Tipo": "Regra de Negócio",
-        "Descricao": "Para o usuário se logar no sistema ele deverá ter um vinculo em PessoaCondominio ou PessoaUnidade. Caso o vinculo de PessoaUnidade, os tipos de vínculo   'Administrador Imobiliário', 'Proprietário Morador', 'Morador com Procuração' deve ser atribuído o perfil de Proprietário. O perfil usado pelo RBAC é PessoaCondominio.IdPerfil (Descricao de PerfilAcesso) no condomínio do login. Vínculo somente por PessoaUnidade, sem PessoaCondominio, resolve o perfil Morador. TipoVinculo não autoriza telas."
+        "Descricao": "Para o usuário se logar no sistema ele deverá possuir ao menos um PessoaVinculo ativo (DataInicio <= hoje e DataFim nula ou >= hoje) no IdCondominio escolhido, com pessoafisica.email correspondente à credencial. O perfil RBAC no login é a Descricao de PerfilAcesso indicada em PessoaVinculo.IdPerfil quando preenchido no condomínio. Se IdPerfil estiver vazio e o vínculo ativo for somente de escopo Unidade com papel Proprietário, Corretor ou Locatário, a resolução padrão é o perfil Proprietário. Se IdPerfil estiver vazio e houver apenas vínculos de escopo Unidade com demais papéis (Morador, Dependente, Familiar, Hóspede), a resolução padrão é Morador. CodigoPapelVinculo e demais papéis operacionais não concedem permissões de tela. Vínculo de Fornecedor não substitui IdPerfil para RBAC. AutorizacaoAcessoTemporario não habilita login."
       },
       {
         "Regra": "RN-Gerais 16",
@@ -102,12 +102,12 @@
       {
         "Regra": "RN-RBAC 02",
         "Tipo": "Regra de Negócio",
-        "Descricao": "Toda validação de acesso da API e do frontend usa IPermissionResolver. A claim efetiva é permissionKey:Acao (ex.: BLOCO:Visualizar). A resolução usa IdPessoa e o IdCondominio do contexto. Fonte do catálogo: docs/rbac/. POST /api/auth/login e POST /api/auth/trocar-condominio devolvem acessoTotal e permissoes do condomínio escolhido. O claim perfil do token é a Descricao de PerfilAcesso desse vínculo, não TipoVinculo. Angular e Flutter guardam essa lista e consultam can(permissionKey, acao); acessoTotal dispensa a lista. Sem autenticação a API responde 401. Autenticado sem a ação responde 403."
+        "Descricao": "Toda validação de acesso da API e do frontend usa IPermissionResolver. A claim efetiva é permissionKey:Acao (ex.: BLOCO:Visualizar). A resolução usa IdPessoa e o IdCondominio do contexto. Fonte do catálogo: docs/rbac/. POST /api/auth/login e POST /api/auth/trocar-condominio devolvem acessoTotal e permissoes do condomínio escolhido. O claim perfil do token é a Descricao de PerfilAcesso do PessoaVinculo (IdPerfil), não o CodigoPapelVinculo. Angular e Flutter guardam essa lista e consultam can(permissionKey, acao); acessoTotal dispensa a lista. Sem autenticação a API responde 401. Autenticado sem a ação responde 403."
       },
       {
         "Regra": "RT-RBAC 03",
         "Tipo": "Regra de Tela",
-        "Descricao": "Tela administrativa em /gerenciamento-permissoes para editar a matriz global do perfil e as exceções da pessoa no condomínio ativo. GET/PUT /api/Permissao/perfil/{id}, GET/PUT /api/Permissao/pessoa/{idPessoa}/excecoes, GET /api/Permissao/perfis e GET /api/Permissao/pessoas exigem PERMISSOES_GERENCIAR (GET = Visualizar, PUT = Alterar). As exceções são gravadas com o IdCondominio do contexto e a pessoa precisa ter vínculo nesse condomínio. GET /api/Permissao/minhas devolve as permissões efetivas do usuário no tenant e não exige PERMISSOES_GERENCIAR. GET /api/Permissao/opcoes-perfil lista PerfilAcesso para o combobox de IdPerfil em PessoaCondominio e também não exige essa permissionKey. O menu só mostra o link cuja permissionKey concede Visualizar. A rota /inicio (HOME) permanece disponível ao usuário autenticado. Trocar o condomínio recarrega acessoTotal e permissoes."
+        "Descricao": "Tela administrativa em /gerenciamento-permissoes para editar a matriz global do perfil e as exceções da pessoa no condomínio ativo. GET/PUT /api/Permissao/perfil/{id}, GET/PUT /api/Permissao/pessoa/{idPessoa}/excecoes, GET /api/Permissao/perfis e GET /api/Permissao/pessoas exigem PERMISSOES_GERENCIAR (GET = Visualizar, PUT = Alterar). As exceções são gravadas com o IdCondominio do contexto e a pessoa precisa ter PessoaVinculo ativo nesse condomínio. GET /api/Permissao/minhas devolve as permissões efetivas do usuário no tenant e não exige PERMISSOES_GERENCIAR. GET /api/Permissao/opcoes-perfil lista PerfilAcesso para o combobox de IdPerfil em PessoaVinculo e também não exige essa permissionKey. O menu só mostra o link cuja permissionKey concede Visualizar. A rota /inicio (HOME) permanece disponível ao usuário autenticado. Trocar o condomínio recarrega acessoTotal e permissoes."
       },
       {
         "Regra": "RN-RBAC 04",
@@ -118,6 +118,11 @@
         "Regra": "RT-RBAC 05",
         "Tipo": "Regra de Tela",
         "Descricao": "O app Flutter persiste acessoTotal e permissoes depois do login e da troca de condomínio e consulta essas claims antes de abrir o fluxo. Leituras de hidrômetro exigem HIDROMETRO:Visualizar. Contas do condomínio exigem COBRANCA:Visualizar. Nesta etapa o mobile não tem a tela administrativa da matriz."
+      },
+      {
+        "Regra": "RN-Gerais 18",
+        "Tipo": "Regra de Negócio",
+        "Descricao": "As entidades legadas PessoaCondominio e PessoaUnidade foram substituídas por PessoaVinculo e PapelVinculo. Na migração de dados de desenvolvimento: cada linha de PessoaCondominio vira PessoaVinculo com CodigoPapelVinculo conforme mapa (TipoVinculo antigo para papel de escopo Condominio), preservando IdPerfil, DataInicio e DataFim; cada linha de PessoaUnidade vira PessoaVinculo com papel de escopo Unidade (TipoVinculo antigo para CodigoPapelVinculo), Responsavel=true quando Resposavel=true, IdCondominio obtido da Unidade. Registros de visitante permanente devem ser reavaliados: preferir AutorizacaoAcessoTemporario para acessos pontuais."
       }
     ],
     "Entidades": [
@@ -156,7 +161,7 @@
           {
             "Regra": "RN - PerfilAcesso 01",
             "Tipo": "Regra de Negócio",
-            "Descricao": "Estes registros são os perfis do RBAC. A Descricao Administrador, no vínculo PessoaCondominio do condomínio ativo, concede acesso total nesse tenant. Os demais perfis recebem somente o que estiver em PerfilPermissao, sobrescrito por PessoaPermissaoExcecao daquele IdCondominio."
+            "Descricao": "Estes registros são os perfis do RBAC. A Descricao Administrador, em PessoaVinculo.IdPerfil do condomínio ativo, concede acesso total nesse tenant. Os demais perfis recebem somente o que estiver em PerfilPermissao, sobrescrito por PessoaPermissaoExcecao daquele IdCondominio."
           }
         ],
         "EscopoTenant": "Global"
@@ -993,7 +998,7 @@
           }
         ],
         "EscopoTenant": "Indireto",
-        "VinculoTenant": "PessoaCondominio"
+        "VinculoTenant": "PessoaVinculo"
       },
       {
         "Entidade": "PessoaEndereco",
@@ -1059,7 +1064,7 @@
           }
         ],
         "EscopoTenant": "Indireto",
-        "VinculoTenant": "PessoaCondominio"
+        "VinculoTenant": "PessoaVinculo"
       },
       {
         "Entidade": "pessoafisica",
@@ -1122,10 +1127,20 @@
             "Regra": "RN - Pessoa Física 03",
             "Tipo": "Regra de Negócio",
             "Descricao": "Na tela de edição deverá ser apresentada uma lista com os endereços vinculados à pessoa, ao clicar no endereço deve ser apresentado o componente de endereço para alteração ou exclusão do mesmo, o que nesse caso só será permitido alterar o número ou complemento. Ao lado dessa lista deverá ter um botão que permida so usuário incluir novo endereço."
+          },
+          {
+            "Regra": "RN - Pessoa Física 04",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O cadastro é transacional Pessoa + pessoafisica: na inclusão o IdPessoa não é solicitado na tela; a API cria o registro em Pessoa (CPFCNPJ, Nome, Telefone) e em seguida pessoafisica com o IdPessoa gerado. Na edição, IdPessoa permanece somente leitura. CPF em Pessoa.CPFCNPJ deve ser único globalmente."
+          },
+          {
+            "Regra": "RT - Pessoa Física 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "Na inclusão, o formulário unificado exibe os campos de Pessoa e pessoafisica em uma única tela cad-*, sem combobox de IdPessoa. A lista de PessoaVinculo ativos e históricos da pessoa é exibida em seção própria na edição."
           }
         ],
         "EscopoTenant": "Indireto",
-        "VinculoTenant": "PessoaCondominio"
+        "VinculoTenant": "PessoaVinculo"
       },
       {
         "Entidade": "PessoaJuridica",
@@ -1145,10 +1160,10 @@
           },
           {
             "Campo": "IdResponsavel",
-            "RotuloCampo": "IdResponsavel",
+            "RotuloCampo": "Responsável legal (referência)",
             "TipoDado": "INT - Unsigned",
             "Filtro": "Sim",
-            "Obrigatorio": "Sim",
+            "Obrigatorio": "Não",
             "Indice": "Foreign Key",
             "EntidadeForeignKey": "pessoafisica"
           },
@@ -1201,13 +1216,23 @@
             "Descricao": "O campo Inscrição Municipal, se preenchido, deverá ser único para o Município informado no endereço principal. Ou seja, só essa empresa deverá ter a Inscrição Municipal Informada dentro do Estado (UF) em questão. Caso esse campo não seja preenchido essa regra deverá ser ignorada."
           },
           {
-            "Regra": "RN - Pessoa jurídica 03",
+            "Regra": "RN - Pessoa jurídica 04",
             "Tipo": "Regra de Negócio",
             "Descricao": "Na tela de edição deverá ser apresentada uma lista com os endereços vinculados à pessoa, ao clicar no endereço deve ser apresentado o componente de endereço para alteração ou exclusão do mesmo do mesmo, o que nesse caso só será permitido alterar o número ou complemento. Ao lado dessa lista deverá ter um botão que permida so usuário incluir novo endereço."
+          },
+          {
+            "Regra": "RN - Pessoa jurídica 05",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O cadastro é transacional Pessoa + PessoaJuridica: na inclusão o IdPessoa não é solicitado na tela; a API cria Pessoa e PessoaJuridica em uma única operação. IdResponsavel é opcional e espelha o representante principal; o vínculo canônico entre PJ e PF é PessoaVinculo com papel Representante Legal (CodigoPapelVinculo correspondente). Evitar manter representantes duplicados: ao gravar PessoaVinculo de Representante Legal, sincronizar IdResponsavel quando vazio ou quando indicado como principal."
+          },
+          {
+            "Regra": "RT - Pessoa Jurídica 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "Na inclusão, formulário unificado Pessoa + PessoaJuridica em cad-*, sem combobox de IdPessoa. Na edição, exibir vínculos PessoaVinculo e representantes legais em seção dedicada."
           }
         ],
         "EscopoTenant": "Indireto",
-        "VinculoTenant": "PessoaCondominio"
+        "VinculoTenant": "PessoaVinculo"
       },
       {
         "Entidade": "Fornecedor",
@@ -1218,12 +1243,22 @@
         ],
         "Campos": [
           {
+            "Campo": "IdFornecedor",
+            "RotuloCampo": "Id Fornecedor",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
             "Campo": "IdPessoa",
-            "RotuloCampo": "IdPessoa",
+            "RotuloCampo": "Pessoa",
             "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Sim",
-            "Indice": "Primary Key e Foreign Key",
-            "EntidadeForeignKey": "PessoaJuridica"
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Pessoa",
+            "ExibirForeignKey": "Sim"
           },
           {
             "Campo": "IdCondominio",
@@ -1232,23 +1267,41 @@
             "Obrigatorio": "Sim",
             "Indice": "Foreign Key",
             "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "Ativo",
+            "RotuloCampo": "Ativo",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          }
+        ],
+        "IndicesEspeciais": [
+          {
+            "Indice": "IdxUKFornecedorPessoaCondominio",
+            "Tipo": "Unique Key",
+            "Campos": [
+              "IdPessoa",
+              "IdCondominio"
+            ],
+            "MensagemErroViolacao": "Esta pessoa já está cadastrada como fornecedora neste condomínio."
           }
         ],
         "Regras": [
           {
             "Regra": "RN - Fornecedor 01",
             "Tipo": "Regra de Negócio",
-            "Descricao": "O Fornecedor é uma especialização da entidade Pessoa."
+            "Descricao": "Fornecedor é o vínculo comercial entre Pessoa (PF ou PJ) e Condominio. Uma mesma pessoa pode ser fornecedora em vários condomínios (um registro por IdPessoa + IdCondominio)."
           },
           {
             "Regra": "RN - Fornecedor 02",
             "Tipo": "Regra de Negócio",
-            "Descricao": "Dependendo do que for informado no campo CPFCNPJ, por regra de negócio a entidade Fornecedor deverá especializar Pessoa Física ou Pessoa Jurídica também. Se no campo CPFCNPJ for informado um CPF a tela de Edição/Inclusão do Fornecedor deverá exibir as informações para Edição/Inclusão de uma Pessoa Física. E caso contrário, deverá exibir as informações de Pessoa Jurídica. E além de gravar em Pessoa, deverá gravar em Pessoa Física ou Jurídica e em Fornecedor."
+            "Descricao": "O cadastro é transacional: conforme CPFCNPJ informado, a tela de inclusão/edição reutiliza o fluxo unificado de pessoafisica ou PessoaJuridica (Pessoa criada ou reutilizada por unicidade de CPFCNPJ). Não solicitar IdPessoa manualmente. Ao concluir, grava Fornecedor no condomínio ativo."
           },
           {
             "Regra": "RN - Fornecedor 03",
             "Tipo": "Regra de Negócio",
-            "Descricao": "Se ao informar um CPFCNPJ, o sistema deverá verificar se esse existe na Entidade PessoaFisica ou PassoaJuridica, dependendo da quantidade de caracteres digitados, se já houver registro o sistema deverá exibir todos os campos desabilitados, exceto para adicionar endereço e telefone, e obviamente para estabelecer um novo vínculo entre aquela pessoa e o condomínio."
+            "Descricao": "Se o CPFCNPJ já existir em Pessoa, carregar PF ou PJ conforme o documento; campos cadastrais ficam somente leitura exceto telefone, endereços e o novo vínculo Fornecedor/Ativo. Opcionalmente criar PessoaVinculo com papel Fornecedor no mesmo condomínio, sem conceder IdPerfil automaticamente."
           }
         ],
         "EscopoTenant": "Condominio"
@@ -1359,78 +1412,328 @@
         "VinculoTenant": "Fornecedor"
       },
       {
-        "Entidade": "PessoaCondominio",
-        "RotuloEntidade": "Pessoa Condominio",
+        "Entidade": "PapelVinculo",
+        "RotuloEntidade": "Papel de Vínculo",
         "Gerar CRUD": "Sim",
         "PerfisAcesso": [
           "Administrador"
         ],
         "Campos": [
           {
-            "Campo": "IdPessoa",
-            "RotuloCampo": "IdPessoa",
+            "Campo": "CodigoPapelVinculo",
+            "RotuloCampo": "Código",
             "TipoDado": "INT - Unsigned",
-            "Obrigatorio": "Sim",
-            "Filtro": "Sim",
-            "Indice": "Primary Key e Foreign Key",
-            "EntidadeForeignKey": "Pessoa"
-          },
-          {
-            "Campo": "IdCondominio",
-            "RotuloCampo": "IdCondominio",
-            "TipoDado": "INT - Unsigned",
-            "Obrigatorio": "Sim",
-            "Indice": "Primary Key e Foreign Key",
-            "EntidadeForeignKey": "Condominio"
-          },
-          {
-            "Campo": "DataInicio",
-            "RotuloCampo": "DataInicio",
-            "TipoDado": "DATE",
             "Filtro": "Sim",
             "Obrigatorio": "Sim",
-            "Indice": ""
+            "Indice": "Primary Key"
           },
           {
-            "Campo": "TipoVinculo",
-            "RotuloCampo": "TipoVinculo",
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "VARCHAR(150)",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "EscopoPapel",
+            "RotuloCampo": "Escopo",
             "TipoDado": "TinyInt(1) - Unsigned",
             "Filtro": "Sim",
             "Obrigatorio": "Sim",
             "Enum": [
-              "Administrador",
-              "Síndico",
-              "Subsíndico",
-              "Conselheiro",
-              "Funcionário Administração",
-              "Funcionário Manutenção",
-              "Visitante",
-              "Prestador Serviço"
+              "Condominio",
+              "Unidade",
+              "Pessoa"
             ],
-            "Indice": ""
+            "Indice": "Index"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - PapelVinculo 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Catálogo global reutilizável de papéis operacionais. Escopo Condominio exige IdCondominio em PessoaVinculo; Escopo Unidade exige IdUnidade (e IdCondominio da unidade); Escopo Pessoa exige IdPessoaRelacionada. Papéis não concedem permissão RBAC."
+          },
+          {
+            "Regra": "RN - PapelVinculo 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Semente inicial (Codigo, Descrição, Escopo): 1 Proprietário Unidade; 2 Morador Unidade; 3 Locatário Unidade; 4 Dependente Unidade; 5 Familiar Unidade; 6 Hóspede Unidade; 7 Corretor Unidade; 10 Síndico Condominio; 11 Subsíndico Condominio; 12 Conselheiro Condominio; 13 Administradora Condominio; 14 Funcionário Condominio; 15 Prestador Condominio; 16 Terceirizado Condominio; 17 Fornecedor Condominio; 20 Representante Legal Pessoa; 21 Familiar Pessoa; 22 Dependente Pessoa. Visitante e acessos eventuais usam AutorizacaoAcessoTemporario."
+          },
+          {
+            "Regra": "RN - PapelVinculo 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O Código do Papel deve ser digitado na inclusão e não é editável na alteração ou exclusão."
+          }
+        ],
+        "EscopoTenant": "Global"
+      },
+      {
+        "Entidade": "PessoaVinculo",
+        "RotuloEntidade": "Vínculo de Pessoa",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador",
+          "Síndico"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdVinculo",
+            "RotuloCampo": "Id Vínculo",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "Pessoa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Pessoa",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "CodigoPapelVinculo",
+            "RotuloCampo": "Papel",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "PapelVinculo",
+            "ExibirForeignKey": "Sim"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdUnidade",
+            "RotuloCampo": "Unidade",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Unidade"
+          },
+          {
+            "Campo": "IdPessoaRelacionada",
+            "RotuloCampo": "Pessoa relacionada",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "DataInicio",
+            "RotuloCampo": "Início da vigência",
+            "TipoDado": "DATE",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "DataFim",
+            "RotuloCampo": "Fim da vigência",
+            "TipoDado": "DATE",
+            "Obrigatorio": "Não",
+            "Filtro": "Sim",
+            "Indice": "Index"
           },
           {
             "Campo": "IdPerfil",
-            "RotuloCampo": "Perfil de acesso",
+            "RotuloCampo": "Perfil RBAC",
             "TipoDado": "INT - Unsigned",
-            "Obrigatorio": "Sim",
+            "Obrigatorio": "Não",
             "Filtro": "Sim",
             "Indice": "Foreign Key",
             "EntidadeForeignKey": "PerfilAcesso"
           },
           {
-            "Campo": "DataFim",
-            "RotuloCampo": "DataFim",
-            "TipoDado": "DATE",
+            "Campo": "Responsavel",
+            "RotuloCampo": "Responsável pela unidade",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "Observacao",
+            "RotuloCampo": "Observação",
+            "TipoDado": "VARCHAR(500)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ],
+        "IndicesEspeciais": [
+          {
+            "Indice": "IdxPessoaVinculoAtivo",
+            "Tipo": "Index",
+            "Campos": [
+              "IdPessoa",
+              "IdCondominio",
+              "CodigoPapelVinculo",
+              "DataInicio",
+              "DataFim"
+            ],
+            "MensagemErroViolacao": "Consulta de vínculos por pessoa, condomínio, papel e vigência."
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - PessoaVinculo 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Cada linha é um vínculo operacional com identidade própria (IdVinculo), permitindo múltiplos papéis, condomínios, unidades e relacionamentos entre pessoas, com vigência e histórico via DataFim. Encerrar vínculo preenche DataFim; não excluir fisicamente salvo necessidade administrativa."
+          },
+          {
+            "Regra": "RN - PessoaVinculo 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Validar coerência do papel: Escopo Condominio exige IdUnidade nulo; Escopo Unidade exige IdUnidade pertencente ao IdCondominio; Escopo Pessoa exige IdPessoaRelacionada distinta de IdPessoa. IdCondominio é sempre obrigatório para isolamento do tenant, inclusive em vínculos somente por unidade (derivado da unidade quando omitido na API)."
+          },
+          {
+            "Regra": "RN - PessoaVinculo 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "IdPerfil referencia PerfilAcesso somente quando a pessoa deve acessar o sistema naquele condomínio; não é preenchido automaticamente pelo CodigoPapelVinculo. Login e troca de condomínio usam IdPerfil quando informado; caso contrário aplicam RN-Gerais 17."
+          },
+          {
+            "Regra": "RN - PessoaVinculo 04",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Não pode haver mais de um Responsavel=true ativo (DataFim nula) para a mesma IdUnidade. Ao marcar um vínculo como responsável, desmarcar os demais ativos da unidade."
+          },
+          {
+            "Regra": "RN - PessoaVinculo 05",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Se a Pessoa for Pessoa Jurídica, papéis de escopo Unidade aceitos são Proprietário, Locatário e Corretor."
+          },
+          {
+            "Regra": "RT - PessoaVinculo 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "A gestão unificada de Pessoas e Vínculos permite incluir PF/PJ e, na mesma jornada, um ou mais PessoaVinculo. Lista paginada lst-* com filtro por pessoa, papel, unidade e vigência. Formulário cad-* com combobox de Papel filtrada pelo escopo escolhido."
+          }
+        ],
+        "EscopoTenant": "Condominio"
+      },
+      {
+        "Entidade": "AutorizacaoAcessoTemporario",
+        "RotuloEntidade": "Autorização de Acesso Temporário",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador",
+          "Síndico",
+          "Funcionário Administração"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdAutorizacao",
+            "RotuloCampo": "Id Autorização",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdUnidade",
+            "RotuloCampo": "Unidade",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Unidade"
+          },
+          {
+            "Campo": "IdPessoaVisitante",
+            "RotuloCampo": "Visitante",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "NomeVisitante",
+            "RotuloCampo": "Nome do visitante",
+            "TipoDado": "VARCHAR(255)",
+            "Obrigatorio": "Não",
+            "Filtro": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "DocumentoVisitante",
+            "RotuloCampo": "Documento do visitante",
+            "TipoDado": "VARCHAR(14)",
+            "Obrigatorio": "Não",
+            "Filtro": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "IdPessoaAutorizador",
+            "RotuloCampo": "Autorizado por",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "DataHoraInicio",
+            "RotuloCampo": "Início",
+            "TipoDado": "DATETIME",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "DataHoraFim",
+            "RotuloCampo": "Fim",
+            "TipoDado": "DATETIME",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "TipoAcesso",
+            "RotuloCampo": "Tipo de acesso",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Visita",
+              "Entrega",
+              "Prestador eventual",
+              "Hóspede temporário"
+            ],
+            "Indice": "Index"
+          },
+          {
+            "Campo": "Motivo",
+            "RotuloCampo": "Motivo",
+            "TipoDado": "VARCHAR(500)",
             "Obrigatorio": "Não",
             "Indice": ""
           }
         ],
         "Regras": [
           {
-            "Regra": "RN - PessoaCondominio 01",
+            "Regra": "RN - AutorizacaoAcessoTemporario 01",
             "Tipo": "Regra de Negócio",
-            "Descricao": "IdPerfil referencia PerfilAcesso e é a fonte do RBAC neste condomínio. O login e a troca de condomínio leem a Descricao desse perfil. TipoVinculo descreve o vínculo operacional e não autoriza telas. Sem IdPerfil, a resolução usa o perfil Morador."
+            "Descricao": "Autorizações temporárias não criam PessoaVinculo permanente. Visitas, entregas e prestadores eventuais devem ser registrados aqui. Portaria e controle de acesso consultam registros vigentes por DataHoraInicio/DataHoraFim."
+          },
+          {
+            "Regra": "RN - AutorizacaoAcessoTemporario 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Preencher IdPessoaVisitante quando o visitante já existir em Pessoa; caso contrário NomeVisitante e DocumentoVisitante. IdPessoaAutorizador deve possuir PessoaVinculo ativo no condomínio (morador, síndico, funcionário ou equivalente)."
           }
         ],
         "EscopoTenant": "Condominio"
@@ -1557,86 +1860,6 @@
           }
         ],
         "EscopoTenant": "Condominio"
-      },
-      {
-        "Entidade": "PessoaUnidade",
-        "RotuloEntidade": "Pessoa Unidade",
-        "Gerar CRUD": "Não",
-        "PerfisAcesso": [
-          "Administrador"
-        ],
-        "Campos": [
-          {
-            "Campo": "IdPessoa",
-            "RotuloCampo": "Id Pessoa",
-            "TipoDado": "INT - Unsigned",
-            "Filtro": "Sim",
-            "Obrigatorio": "Sim",
-            "Indice": "Primary Key e Foreign Key",
-            "EntidadeForeignKey": "Pessoa"
-          },
-          {
-            "Campo": "IdUnidade",
-            "RotuloCampo": "Id Unidade",
-            "TipoDado": "INT - Unsigned",
-            "Filtro": "Sim",
-            "Obrigatorio": "Sim",
-            "Indice": "Primary Key e Foreign Key",
-            "EntidadeForeignKey": "Unidade"
-          },
-          {
-            "Campo": "DataInicio",
-            "RotuloCampo": "Data Início",
-            "TipoDado": "DATE",
-            "Filtro": "Sim",
-            "Obrigatorio": "Sim",
-            "Indice": ""
-          },
-          {
-            "Campo": "DataFim",
-            "RotuloCampo": "Data Fim",
-            "TipoDado": "DATE",
-            "Filtro": "Sim",
-            "Obrigatorio": "Não",
-            "Indice": ""
-          },
-          {
-            "Campo": "TipoVinculo",
-            "RotuloCampo": "TipoVinculo",
-            "TipoDado": "TinyInt(1) - Unsigned",
-            "Filtro": "Sim",
-            "Obrigatorio": "Sim",
-            "Enum": [
-              "Administrador Imobiliário",
-              "Proprietário",
-              "Proprietário Morador",
-              "Morador com Procuração Proprietário",
-              "Morador"
-            ],
-            "Indice": ""
-          },
-          {
-            "Campo": "Resposavel",
-            "RotuloCampo": "Resposável",
-            "TipoDado": "BOOLEAN",
-            "Obrigatorio": "Sim",
-            "Indice": ""
-          }
-        ],
-        "Regras": [
-          {
-            "Regra": "RN - PessoaUnidade 01",
-            "Tipo": "Regra de Negócio",
-            "Descricao": "Não poderá haver dois Responsáveis (Pessoa) para a mesma Unidade. Caso seja cadastrado ou editado e a Pessoa do registro corrente seja apontado como Responsável e outra pessoa seja o Resposável, a pessoa do registro atual passa a ser o Responsável e a do outro deve ser desmarcada (Responsável=false)."
-          },
-          {
-            "Regra": "RN - PessoaUnidade 02",
-            "Tipo": "Regra de Negócio",
-            "Descricao": "Se a Pessoa for uma Pessoa Jurídica, os tipos de vínculo a serem listados devem ser e aceitos são: Administrador ou Proprietário."
-          }
-        ],
-        "EscopoTenant": "Indireto",
-        "VinculoTenant": "Unidade"
       },
       {
         "Entidade": "Concorrencia",
@@ -2328,20 +2551,20 @@
             "EntidadeForeignKey": "Pessoa"
           },
           {
-            "Campo": "IdPessoaSaida",
-            "RotuloCampo": "Retirado Por",
+            "Campo": "IdVinculoRetirada",
+            "RotuloCampo": "Vínculo de quem retirou",
             "TipoDado": "INT - Unsigned",
             "Filtro": "Sim",
             "Obrigatorio": "Não",
             "Indice": "Foreign Key",
-            "EntidadeForeignKey": "PessoaUnidade"
+            "EntidadeForeignKey": "PessoaVinculo"
           }
         ],
         "Regras": [
           {
             "Regra": "RN - GuardaEncomenda 01",
             "Tipo": "Regra de Negócio",
-            "Descricao": "O Campo IdPessoaEntrada deve obrigatóriamente ser preenchido por uma pessoa que tenha vínculo em PessoaCondominio ou PessoaUnidade."
+            "Descricao": "O Campo IdPessoaEntrada deve ser preenchido por pessoa com PessoaVinculo ativo no condomínio (funcionário, porteiro, síndico ou equivalente). IdVinculoRetirada, quando informado, deve referir morador ou responsável ativo na IdUnidade da encomenda."
           },
           {
             "Regra": "RN - GuardaEncomenda 02",
@@ -2656,12 +2879,12 @@
             "ExibirForeignKey": "Sim"
           },
           {
-            "Campo": "IdPessoa",
-            "RotuloCampo": "Locatario",
+            "Campo": "IdVinculo",
+            "RotuloCampo": "Locatário / responsável",
             "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Sim",
             "Indice": "Foreign Key",
-            "EntidadeForeignKey": "PessoaCondominio"
+            "EntidadeForeignKey": "PessoaVinculo"
           },
           {
             "Campo": "IdLocal",
@@ -2930,12 +3153,12 @@
             ]
           },
           {
-            "Campo": "IdPessoa",
+            "Campo": "IdVinculo",
             "RotuloCampo": "Consumidor",
             "TipoDado": "INT - Unsigned",
             "Obrigatorio": "Não",
             "Indice": "Foreign Key",
-            "EntidadeForeignKey": "PessoaCondominio"
+            "EntidadeForeignKey": "PessoaVinculo"
           }
         ],
         "Regras": [
@@ -3136,7 +3359,7 @@
           {
             "Regra": "RN - PessoaPermissaoExcecao 01",
             "Tipo": "Regra de Negócio",
-            "Descricao": "Sobrescreve um permissionKey para a pessoa naquele IdCondominio. A exceção do condomínio 1 não vale no condomínio 2. A linha só existe quando as ações diferem de PerfilPermissao do perfil do vínculo. A entidade tem filtro de tenant por IdCondominio; a resolução informa o condomínio de forma explícita."
+            "Descricao": "Sobrescreve um permissionKey para a pessoa naquele IdCondominio. A exceção do condomínio 1 não vale no condomínio 2. A linha só existe quando as ações diferem de PerfilPermissao do perfil resolvido em PessoaVinculo.IdPerfil (ou padrão RN-Gerais 17). A entidade tem filtro de tenant por IdCondominio; a resolução informa o condomínio de forma explícita. A pessoa precisa ter PessoaVinculo ativo no condomínio para receber exceção."
           }
         ]
       }

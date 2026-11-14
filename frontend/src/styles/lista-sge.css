@@ -621,6 +621,10 @@
   font-size: 14px;
 }
 
+.lst-situacao--inativa {
+  color: var(--cad-muted, #64748b);
+}
+
 .lst-grade {
   width: 100%;
   min-width: min-content;

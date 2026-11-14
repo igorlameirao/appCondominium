@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using AppCondominium.Application.Authorization;
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Domain.Entities;
+using AppCondominium.Domain.Vinculos;
 using AppCondominium.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -210,18 +211,31 @@ public class PermissionResolver : IPermissionResolver
 
     private async Task<(uint? IdPerfil, string Nome, bool AcessoTotal)> CarregarPerfilAsync(uint idPessoa, uint idCondominio, CancellationToken ct)
     {
-        var vinculo = await _db.PessoaCondominio.IgnoreQueryFilters().AsNoTracking()
-            .FirstOrDefaultAsync(v => v.IdPessoa == idPessoa && v.IdCondominio == idCondominio, ct);
+        var hoje = PessoaVinculoAtivo.HojeUtc();
+        var vinculos = await _db.PessoaVinculo.IgnoreQueryFilters().AsNoTracking()
+            .Where(v => v.IdPessoa == idPessoa
+                && v.IdCondominio == idCondominio
+                && v.DataInicio <= hoje
+                && (v.DataFim == null || v.DataFim >= hoje))
+            .ToListAsync(ct);
 
-        uint? idPerfil = vinculo?.IdPerfil;
+        var comPerfil = vinculos.FirstOrDefault(v => v.IdPerfil != null);
+        uint? idPerfil = comPerfil?.IdPerfil;
         string nome = "Morador";
-        if (idPerfil == null)
+
+        if (idPerfil is null)
         {
             var morador = await _db.PerfilAcesso.AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Descricao != null && p.Descricao.ToLower() == "morador", ct);
-            idPerfil = morador?.IdPerfil;
-            if (morador?.Descricao != null)
-                nome = morador.Descricao;
+            var proprietario = await _db.PerfilAcesso.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Descricao != null && p.Descricao.ToLower() == "proprietário", ct);
+
+            var temProprietarioPadrao = vinculos.Any(v =>
+                v.CodigoPapelVinculo is uint cod && PapelVinculoCodigos.PapeisProprietarioPadrao.Contains(cod));
+            var alvo = temProprietarioPadrao ? proprietario : morador;
+            idPerfil = alvo?.IdPerfil;
+            if (alvo?.Descricao != null)
+                nome = alvo.Descricao;
         }
         else
         {
