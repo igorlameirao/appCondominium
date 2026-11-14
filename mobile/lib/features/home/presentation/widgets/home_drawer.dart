@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router.dart';
+import '../../../auth/application/auth_session_notifier.dart';
+import '../../../context/presentation/context_switch_sheets.dart';
 import '../../../../shared/widgets/auth/coming_soon_message.dart';
 import '../providers/home_providers.dart';
 import '../theme/home_surface.dart';
@@ -18,15 +20,34 @@ import '../../domain/models/home_models.dart';
 class HomeDrawer extends ConsumerWidget {
   const HomeDrawer({super.key});
 
-  void _signOut(BuildContext context) {
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
     Navigator.of(context).pop();
-    context.go(AppRoute.login.path);
+    await ref.read(authSessionProvider.notifier).logout();
+    if (context.mounted) {
+      context.go(AppRoute.login.path);
+    }
   }
 
-  void _onNavItem(BuildContext context, HomeDrawerNavItem item) {
-    Navigator.of(context).pop();
-    if (item.id != 'inicio') {
-      showComingSoonMessage(context);
+  void _onNavItem(BuildContext context, WidgetRef ref, HomeDrawerNavItem item) {
+    switch (item.id) {
+      case 'inicio':
+        Navigator.of(context).pop();
+        return;
+      case 'trocar-condominio':
+        Navigator.of(context).pop();
+        showTrocarCondominioSheet(context, ref);
+        return;
+      case 'trocar-perfil':
+        Navigator.of(context).pop();
+        showTrocarPerfilSheet(context, ref);
+        return;
+      case 'trocar-unidade':
+        Navigator.of(context).pop();
+        showTrocarUnidadeSheet(context, ref);
+        return;
+      default:
+        Navigator.of(context).pop();
+        showComingSoonMessage(context);
     }
   }
 
@@ -54,13 +75,13 @@ class HomeDrawer extends ConsumerWidget {
                   for (final group in groups)
                     HomeDrawerNavGroupSection(
                       group: group,
-                      onItemSelected: (item) => _onNavItem(context, item),
+                      onItemSelected: (item) => _onNavItem(context, ref, item),
                     ),
                 ],
               ),
             ),
             const HomeDrawerAppearanceSelector(),
-            HomeDrawerFooter(onSignOut: () => _signOut(context)),
+            HomeDrawerFooter(onSignOut: () => _signOut(context, ref)),
           ],
         ),
       ),

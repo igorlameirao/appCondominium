@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AppCondominium.Application.Interfaces;
 
 namespace AppCondominium.API.Middleware;
@@ -11,7 +12,10 @@ public class CondominioContextMiddleware
 
     public CondominioContextMiddleware(RequestDelegate next) => _next = next;
 
-    public async Task InvokeAsync(HttpContext context, ICondominioContext condominioContext)
+    public async Task InvokeAsync(
+        HttpContext context,
+        ICondominioContext condominioContext,
+        ITenantAccessService tenantAccess)
     {
         condominioContext.Clear();
 
@@ -36,8 +40,20 @@ public class CondominioContextMiddleware
                 await context.Response.WriteAsync("X-Id-Condominio não confere com o tenant do token.");
                 return;
             case TenantResolutionStatus.Resolved:
-                condominioContext.SetCondominio(result.TenantId!.Value);
+            {
+                var tenantId = result.TenantId!.Value;
+                var idPessoaRaw = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!uint.TryParse(idPessoaRaw, out var idPessoa)
+                    || !await tenantAccess.UsuarioTemAcessoAsync(idPessoa, tenantId, context.RequestAborted))
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    await context.Response.WriteAsync("Sem vínculo ativo neste condomínio.");
+                    return;
+                }
+
+                condominioContext.SetCondominio(tenantId);
                 break;
+            }
         }
 
         await _next(context);

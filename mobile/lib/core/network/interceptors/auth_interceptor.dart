@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../security/token_storage.dart';
 
-/// Anexa o JWT quando disponível. Não realiza login nem refresh nesta etapa.
+/// Anexa JWT e `X-Id-Condominio` quando a sessão estiver definida.
 class AuthInterceptor extends Interceptor {
   AuthInterceptor(this._tokenStorage);
 
@@ -16,6 +16,10 @@ class AuthInterceptor extends Interceptor {
     final token = await _tokenStorage.readAccessToken();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
+    }
+    final session = await _tokenStorage.readSession();
+    if (session != null) {
+      options.headers['X-Id-Condominio'] = session.idCondominio.toString();
     }
     handler.next(options);
   }

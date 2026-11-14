@@ -20,6 +20,7 @@ public static partial class DependencyInjection
     {
         services.AddScoped<ICondominioContext, CondominioContext>();
         services.AddScoped<ITenantAccessService, TenantAccessService>();
+        services.AddScoped<IUsuarioIdentificacaoService, UsuarioIdentificacaoService>();
         services.AddScoped<IPermissionResolver, PermissionResolver>();
         services.AddSingleton<IPasswordHasher, PasswordHasherService>();
         services.AddSingleton<PessoafisicaSenhaInterceptor>();

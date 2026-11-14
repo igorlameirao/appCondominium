@@ -134,7 +134,27 @@ abstract final class HomeDemoData {
     ),
   );
 
-  static const drawerNavGroups = [
+  static const drawerNavGroupsWithContext = [
+    HomeDrawerNavGroup(
+      title: 'Minha conta',
+      items: [
+        HomeDrawerNavItem(
+          id: 'trocar-condominio',
+          label: 'Trocar condomínio',
+          icon: Icons.apartment_rounded,
+        ),
+        HomeDrawerNavItem(
+          id: 'trocar-perfil',
+          label: 'Trocar perfil',
+          icon: Icons.badge_outlined,
+        ),
+        HomeDrawerNavItem(
+          id: 'trocar-unidade',
+          label: 'Trocar unidade',
+          icon: Icons.door_front_door_outlined,
+        ),
+      ],
+    ),
     HomeDrawerNavGroup(
       title: 'Meu Condomínio',
       items: [

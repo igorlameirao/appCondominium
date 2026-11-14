@@ -10,6 +10,7 @@ import 'widgets/home_greeting.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_main_shortcuts.dart';
 import 'widgets/home_pending_section.dart';
+import '../../context/presentation/context_switch_sheets.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/home_quick_access_section.dart';
 
@@ -60,6 +61,8 @@ class HomePage extends ConsumerWidget {
                           HomeGreeting(
                             resident: data.resident,
                             viewport: viewport,
+                            onUnitTap: () =>
+                                showTrocarUnidadeSheet(context, ref),
                           ),
                           SizedBox(
                             height: HomeLayout.gapAfterGreeting(viewport),

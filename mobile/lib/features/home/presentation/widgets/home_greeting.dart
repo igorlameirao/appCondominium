@@ -9,10 +9,12 @@ class HomeGreeting extends StatelessWidget {
     super.key,
     required this.resident,
     required this.viewport,
+    this.onUnitTap,
   });
 
   final HomeResidentContext resident;
   final BoxConstraints viewport;
+  final VoidCallback? onUnitTap;
 
   @override
   Widget build(BuildContext context) {
@@ -29,24 +31,39 @@ class HomeGreeting extends StatelessWidget {
               ),
         ),
         SizedBox(height: HomeLayout.greetingSubtitleGap(viewport)),
-        Row(
-          children: [
-            Icon(
-              Icons.person_outline_rounded,
-              size: 16,
-              color: HomeSurface.secondaryText(context),
+        InkWell(
+          onTap: onUnitTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.person_outline_rounded,
+                  size: 16,
+                  color: HomeSurface.secondaryText(context),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    resident.unitLabel == 'Sem unidade vinculada'
+                        ? resident.roleLabel
+                        : '${resident.roleLabel} • ${resident.unitLabel}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: HomeSurface.secondaryText(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                ),
+                if (onUnitTap != null)
+                  Icon(
+                    Icons.swap_horiz_rounded,
+                    size: 16,
+                    color: HomeSurface.secondaryText(context),
+                  ),
+              ],
             ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                '${resident.roleLabel} • ${resident.unitLabel}',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: HomeSurface.secondaryText(context),
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );
