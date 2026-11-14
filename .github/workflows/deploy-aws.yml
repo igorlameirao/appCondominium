@@ -118,7 +118,15 @@ jobs:
           WEB=/var/www/appcondominium-web
  
           test -f /etc/appcondominium/api.env
- 
+
+          # O Nginx encaminha o nome público. A API precisa aceitar esse Host.
+          HOSTS="localhost;127.0.0.1;appcondominium.com.br;www.appcondominium.com.br"
+          if grep -q '^AllowedHosts=' /etc/appcondominium/api.env; then
+            sed -i "s/^AllowedHosts=.*/AllowedHosts=${HOSTS}/" /etc/appcondominium/api.env
+          else
+            printf '\nAllowedHosts=%s\n' "$HOSTS" >> /etc/appcondominium/api.env
+          fi
+
           mkdir -p "$API" "$WEB"
  
           # Limpar apenas arquivos publicados da API.
