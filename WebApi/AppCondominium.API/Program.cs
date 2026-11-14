@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using AppCondominium.API.Authorization;
 using AppCondominium.API.Middleware;
@@ -5,6 +6,7 @@ using AppCondominium.Application.Interfaces;
 using AppCondominium.Infrastructure;
 using AppCondominium.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -77,10 +79,35 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
+        p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+}
+else
+{
+    var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+    builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
+    {
+        if (corsOrigins.Length > 0)
+            p.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod();
+        else
+            p.AllowAnyHeader().AllowAnyMethod();
+    }));
+}
 
 var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    var forwardedHeaders = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    };
+    forwardedHeaders.KnownProxies.Add(IPAddress.Loopback);
+    forwardedHeaders.KnownProxies.Add(IPAddress.IPv6Loopback);
+    app.UseForwardedHeaders(forwardedHeaders);
+}
 
 using (var scope = app.Services.CreateScope())
 {
