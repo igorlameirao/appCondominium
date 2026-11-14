@@ -1,5 +1,6 @@
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Domain.Entities;
+using AppCondominium.Domain.Vinculos;
 using AppCondominium.Infrastructure.Persistence;
 using AppCondominium.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -57,6 +58,24 @@ public class VinculoLoginTests
         Assert.True(comoAdmin.AcessoTotal);
     }
 
+    [Fact]
+    public async Task Vinculo_encerrado_nao_concede_acesso()
+    {
+        await using var db = await SeedAsync();
+        var access = new TenantAccessService(db);
+        db.PessoaVinculo.Add(new PessoaVinculo
+        {
+            IdPessoa = 99,
+            IdCondominio = 1,
+            CodigoPapelVinculo = PapelVinculoCodigos.Morador,
+            DataInicio = new DateOnly(2020, 1, 1),
+            DataFim = new DateOnly(2020, 12, 31),
+            Responsavel = 0
+        });
+        await db.SaveChangesAsync();
+        Assert.False(await access.UsuarioTemAcessoAsync(99, 1));
+    }
+
     private static async Task<AppDbContext> SeedAsync()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -77,13 +96,26 @@ public class VinculoLoginTests
             IdPermissionKey = 1,
             Visualizar = true
         });
-        db.PessoaCondominio.Add(new PessoaCondominio { IdPessoa = 10, IdCondominio = 1, IdPerfil = 1, DataInicio = new DateOnly(2024, 1, 1), TipoVinculo = 1 });
-        db.PessoaCondominio.Add(new PessoaCondominio { IdPessoa = 11, IdCondominio = 1, IdPerfil = 1, DataInicio = new DateOnly(2024, 1, 1), TipoVinculo = 1 });
-        db.PessoaUnidade.Add(new PessoaUnidade { IdPessoa = 11, IdUnidade = 100, TipoVinculo = 1, DataInicio = new DateOnly(2024, 1, 1) });
-        db.PessoaCondominio.Add(new PessoaCondominio { IdPessoa = 12, IdCondominio = 1, IdPerfil = 2, DataInicio = new DateOnly(2024, 1, 1), TipoVinculo = 1 });
-        db.PessoaUnidade.Add(new PessoaUnidade { IdPessoa = 12, IdUnidade = 100, TipoVinculo = 1, DataInicio = new DateOnly(2024, 1, 1) });
-        db.PessoaUnidade.Add(new PessoaUnidade { IdPessoa = 13, IdUnidade = 100, TipoVinculo = 1, DataInicio = new DateOnly(2024, 1, 1) });
-        db.PessoaUnidade.Add(new PessoaUnidade { IdPessoa = 13, IdUnidade = 200, TipoVinculo = 1, DataInicio = new DateOnly(2024, 1, 1) });
+
+        static PessoaVinculo V(uint pessoa, uint condo, uint? perfil, uint? unidade = null) => new()
+        {
+            IdPessoa = pessoa,
+            IdCondominio = condo,
+            CodigoPapelVinculo = unidade is null ? PapelVinculoCodigos.Funcionario : PapelVinculoCodigos.Morador,
+            IdUnidade = unidade,
+            IdPerfil = perfil,
+            DataInicio = new DateOnly(2024, 1, 1),
+            Responsavel = 0
+        };
+
+        db.PessoaVinculo.Add(V(10, 1, 1));
+        db.PessoaVinculo.Add(V(11, 1, 1));
+        db.PessoaVinculo.Add(V(11, 1, null, 100));
+        db.PessoaVinculo.Add(V(12, 1, 2));
+        db.PessoaVinculo.Add(V(12, 1, null, 100));
+        db.PessoaVinculo.Add(V(13, 1, null, 100));
+        db.PessoaVinculo.Add(V(13, 2, null, 200));
+
         db.PessoaPermissaoExcecao.Add(new PessoaPermissaoExcecao
         {
             IdPessoa = 11,

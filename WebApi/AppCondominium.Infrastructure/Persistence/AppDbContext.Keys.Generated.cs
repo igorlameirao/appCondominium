@@ -20,10 +20,12 @@ public partial class AppDbContext
         modelBuilder.Entity<ConsumoAgua>().HasKey(e => e.IdConsumo);
         modelBuilder.Entity<Pessoafisica>().HasKey(e => e.IdPessoa);
         modelBuilder.Entity<PessoaJuridica>().HasKey(e => e.IdPessoa);
-        modelBuilder.Entity<Fornecedor>().HasKey(e => e.IdPessoa);
+        modelBuilder.Entity<Fornecedor>().HasKey(e => e.IdFornecedor);
         modelBuilder.Entity<TipoAtividadeEconomica>().HasKey(e => e.CodigoTipoAtividadeEconomica);
         modelBuilder.Entity<AtividadeEconomica>().HasKey(e => e.CodigoAtividadeEconomica);
-        modelBuilder.Entity<PessoaCondominio>().HasKey(e => new { e.IdPessoa, e.IdCondominio });
+        modelBuilder.Entity<PapelVinculo>().HasKey(e => e.CodigoPapelVinculo);
+        modelBuilder.Entity<PessoaVinculo>().HasKey(e => e.IdVinculo);
+        modelBuilder.Entity<AutorizacaoAcessoTemporario>().HasKey(e => e.IdAutorizacao);
         modelBuilder.Entity<Equipamento>().HasKey(e => e.IdEquipamento);
         modelBuilder.Entity<AluguelEquipamento>().HasKey(e => e.IdAluguelEquipamento);
         modelBuilder.Entity<Concorrencia>().HasKey(e => e.IdConcorrencia);

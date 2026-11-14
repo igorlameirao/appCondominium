@@ -56,10 +56,10 @@ import { somenteDigitos } from '../../core/utils/documento-validator';
           </div>
           <app-endereco-widget
             modo="cadastro"
-            [cep]="model.cep"
+            [cep]="model.cEP"
             [logradouroVinculo]="model.logradouro"
             [idBairro]="model.idBairro"
-            (cepChange)="model.cep = $event"
+            (cepChange)="model.cEP = $event"
             (logradouroChange)="model.logradouro = $event"
             (idBairroChange)="model.idBairro = $event ?? undefined"
             [readonly]="isEdit && !canEdit" />
@@ -149,7 +149,7 @@ export class EnderecoFormComponent implements OnInit {
 
   submit(f: NgForm): void {
     if (!f.valid || !this.model.idBairro || !this.model.logradouro?.trim()) { this.toast.showError('Preencha os campos obrigatórios antes de gravar.'); return; }
-    this.model.cep = somenteDigitos(this.model.cep ?? '');
+    this.model.cEP = somenteDigitos(this.model.cEP ?? '');
     this.saving = true;
     if (this.isEdit) {
       this.service.update(this.model).subscribe({

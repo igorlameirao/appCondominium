@@ -6,6 +6,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 var fixUnidadeSchema = args.Any(a => string.Equals(a, "fix-unidade-schema", StringComparison.OrdinalIgnoreCase));
+var inspectPessoaVinculo = args.Any(a => string.Equals(a, "inspect-pessoa-vinculo", StringComparison.OrdinalIgnoreCase));
+var migratePessoaVinculo = args.Any(a => string.Equals(a, "migrate-pessoa-vinculo", StringComparison.OrdinalIgnoreCase));
+var allowDropLegacy = args.Any(a => string.Equals(a, "--allow-drop-legacy", StringComparison.OrdinalIgnoreCase));
 var dropColumns = args.Any(a => string.Equals(a, "--drop-columns", StringComparison.OrdinalIgnoreCase));
 var apiDir = EncontrarApi();
 
@@ -30,14 +33,24 @@ try
     if (fixUnidadeSchema)
         return await UnidadeSchemaFix.RunAsync(host.Services, logger, CancellationToken.None);
 
+    if (inspectPessoaVinculo)
+        return await PessoaVinculoAwsMigration.InspectAsync(host.Services, logger, CancellationToken.None);
+
+    if (migratePessoaVinculo)
+        return await PessoaVinculoAwsMigration.MigrateAsync(host.Services, logger, allowDropLegacy, CancellationToken.None);
+
     using var scope = host.Services.CreateScope();
     var migrator = scope.ServiceProvider.GetRequiredService<BlobToS3Migrator>();
     await migrator.RunAsync(dropColumns, CancellationToken.None);
 }
 catch (Exception ex)
 {
-    logger.LogError(ex, fixUnidadeSchema ? "Correção de schema Unidade interrompida." : "Migração de BLOBs para o S3 interrompida.");
-    return 1;
+  var ctx = fixUnidadeSchema ? "Correção de schema Unidade"
+    : inspectPessoaVinculo ? "Inspeção PessoaVinculo"
+    : migratePessoaVinculo ? "Migração PessoaVinculo/RDS"
+    : "Migração de BLOBs para o S3";
+  logger.LogError(ex, "{Ctx} interrompida.", ctx);
+  return 1;
 }
 
 return 0;

@@ -1,6 +1,8 @@
 using System.Text;
 using AppCondominium.API.Authorization;
 using AppCondominium.API.Middleware;
+using AppCondominium.API.Routing;
+using Microsoft.AspNetCore.Routing;
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Infrastructure;
 using AppCondominium.Infrastructure.Persistence;
@@ -38,6 +40,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.Configure<RouteOptions>(options =>
+{
+    options.ConstraintMap.Add("uint", typeof(UIntRouteConstraint));
+});
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<AppCondominium.API.Storage.ArquivoAplicacao>();
 builder.Services.AddHostedService<PermissionCatalogSync>();

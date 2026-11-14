@@ -35,13 +35,15 @@ import {
 })
 export class DocumentoInputComponent implements ControlValueAccessor {
   @Input() tipo: 'cpf' | 'cnpj' | 'cpfcnpj' = 'cpfcnpj';
+  @Input() set disabled(v: boolean) { this._disabled = v; }
+  get disabled(): boolean { return this._disabled; }
   @Output() validChange = new EventEmitter<boolean>();
 
   display = '';
   raw = '';
   invalid = false;
   touched = false;
-  disabled = false;
+  private _disabled = false;
   maxLen = 18;
 
   private onChange: (v: string) => void = () => {};
@@ -55,7 +57,7 @@ export class DocumentoInputComponent implements ControlValueAccessor {
 
   registerOnChange(fn: (v: string) => void): void { this.onChange = fn; }
   registerOnTouched(fn: () => void): void { this.onTouched = fn; }
-  setDisabledState(isDisabled: boolean): void { this.disabled = isDisabled; }
+  setDisabledState(isDisabled: boolean): void { this._disabled = isDisabled; }
 
   onFocus(): void {
     this.display = this.raw;

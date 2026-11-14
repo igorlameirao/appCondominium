@@ -23,7 +23,9 @@ public static partial class DependencyInjection
         services.AddScoped<FornecedorRepository>();
         services.AddScoped<TipoAtividadeEconomicaRepository>();
         services.AddScoped<AtividadeEconomicaRepository>();
-        services.AddScoped<PessoaCondominioRepository>();
+        services.AddScoped<PapelVinculoRepository>();
+        services.AddScoped<PessoaVinculoRepository>();
+        services.AddScoped<AutorizacaoAcessoTemporarioRepository>();
         services.AddScoped<EquipamentoRepository>();
         services.AddScoped<AluguelEquipamentoRepository>();
         services.AddScoped<ConcorrenciaRepository>();

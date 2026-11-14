@@ -1,0 +1,3 @@
+-- Migração incremental — schema condominium (AWS RDS AppCondominium).
+-- Não recria o banco. Idempotente onde possível. Execute via AppCondominium.Tools (migrate-pessoa-vinculo).
+-- Backup já realizado pelo time antes desta fase.

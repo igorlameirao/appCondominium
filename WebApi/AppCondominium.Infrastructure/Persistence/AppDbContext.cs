@@ -17,11 +17,11 @@ public partial class AppDbContext
     }
 
     public DbSet<Pessoa> Pessoa { get; set; } = null!;
-    public DbSet<PessoaUnidade> PessoaUnidade { get; set; } = null!;
     public DbSet<PerfilAcesso> PerfilAcesso { get; set; } = null!;
     public DbSet<PermissionKey> PermissionKey { get; set; } = null!;
     public DbSet<PerfilPermissao> PerfilPermissao { get; set; } = null!;
     public DbSet<PessoaPermissaoExcecao> PessoaPermissaoExcecao { get; set; } = null!;
+    public DbSet<PessoaEndereco> PessoaEndereco { get; set; } = null!;
 
     partial void ConfigureEntityKeys(ModelBuilder modelBuilder);
     partial void ConfigureTenantQueryFilters(ModelBuilder modelBuilder);
@@ -29,16 +29,23 @@ public partial class AppDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Pessoa>().HasKey(p => p.IdPessoa);
-        modelBuilder.Entity<PessoaUnidade>().HasKey(p => new { p.IdPessoa, p.IdUnidade });
         modelBuilder.Entity<Pessoa>().HasQueryFilter(p =>
-            Set<PessoaCondominio>().Any(v => v.IdPessoa == p.IdPessoa && v.IdCondominio == CurrentTenantId)
-            || Set<Fornecedor>().Any(f => f.IdPessoa == p.IdPessoa && f.IdCondominio == CurrentTenantId)
-            || Set<Unidade>().Any(u => Set<PessoaUnidade>().Any(pu => pu.IdUnidade == u.IdUnidade && pu.IdPessoa == p.IdPessoa) && u.IdCondominio == CurrentTenantId));
-        modelBuilder.Entity<PessoaUnidade>().HasQueryFilter(pu =>
-            Set<Unidade>().Any(u => u.IdUnidade == pu.IdUnidade && u.IdCondominio == CurrentTenantId));
+            Set<PessoaVinculo>().Any(v => v.IdPessoa == p.IdPessoa && v.IdCondominio == CurrentTenantId
+                && v.DataInicio <= DateOnly.FromDateTime(DateTime.UtcNow)
+                && (v.DataFim == null || v.DataFim >= DateOnly.FromDateTime(DateTime.UtcNow)))
+            || Set<Fornecedor>().Any(f => f.IdPessoa == p.IdPessoa && f.IdCondominio == CurrentTenantId));
 
         modelBuilder.Entity<Pessoafisica>().ToTable("pessoafisica");
         modelBuilder.Entity<Pessoafisica>().Property(p => p.Email).HasColumnName("email");
+
+        modelBuilder.Entity<PessoaEndereco>().ToTable("PessoaEndereco");
+        modelBuilder.Entity<PessoaEndereco>().HasKey(pe => new { pe.IdPessoa, pe.IdEndereco });
+        modelBuilder.Entity<PessoaEndereco>().HasQueryFilter(pe =>
+            Set<PessoaVinculo>().Any(v => v.IdPessoa == pe.IdPessoa
+                && v.IdCondominio == CurrentTenantId
+                && v.DataInicio <= DateOnly.FromDateTime(DateTime.UtcNow)
+                && (v.DataFim == null || v.DataFim >= DateOnly.FromDateTime(DateTime.UtcNow)))
+            || Set<Fornecedor>().Any(f => f.IdPessoa == pe.IdPessoa && f.IdCondominio == CurrentTenantId));
 
         modelBuilder.Entity<PerfilAcesso>().HasKey(p => p.IdPerfil);
         modelBuilder.Entity<PermissionKey>().HasKey(p => p.IdPermissionKey);

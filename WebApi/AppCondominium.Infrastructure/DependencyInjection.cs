@@ -21,6 +21,12 @@ public static partial class DependencyInjection
         services.AddScoped<ICondominioContext, CondominioContext>();
         services.AddScoped<ITenantAccessService, TenantAccessService>();
         services.AddScoped<IPermissionResolver, PermissionResolver>();
+        services.AddScoped<IPessoaCadastroService, PessoaCadastroService>();
+        services.AddScoped<IPessoaVinculoService, PessoaVinculoService>();
+        services.AddScoped<IFornecedorCadastroService, FornecedorCadastroService>();
+        services.AddScoped<IPessoaConsultaService, PessoaConsultaService>();
+        services.AddScoped<IFornecedorConsultaService, FornecedorConsultaService>();
+        services.AddScoped<IPessoaEnderecoService, PessoaEnderecoService>();
         services.AddSingleton<IPasswordHasher, PasswordHasherService>();
         services.AddSingleton<PessoafisicaSenhaInterceptor>();
         services.AddScoped<ArquivoCleanupInterceptor>();

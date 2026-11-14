@@ -11,10 +11,9 @@ export class BairroService {
 
   constructor(private http: HttpClient) {}
 
-  getPaged(page: number, pageSize: number, filter?: string, codigoIBGEMunicipio?: number): Observable<PagedResult<Bairro>> {
+  getPaged(page: number, pageSize: number, filter?: string): Observable<PagedResult<Bairro>> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (filter) params = params.set('filter', filter);
-    if (codigoIBGEMunicipio != null) params = params.set('codigoIBGEMunicipio', codigoIBGEMunicipio);
     return this.http.get<PagedResult<Bairro>>(this.base, { params });
   }
 

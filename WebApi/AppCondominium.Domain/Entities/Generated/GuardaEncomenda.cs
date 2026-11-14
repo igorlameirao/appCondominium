@@ -10,5 +10,5 @@ public class GuardaEncomenda
     public DateTime? DataHoraEntrada { get; set; }
     public DateTime? DataHoraSaida { get; set; }
     public uint? IdPessoaEntrada { get; set; }
-    public uint? IdPessoaSaida { get; set; }
+    public uint? IdVinculoRetirada { get; set; }
 }

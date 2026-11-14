@@ -21,6 +21,30 @@
       "excluir": false
     },
     {
+      "perfil": "Síndico",
+      "permissionKey": "PESSOAVINCULO",
+      "visualizar": true,
+      "incluir": true,
+      "alterar": true,
+      "excluir": true
+    },
+    {
+      "perfil": "Síndico",
+      "permissionKey": "AUTORIZACAOACESSOTEMPORARIO",
+      "visualizar": true,
+      "incluir": true,
+      "alterar": true,
+      "excluir": true
+    },
+    {
+      "perfil": "Síndico",
+      "permissionKey": "FORNECEDOR",
+      "visualizar": true,
+      "incluir": true,
+      "alterar": true,
+      "excluir": true
+    },
+    {
       "perfil": "Subsíndico",
       "permissionKey": "HOME",
       "visualizar": true,

@@ -34,6 +34,11 @@ export class PermissionService {
     return this.claims.has(`${permissionKey}:${acao}`);
   }
 
+  canAny(permissionKeys: string[], acao: string): boolean {
+    if (this.acessoTotal) return true;
+    return permissionKeys.some(k => this.claims.has(`${k}:${acao}`));
+  }
+
   private restore(): void {
     this.acessoTotal = sessionStorage.getItem('acessoTotal') === '1';
     const raw = sessionStorage.getItem('permissoes');

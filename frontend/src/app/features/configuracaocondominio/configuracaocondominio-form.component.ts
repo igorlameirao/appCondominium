@@ -209,7 +209,7 @@ export class ConfiguracaoCondominioFormComponent implements OnInit, OnDestroy {
 
   private baixarPreview(id: number, tipo: 'imagem-login' | 'imagem-icone'): void {
     this.service.baixarImagem(id, tipo).subscribe({
-      next: blob => this.definirPreview(tipo, URL.createObjectURL(blob)),
+      next: (blob: Blob) => this.definirPreview(tipo, URL.createObjectURL(blob)),
       error: () => this.definirPreview(tipo, null)
     });
   }
