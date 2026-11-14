@@ -57,6 +57,18 @@ public sealed class ApiExceptionMiddleware
                 }, Json);
                 return;
             }
+
+            if (texto.Contains("doesn't have a default value", StringComparison.OrdinalIgnoreCase)
+                || texto.Contains("cannot be null", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    title = "Dados incompletos",
+                    message = "Há campos obrigatórios sem valor. Verifique o formulário e tente novamente.",
+                }, Json);
+                return;
+            }
         }
 
         if (texto.Contains("Storage:S3:Bucket", StringComparison.OrdinalIgnoreCase)
@@ -147,6 +159,10 @@ public sealed class ApiExceptionMiddleware
     {
         if (mysql.Contains("IdxCKTipoUnidade", StringComparison.OrdinalIgnoreCase))
             return "Já existe um tipo de unidade com esta descrição neste condomínio.";
+        if (mysql.Contains("uq_Condominio_Nome", StringComparison.OrdinalIgnoreCase))
+            return "Já existe um condomínio com este nome.";
+        if (mysql.Contains("uq_Condominio_CNPJ", StringComparison.OrdinalIgnoreCase))
+            return "Já existe um condomínio com este CNPJ.";
         return "Já existe um registro com os mesmos dados. Verifique os campos informados.";
     }
 

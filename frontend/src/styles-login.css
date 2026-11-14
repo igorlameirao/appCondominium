@@ -132,6 +132,59 @@
   min-width: 280px;
 }
 
+.login-steps-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+/* margin-left, e não transform: o painel da combobox é position:fixed e um ancestral com transform o deslocaria. */
+.login-steps-track {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  transition: margin-left 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.login-steps-track--instant {
+  transition: none;
+}
+
+.login-step {
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.login-card-form .login-voltar {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.login-card-form .login-voltar:hover:not(:disabled) {
+  color: #0891b2;
+}
+
+.login-card-form .login-voltar:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-steps-track {
+    transition: none;
+  }
+}
+
 .login-card-panel {
   width: 42%;
   min-width: 200px;

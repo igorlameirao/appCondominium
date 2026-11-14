@@ -12,19 +12,33 @@ Sistema de Administração de Condomínios gerado a partir de `MDs/md_appCondomi
 | `database/schema.sql` | MySQL | Script de criação das tabelas |
 | `tools/generate_from_spec.py` | Python | Gerador de entidades/CRUD a partir do JSON |
 
-## Multi-tenant — RT-Gerais 12
+## Multi-tenant — RT-Gerais 12 e 13
 
 O tenant é a entidade **Condomínio** (`IdCondominio`). Cada sessão autenticada opera em um único condomínio ativo. O usuário pode trocar o tenant em `POST /api/auth/trocar-condominio` quando tiver vínculo (`PessoaCondominio` ou `PessoaUnidade`).
 
-- **API:** `ICondominioContext` (alias `TenantId`) + middleware JWT. O header `X-Id-Condominio` deve coincidir com o claim.
+### Identificação na URL (RT-Gerais 13)
+
+| Contexto | Padrão |
+|----------|--------|
+| Plataforma (administração) | `https://appcondominium.com.br/login` — escolha do condomínio no login |
+| Condomínio (moradores/síndico) | `https://appcondominium.com.br/{identificador}/entrar` |
+
+O campo **Dominio** do condomínio guarda o **identificador estável** do primeiro segmento da URL (ex.: `residencial-verde`). A API resolve em `GET /api/lookup/condominio-por-dominio?slug={identificador}`. O matching legado por subdomínio/host ainda funciona via `?host=` durante migração.
+
+- **Angular:** `TenantHostService` resolve o slug na inicialização; `TenantUrlSerializer` prefixa/desprefixa a URL automaticamente.
+- **Isolamento:** JWT `idCondominio`, header `X-Id-Condominio` e o slug da URL precisam coincidir; divergência encerra a sessão no frontend.
+
+### Camadas
+
+- **API:** `ICondominioContext` + middleware JWT. O header `X-Id-Condominio` deve coincidir com o claim. Resolução de slug: `AppCondominium.Application.Tenancy.CondominioTenantMatcher`.
 - **EF:** global query filters por `CurrentTenantId` nas entidades de escopo `Condominio` e filtros indiretos (`pessoafisica`, `PessoaJuridica`, `Pessoa`, `PessoaUnidade`).
 - **Spec:** `EscopoTenant` = `Global` | `Condominio` | `Indireto` em `MDs/md_appCondominium.json`.
+- **Angular (sessão):** `CondominioContextService` (sessionStorage)
+- **Flutter:** `UsuarioLogado.idCondominio` + header nas requisições (API direta; deep links web usam o mesmo identificador na URL)
 
-Toda operação vinculada a `IdCondominio` usa o contexto global:
+### Nginx (SPA + API)
 
-- **API:** `ICondominioContext` + middleware JWT/header `X-Id-Condominio`
-- **Angular:** `CondominioContextService` (sessionStorage)
-- **Flutter:** `UsuarioLogado.idCondominio` + header nas requisições
+Ver `MDs/nginx-path-tenant.example.conf`: `try_files` para o Angular em qualquer `/{identificador}/...` e proxy `/api/` para a API .NET.
 
 ## Pré-requisitos
 
@@ -113,7 +127,7 @@ python tools\generate_from_spec.py
 - **Combobox customizada** digitável com paginação local (RT-Gerais 07)
 - **Máscaras CPF/CNPJ** com validação (RN-Gerais 14/15)
 - **Componente de endereço** com CEP, ViaCEP e cascata UF → Município → Bairro (RN-Endereço)
-- **Login condomínio** em `/entrar?idCondominio=N` (RT-Gerais 13)
+- **Login condomínio** em `/{identificador}/entrar` ou `/entrar?idCondominio=N` (RT-Gerais 13)
 - **IdCondominio** oculto nos formulários quando a regra da entidade exige contexto global (RT-Gerais 12)
 
 Regenerar telas após alterar o JSON:

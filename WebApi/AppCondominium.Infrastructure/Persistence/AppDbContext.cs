@@ -54,6 +54,11 @@ public partial class AppDbContext
             .Property(u => u.IdUnidade)
             .ValueGeneratedOnAdd();
 
+        // IdCondominio é a própria chave do tenant, gerada na inclusão. Não reutilizar o tenant da sessão.
+        modelBuilder.Entity<Condominio>()
+            .Property(c => c.IdCondominio)
+            .ValueGeneratedOnAdd();
+
         base.OnModelCreating(modelBuilder);
     }
 }

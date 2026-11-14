@@ -2,7 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using AppCondominium.API.Authorization;
+using AppCondominium.Application.Authorization;
 using AppCondominium.Application.Interfaces;
+using AppCondominium.Domain.Entities;
 using AppCondominium.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -41,9 +43,25 @@ public class AuthController : ControllerBase
         _env = env;
     }
 
-    public record LoginRequest(string Usuario, string Senha, uint? IdCondominio);
+    public record LoginRequest(string Usuario, string Senha, uint? IdCondominio, uint? IdPerfil = null);
+    public record CredenciaisRequest(string Usuario, string Senha);
     public record LoginResponse(string Token, uint IdCondominio, string Perfil, string Nome, bool AcessoTotal, IReadOnlyList<string> Permissoes);
     public record TrocarCondominioRequest(uint IdCondominio);
+
+    [AllowAnonymous]
+    [HttpPost("vinculos")]
+    public async Task<ActionResult<IReadOnlyList<CondominioVinculo>>> ListarVinculos([FromBody] CredenciaisRequest req, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(req.Usuario) || string.IsNullOrWhiteSpace(req.Senha))
+            return BadRequest("Usuário e senha são obrigatórios.");
+
+        var pf = await AutenticarAsync(req.Usuario, req.Senha, ct);
+        if (pf?.IdPessoa == null)
+            return Unauthorized("Credenciais inválidas.");
+
+        var vinculos = await _access.ListarVinculosAsync(pf.IdPessoa.Value, ct);
+        return Ok(vinculos);
+    }
 
     [AllowAnonymous]
     [HttpPost("login")]
@@ -54,19 +72,28 @@ public class AuthController : ControllerBase
         if (!req.IdCondominio.HasValue)
             return BadRequest("IdCondominio é obrigatório (RT-Gerais 12).");
 
-        var email = req.Usuario.Trim().ToLowerInvariant();
-        var pf = await _db.Pessoafisica.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(p => p.Email != null && p.Email.ToLower() == email, ct);
-        if (pf?.IdPessoa == null || string.IsNullOrEmpty(pf.Senha) || !_passwordHasher.Verify(req.Senha, pf.Senha))
+        var pf = await AutenticarAsync(req.Usuario, req.Senha, ct);
+        if (pf?.IdPessoa == null)
             return Unauthorized("Credenciais inválidas.");
 
-        if (!await _access.UsuarioTemAcessoAsync(pf.IdPessoa.Value, req.IdCondominio.Value, ct))
-            return Unauthorized("Usuário sem vínculo neste condomínio (RN-Gerais 1e).");
+        PermissionSnapshot sessao;
+        if (req.IdPerfil.HasValue)
+        {
+            if (!await _access.UsuarioTemPerfilAsync(pf.IdPessoa.Value, req.IdCondominio.Value, req.IdPerfil.Value, ct))
+                return Unauthorized("Usuário sem este perfil no condomínio.");
+            sessao = await _permissions.SnapshotPorPerfilAsync(pf.IdPessoa.Value, req.IdCondominio.Value, req.IdPerfil.Value, ct);
+        }
+        else
+        {
+            if (!await _access.UsuarioTemAcessoAsync(pf.IdPessoa.Value, req.IdCondominio.Value, ct))
+                return Unauthorized("Usuário sem vínculo neste condomínio (RN-Gerais 1e).");
+            sessao = await _permissions.SnapshotAsync(pf.IdPessoa.Value, req.IdCondominio.Value, ct);
+        }
 
+        var email = req.Usuario.Trim().ToLowerInvariant();
         var pessoa = await _db.Pessoa.IgnoreQueryFilters()
             .FirstOrDefaultAsync(p => p.IdPessoa == pf.IdPessoa, ct);
         var nome = pessoa?.Nome ?? email;
-        var sessao = await _permissions.SnapshotAsync(pf.IdPessoa.Value, req.IdCondominio.Value, ct);
         var token = BuildToken(pf.IdPessoa.Value, req.IdCondominio.Value, sessao.Perfil, nome, sessao.AcessoTotal, sessao.Permissoes);
         _condominio.SetCondominio(req.IdCondominio.Value);
         return Ok(new LoginResponse(token, req.IdCondominio.Value, sessao.Perfil, nome, sessao.AcessoTotal, sessao.Permissoes));
@@ -113,6 +140,16 @@ public class AuthController : ControllerBase
 
         var items = await _access.ListarCondominiosAutorizadosAsync(idPessoa.Value, q, ct);
         return Ok(items.Select(c => new { c.IdCondominio, c.Nome }));
+    }
+
+    private async Task<Pessoafisica?> AutenticarAsync(string usuario, string senha, CancellationToken ct)
+    {
+        var email = usuario.Trim().ToLowerInvariant();
+        var pf = await _db.Pessoafisica.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.Email != null && p.Email.ToLower() == email, ct);
+        if (pf?.IdPessoa == null || string.IsNullOrEmpty(pf.Senha) || !_passwordHasher.Verify(senha, pf.Senha))
+            return null;
+        return pf;
     }
 
     private uint? IdPessoaAtual()

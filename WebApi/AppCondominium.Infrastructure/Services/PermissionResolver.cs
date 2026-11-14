@@ -38,19 +38,46 @@ public class PermissionResolver : IPermissionResolver
     public async Task<PermissionSnapshot> SnapshotAsync(uint idPessoa, uint idCondominio, CancellationToken ct = default)
     {
         var perfil = await CarregarPerfilAsync(idPessoa, idCondominio, ct);
-        if (perfil.AcessoTotal)
-            return new PermissionSnapshot(true, perfil.Nome, Array.Empty<string>());
+        return await MontarSnapshotAsync(
+            idPessoa, idCondominio, perfil.IdPerfil, perfil.Nome, perfil.AcessoTotal, aplicarExcecoes: true, ct);
+    }
 
-        if (perfil.IdPerfil == null)
-            return new PermissionSnapshot(false, perfil.Nome, Array.Empty<string>());
+    public async Task<PermissionSnapshot> SnapshotPorPerfilAsync(
+        uint idPessoa, uint idCondominio, uint idPerfil, CancellationToken ct = default)
+    {
+        var cadastro = await _db.PerfilAcesso.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.IdPerfil == idPerfil, ct);
+        var nome = string.IsNullOrWhiteSpace(cadastro?.Descricao) ? "Morador" : cadastro!.Descricao!.Trim();
+        var acessoTotal = nome.Equals("Administrador", StringComparison.OrdinalIgnoreCase);
+        var primario = await CarregarPerfilAsync(idPessoa, idCondominio, ct);
+        return await MontarSnapshotAsync(
+            idPessoa, idCondominio, idPerfil, nome, acessoTotal, aplicarExcecoes: primario.IdPerfil == idPerfil, ct);
+    }
+
+    private async Task<PermissionSnapshot> MontarSnapshotAsync(
+        uint idPessoa,
+        uint idCondominio,
+        uint? idPerfil,
+        string nome,
+        bool acessoTotal,
+        bool aplicarExcecoes,
+        CancellationToken ct)
+    {
+        if (acessoTotal)
+            return new PermissionSnapshot(true, nome, Array.Empty<string>());
+
+        if (idPerfil == null)
+            return new PermissionSnapshot(false, nome, Array.Empty<string>());
 
         var keys = await _db.PermissionKey.AsNoTracking().ToListAsync(ct);
         var matriz = await _db.PerfilPermissao.AsNoTracking()
-            .Where(p => p.IdPerfil == perfil.IdPerfil)
+            .Where(p => p.IdPerfil == idPerfil)
             .ToListAsync(ct);
-        var excecoes = await _db.PessoaPermissaoExcecao.IgnoreQueryFilters().AsNoTracking()
-            .Where(e => e.IdPessoa == idPessoa && e.IdCondominio == idCondominio)
-            .ToListAsync(ct);
+        var excecoes = aplicarExcecoes
+            ? await _db.PessoaPermissaoExcecao.IgnoreQueryFilters().AsNoTracking()
+                .Where(e => e.IdPessoa == idPessoa && e.IdCondominio == idCondominio)
+                .ToListAsync(ct)
+            : new List<PessoaPermissaoExcecao>();
 
         var claims = new List<string>();
         foreach (var key in keys)
@@ -63,7 +90,7 @@ public class PermissionResolver : IPermissionResolver
                     claims.Add($"{key.Chave}:{acao}");
             }
         }
-        return new PermissionSnapshot(false, perfil.Nome, claims);
+        return new PermissionSnapshot(false, nome, claims);
     }
 
     public async Task<IReadOnlyList<PermissaoLinha>> MatrizPerfilAsync(uint idPerfil, CancellationToken ct = default)

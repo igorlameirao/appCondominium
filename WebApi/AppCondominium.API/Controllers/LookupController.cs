@@ -1,4 +1,5 @@
 using AppCondominium.Application.Storage;
+using AppCondominium.Application.Tenancy;
 using AppCondominium.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -91,64 +92,55 @@ public class LookupController : ControllerBase
     {
         var c = await _db.Condominio.IgnoreQueryFilters().AsNoTracking()
             .Where(x => x.IdCondominio == idCondominio)
-            .Select(x => new { x.IdCondominio, x.Nome })
+            .Select(x => new { x.IdCondominio, x.Nome, x.Dominio })
             .FirstOrDefaultAsync(ct);
         return c == null ? NotFound() : Ok(c);
     }
 
-    /// <summary>RT-Gerais 13 — resolve o condomínio pelo domínio do site (campo Dominio).</summary>
+    /// <summary>RT-Gerais 13 — resolve o condomínio pelo identificador de URL (slug) ou, legado, pelo host.</summary>
     [AllowAnonymous]
     [HttpGet("condominio-por-dominio")]
-    public async Task<ActionResult<object>> CondominioPorDominio([FromQuery] string? host, CancellationToken ct)
+    public async Task<ActionResult<object>> CondominioPorDominio([FromQuery] string? slug, [FromQuery] string? host, CancellationToken ct)
     {
-        var h = NormalizarHost(host);
+        var dominios = await ListarCondominiosAtivosAsync(ct);
+
+        if (!string.IsNullOrWhiteSpace(slug))
+        {
+            var s = CondominioTenantMatcher.NormalizeSlug(slug);
+            var porSlug = dominios
+                .FirstOrDefault(x => CondominioTenantMatcher.SlugMatches(s, x.Dominio));
+            if (porSlug is null)
+                return NotFound();
+            return Ok(new { porSlug.IdCondominio, porSlug.Nome, identificadorUrl = CondominioTenantMatcher.NormalizeSlug(porSlug.Dominio) });
+        }
+
+        var h = CondominioTenantMatcher.NormalizeHost(host);
         if (string.IsNullOrEmpty(h))
-            h = NormalizarHost(Request.Host.Host);
+            h = CondominioTenantMatcher.NormalizeHost(Request.Host.Host);
         if (string.IsNullOrEmpty(h))
             return NotFound();
 
+        var porHost = dominios
+            .Where(x => CondominioTenantMatcher.HostCorrespondeDominio(h, x.Dominio))
+            .OrderByDescending(x => CondominioTenantMatcher.NormalizeHost(x.Dominio ?? "").Length)
+            .FirstOrDefault();
+        return porHost is null
+            ? NotFound()
+            : Ok(new { porHost.IdCondominio, porHost.Nome, identificadorUrl = CondominioTenantMatcher.NormalizeSlug(porHost.Dominio) });
+    }
+
+    private sealed record CondominioLookupRow(uint IdCondominio, string Nome, string? Dominio);
+
+    private async Task<List<CondominioLookupRow>> ListarCondominiosAtivosAsync(CancellationToken ct)
+    {
         // Condomínio é tenant global: sem IgnoreQueryFilters o filtro IdCondominio == 0 oculta todos os registros.
-        var dominios = await _db.Condominio.IgnoreQueryFilters().AsNoTracking()
-            .Where(x => x.Dominio != null && (x.Ativo == null || x.Ativo != 0))
+        var rows = await _db.Condominio.IgnoreQueryFilters().AsNoTracking()
+            .Where(x => x.Dominio != null && x.IdCondominio != null && (x.Ativo == null || x.Ativo != 0))
             .Select(x => new { x.IdCondominio, x.Nome, x.Dominio })
             .ToListAsync(ct);
-
-        var c = dominios
-            .Where(x => HostCorrespondeDominio(h, x.Dominio))
-            .OrderByDescending(x => NormalizarHost(x.Dominio).Length)
-            .FirstOrDefault();
-        return c == null ? NotFound() : Ok(new { c.IdCondominio, c.Nome });
-    }
-
-    private static bool HostCorrespondeDominio(string host, string? dominio)
-    {
-        var h = NormalizarHost(host);
-        var d = NormalizarHost(dominio);
-        if (string.IsNullOrEmpty(h) || string.IsNullOrEmpty(d))
-            return false;
-        if (h == d)
-            return true;
-        // Ex.: cadastro "sistema.local" e acesso "sistema.local.127.0.0.1" (hosts locais).
-        return h.StartsWith(d + ".", StringComparison.Ordinal);
-    }
-
-    private static string NormalizarHost(string? host)
-    {
-        if (string.IsNullOrWhiteSpace(host))
-            return "";
-        var h = host.Trim().ToLowerInvariant();
-        if (h.StartsWith("http://", StringComparison.Ordinal))
-            h = h[7..];
-        else if (h.StartsWith("https://", StringComparison.Ordinal))
-            h = h[8..];
-        var path = h.IndexOf('/');
-        if (path >= 0)
-            h = h[..path];
-        var colon = h.IndexOf(':');
-        if (colon > 0)
-            h = h[..colon];
-        if (h.StartsWith("www."))
-            h = h[4..];
-        return h;
+        return rows
+            .Where(x => x.IdCondominio.HasValue)
+            .Select(x => new CondominioLookupRow(x.IdCondominio!.Value, x.Nome ?? "", x.Dominio))
+            .ToList();
     }
 }

@@ -18,8 +18,8 @@ public class BairroController : ControllerBase
     public BairroController(BairroRepository repo) => _repo = repo;
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<Bairro>>> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? filter = null, CancellationToken ct = default)
-        => Ok(await _repo.GetPagedAsync(page, pageSize, filter, ct));
+    public async Task<ActionResult<PagedResult<Bairro>>> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? filter = null, [FromQuery] uint? codigoIBGEMunicipio = null, CancellationToken ct = default)
+        => Ok(await _repo.GetPagedAsync(page, pageSize, filter, codigoIBGEMunicipio, ct));
 
     [HttpGet("{idBairro}")]
     public async Task<ActionResult<Bairro>> GetById([FromRoute] uint? idBairro, CancellationToken ct = default)

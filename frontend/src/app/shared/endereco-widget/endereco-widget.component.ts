@@ -7,7 +7,7 @@ import { EnderecoService } from '../../features/endereco/endereco.service';
 import { BairroService } from '../../features/bairro/bairro.service';
 import { MunicipioService } from '../../features/municipio/municipio.service';
 import { UFService } from '../../features/uf/uf.service';
-import { timeout } from 'rxjs';
+import { map, Observable, of, throwError, timeout } from 'rxjs';
 import { Endereco } from '../../features/endereco/endereco.model';
 import { Bairro } from '../../features/bairro/bairro.model';
 import { Municipio } from '../../features/municipio/municipio.model';
@@ -56,8 +56,8 @@ interface ViaCep {
           [disabled]="readonly" maxlength="100" required />
       </div>
       <div style="grid-column: 1 / span 2; grid-row: 2" class="form-group fg-col-2">
-        <label>Número</label>
-        <input type="text" name="numeroEndereco" [(ngModel)]="numero" (ngModelChange)="emitChange()" [disabled]="readonlyNumero" />
+        <label>Número{{ numeroObrigatorio ? ' *' : '' }}</label>
+        <input type="text" name="numeroEndereco" [(ngModel)]="numero" (ngModelChange)="emitChange()" [disabled]="readonlyNumero" [required]="numeroObrigatorio" />
       </div>
       <div style="grid-column: 3 / span 10; grid-row: 2" class="form-group fg-col-10">
         <label>Complemento</label>
@@ -112,6 +112,7 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
   @Input() idBairro: number | null | undefined = null;
   @Input() readonly = false;
   @Input() readonlyNumero = false;
+  @Input() numeroObrigatorio = false;
   @Output() idEnderecoChange = new EventEmitter<number | null>();
   @Output() cepChange = new EventEmitter<string>();
   @Output() logradouroChange = new EventEmitter<string>();
@@ -181,6 +182,26 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
 
   cepDigitos(): string {
     return somenteDigitos(this.cepDisplay).slice(0, 8);
+  }
+
+  /** Grava o endereço do vínculo, se ainda não houver id, e devolve esse id. */
+  persistirVinculo(): Observable<number> {
+    if (this.idEndereco != null) return of(this.idEndereco);
+    const cep = this.cepDigitos();
+    const logradouro = this.logradouro.trim();
+    if (cep.length !== 8 || !logradouro || this.idBairro == null) {
+      return throwError(() => new Error('endereco'));
+    }
+    const body = { cep, logradouro, idBairro: this.idBairro } as Endereco;
+    return this.enderecoSvc.create(body).pipe(
+      map(created => {
+        const id = created.idEndereco;
+        if (id == null) throw new Error('endereco');
+        this.idEndereco = id;
+        this.emitChange();
+        return id;
+      })
+    );
   }
 
   onCepFocus(): void {
@@ -346,58 +367,139 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
   private garantirUf(sigla: string, ibge: string, done: () => void): void {
     if (!sigla) { done(); return; }
     this.siglaUf = sigla;
-    const existente = this.ufs.some(u => u.siglaUF === sigla);
-    if (!existente) {
-      this.ufs.push({
-        siglaUF: sigla,
-        estado: UF_NOMES[sigla] ?? sigla,
-        codigoIBGE: Number(ibge.slice(0, 2)) || undefined
-      });
+    const naLista = this.ufs.find(u => u.siglaUF === sigla);
+    if (naLista) {
+      this.atualizarOpcoesUf();
+      done();
+      return;
     }
+    this.ufSvc.getById(sigla).subscribe({
+      next: uf => {
+        this.incluirUf(uf);
+        done();
+      },
+      error: () => {
+        const body: UF = {
+          siglaUF: sigla,
+          estado: UF_NOMES[sigla] ?? sigla,
+          codigoIBGE: Number(ibge.slice(0, 2)) || undefined
+        };
+        this.ufSvc.create(body).subscribe({
+          next: created => {
+            this.incluirUf(created?.siglaUF ? created : body);
+            done();
+          },
+          error: () => {
+            this.incluirUf(body);
+            done();
+          }
+        });
+      }
+    });
+  }
+
+  private incluirUf(uf: UF): void {
+    if (!this.ufs.some(u => u.siglaUF === uf.siglaUF)) this.ufs.push(uf);
+    this.atualizarOpcoesUf();
+  }
+
+  private atualizarOpcoesUf(): void {
     this.ufOptions = this.ufs.map(u => ({ value: u.siglaUF!, label: `${u.siglaUF} — ${u.estado}` }));
-    if (existente) { done(); return; }
-    const body = this.ufs.find(u => u.siglaUF === sigla)!;
-    this.ufSvc.create(body).subscribe({ next: () => done(), error: () => done() });
   }
 
   private garantirMunicipio(ibge: string, nome: string, sigla: string, done: () => void): void {
     const codigo = Number(ibge);
     if (!codigo) { done(); return; }
     this.codigoIbgeMunicipio = codigo;
-    const existente = this.municipios.some(m => m.codigoIBGEMunicipio === codigo);
-    if (!existente) this.municipios.push({ codigoIBGEMunicipio: codigo, nome, siglaUF: sigla });
+    const naLista = this.municipios.find(m => Number(m.codigoIBGEMunicipio) === codigo);
+    if (naLista) {
+      this.filterMunicipios();
+      done();
+      return;
+    }
+    this.municipioSvc.getById(codigo).subscribe({
+      next: municipio => {
+        this.incluirMunicipio(municipio);
+        done();
+      },
+      error: () => {
+        const body: Municipio = { codigoIBGEMunicipio: codigo, nome, siglaUF: sigla };
+        this.municipioSvc.create(body).subscribe({
+          next: created => {
+            this.incluirMunicipio(created?.codigoIBGEMunicipio != null ? created : body);
+            done();
+          },
+          error: () => {
+            this.incluirMunicipio(body);
+            done();
+          }
+        });
+      }
+    });
+  }
+
+  private incluirMunicipio(municipio: Municipio): void {
+    const codigo = Number(municipio.codigoIBGEMunicipio);
+    if (!this.municipios.some(m => Number(m.codigoIBGEMunicipio) === codigo)) {
+      this.municipios.push(municipio);
+    }
     this.filterMunicipios();
-    if (existente) { done(); return; }
-    const body = this.municipios.find(m => m.codigoIBGEMunicipio === codigo)!;
-    this.municipioSvc.create(body).subscribe({ next: () => done(), error: () => done() });
   }
 
   private garantirBairro(nome: string, codigoMunicipio: number, done: () => void): void {
-    const existente = this.bairros.find(b =>
-      b.codigoIBGEMunicipio === codigoMunicipio &&
-      (b.nome ?? '').toLowerCase() === nome.toLowerCase());
+    const nomeBusca = nome.trim();
+    const existente = this.bairros.find(b => this.mesmoBairro(b, nomeBusca, codigoMunicipio));
     if (existente) {
       this.aplicarBairro(existente.idBairro ?? null);
       done();
       return;
     }
-    if (!nome || !codigoMunicipio) { done(); return; }
+    if (!nomeBusca || !codigoMunicipio) { done(); return; }
+    this.bairroSvc.getPaged(1, 50, nomeBusca, codigoMunicipio).subscribe({
+      next: r => {
+        const achado = (r.items ?? []).find(b => this.mesmoBairro(b, nomeBusca, codigoMunicipio));
+        if (achado) {
+          this.usarBairro(achado);
+          done();
+          return;
+        }
+        this.criarBairro(nomeBusca, codigoMunicipio, done);
+      },
+      error: () => this.criarBairro(nomeBusca, codigoMunicipio, done)
+    });
+  }
+
+  private criarBairro(nome: string, codigoMunicipio: number, done: () => void): void {
     const body: Bairro = { nome, codigoIBGEMunicipio: codigoMunicipio };
     this.bairroSvc.create(body).subscribe({
       next: created => {
-        const salvo = created?.idBairro ? created : body;
-        this.bairros.push(salvo);
-        this.aplicarBairro(salvo.idBairro ?? null);
-        if (!salvo.idBairro) this.bairroSelecionado = nome;
+        this.usarBairro(created?.idBairro ? created : body);
+        if (!created?.idBairro) this.bairroSelecionado = nome;
         done();
       },
       error: () => {
         this.idBairro = null;
         this.bairroSelecionado = nome;
-        this.siglaUf = this.municipios.find(m => m.codigoIBGEMunicipio === codigoMunicipio)?.siglaUF ?? this.siglaUf;
+        this.siglaUf = this.municipios.find(m => Number(m.codigoIBGEMunicipio) === codigoMunicipio)?.siglaUF ?? this.siglaUf;
         done();
       }
     });
+  }
+
+  private usarBairro(bairro: Bairro): void {
+    if (bairro.idBairro != null && !this.bairros.some(b => b.idBairro === bairro.idBairro)) {
+      this.bairros.push(bairro);
+    }
+    this.aplicarBairro(bairro.idBairro ?? null);
+  }
+
+  private mesmoBairro(bairro: Bairro, nome: string, codigoMunicipio: number): boolean {
+    return Number(bairro.codigoIBGEMunicipio) === codigoMunicipio
+      && this.normalizarNome(bairro.nome ?? '') === this.normalizarNome(nome);
+  }
+
+  private normalizarNome(valor: string): string {
+    return valor.trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/\p{M}/gu, '');
   }
 
   applyEndereco(e: Endereco, done: () => void = () => {}): void {

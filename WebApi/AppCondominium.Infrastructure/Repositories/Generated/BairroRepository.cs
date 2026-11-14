@@ -24,12 +24,15 @@ public class BairroRepository
         return query;
     }
 
-    public async Task<PagedResult<Bairro>> GetPagedAsync(int page, int pageSize, string? filter, CancellationToken ct = default)
+    public async Task<PagedResult<Bairro>> GetPagedAsync(int page, int pageSize, string? filter, uint? codigoIBGEMunicipio = null, CancellationToken ct = default)
     {
         var query = ApplyCondominioFilter(BaseQuery().AsNoTracking());
 
-        if (!string.IsNullOrWhiteSpace(filter) && filter.Length >= 3)
-            query = query.Where(e => (e.Nome != null && e.Nome.Contains(filter)));
+        if (codigoIBGEMunicipio is uint codigo)
+            query = query.Where(e => e.CodigoIBGEMunicipio == codigo);
+
+        if (!string.IsNullOrWhiteSpace(filter) && (filter.Length >= 3 || codigoIBGEMunicipio is uint))
+            query = query.Where(e => e.Nome != null && e.Nome.Contains(filter));
 
         var total = await query.CountAsync(ct);
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);

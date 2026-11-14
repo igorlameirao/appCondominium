@@ -44,14 +44,79 @@ public class CondominioRepository
         return await q.FirstOrDefaultAsync(e => e.IdCondominio == idCondominio, ct);
     }
 
-    public async Task<Condominio> AddAsync(Condominio entity, CancellationToken ct = default)
+    public async Task<Condominio> AddAsync(Condominio entity, uint? idPessoaCriador = null, CancellationToken ct = default)
     {
-        var tenantId = _condominio.RequireTenantId();
-        entity.IdCondominio = tenantId;
+        var tenantAtual = _condominio.RequireTenantId();
+        entity.IdCondominio = null;
+        entity.Nome = entity.Nome?.Trim();
+        entity.Dominio = entity.Dominio?.Trim();
+        entity.CNPJ = NormalizarCnpj(entity.CNPJ);
+        entity.ComplementoEndereco = string.IsNullOrWhiteSpace(entity.ComplementoEndereco)
+            ? null
+            : entity.ComplementoEndereco.Trim();
+
+        uint? idPerfil = null;
+        if (idPessoaCriador is uint idPessoa)
+        {
+            idPerfil = await _ctx.Set<PessoaCondominio>().AsNoTracking()
+                .Where(v => v.IdPessoa == idPessoa && v.IdCondominio == tenantAtual)
+                .Select(v => v.IdPerfil)
+                .FirstOrDefaultAsync(ct);
+            if (idPerfil == null)
+            {
+                var administrador = await _ctx.Set<PerfilAcesso>().AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Descricao != null && p.Descricao.ToLower() == "administrador", ct);
+                idPerfil = administrador?.IdPerfil;
+            }
+        }
 
         await _ctx.Set<Condominio>().AddAsync(entity, ct);
         await _ctx.SaveChangesAsync(ct);
+
+        if (idPessoaCriador is uint criador && idPerfil is uint perfil && entity.IdCondominio is uint idNovo)
+            await VincularCriadorAsync(criador, idNovo, perfil, ct);
+
         return entity;
+    }
+
+    /// <summary>
+    /// O condomínio novo tem outro IdCondominio. O vínculo usa o filtro do tenant ativo,
+    /// então a gravação ocorre com o contexto apontando para o registro recém-criado.
+    /// </summary>
+    private async Task VincularCriadorAsync(uint idPessoa, uint idCondominio, uint idPerfil, CancellationToken ct)
+    {
+        var tenantAnterior = _condominio.IdCondominio;
+        _condominio.SetCondominio(idCondominio);
+        try
+        {
+            var existe = await _ctx.Set<PessoaCondominio>()
+                .AnyAsync(v => v.IdPessoa == idPessoa && v.IdCondominio == idCondominio, ct);
+            if (existe)
+                return;
+
+            await _ctx.Set<PessoaCondominio>().AddAsync(new PessoaCondominio
+            {
+                IdPessoa = idPessoa,
+                IdCondominio = idCondominio,
+                IdPerfil = idPerfil,
+                DataInicio = DateOnly.FromDateTime(DateTime.UtcNow),
+                TipoVinculo = 1
+            }, ct);
+            await _ctx.SaveChangesAsync(ct);
+        }
+        finally
+        {
+            if (tenantAnterior is uint anterior)
+                _condominio.SetCondominio(anterior);
+        }
+    }
+
+    private static string? NormalizarCnpj(string? cnpj)
+    {
+        if (string.IsNullOrWhiteSpace(cnpj))
+            return null;
+        var limpo = new string(cnpj.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
+        return limpo.Length == 0 ? null : limpo;
     }
 
     public async Task UpdateAsync(Condominio entity, CancellationToken ct = default)
