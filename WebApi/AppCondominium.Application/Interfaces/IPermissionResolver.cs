@@ -11,6 +11,12 @@ public interface IPermissionResolver
 
     Task<PermissionSnapshot> SnapshotAsync(uint idPessoa, uint idCondominio, CancellationToken ct = default);
 
+    /// <summary>
+    /// Sessão com o perfil escolhido no login. A implementação padrão ignora a escolha e usa o perfil primário.
+    /// </summary>
+    Task<PermissionSnapshot> SnapshotPorPerfilAsync(uint idPessoa, uint idCondominio, uint idPerfil, CancellationToken ct = default)
+        => SnapshotAsync(idPessoa, idCondominio, ct);
+
     Task<IReadOnlyList<PermissaoLinha>> MatrizPerfilAsync(uint idPerfil, CancellationToken ct = default);
 
     Task SaveMatrizPerfilAsync(uint idPerfil, IReadOnlyList<PermissaoLinha> linhas, CancellationToken ct = default);

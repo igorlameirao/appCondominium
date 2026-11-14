@@ -11,6 +11,19 @@ export interface LoginRequest {
   usuario: string;
   senha: string;
   idCondominio: number;
+  idPerfil?: number;
+}
+
+export interface PerfilVinculo {
+  idPerfil: number;
+  nome: string;
+}
+
+export interface CondominioVinculo {
+  idCondominio: number;
+  nome: string;
+  perfis: PerfilVinculo[];
+  dominio?: string | null;
 }
 
 export interface LoginResponse {
@@ -52,6 +65,10 @@ export class AuthService {
         this.permissions.apply(res.acessoTotal, res.permissoes);
       })
     );
+  }
+
+  listarVinculos(usuario: string, senha: string): Observable<CondominioVinculo[]> {
+    return this.http.post<CondominioVinculo[]>(`${environment.apiUrl}/auth/vinculos`, { usuario, senha });
   }
 
   listCondominios(q?: string, usuario?: string): Observable<{ idCondominio: number; nome: string }[]> {

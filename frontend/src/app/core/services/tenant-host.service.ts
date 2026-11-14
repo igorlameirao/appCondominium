@@ -2,18 +2,24 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { isReservedTenantSlug } from '../tenancy/tenant-route.constants';
+import { firstPathSegment } from '../tenancy/tenant-url.util';
 
-export interface CondominioPorDominio {
+export interface CondominioPorIdentificador {
   idCondominio: number;
   nome: string;
+  identificadorUrl?: string;
 }
 
-/** RT-Gerais 13 — identifica o tenant pelo host (campo Dominio do condomínio). */
+/**
+ * RT-Gerais 13 — identifica o tenant pelo primeiro segmento da URL (campo Dominio do condomínio).
+ */
 @Injectable({ providedIn: 'root' })
 export class TenantHostService {
   private resolved = false;
   private _idCondominio: number | null = null;
   private _nomeCondominio = '';
+  private _urlSlug: string | null = null;
 
   constructor(private http: HttpClient) {}
 
@@ -25,9 +31,14 @@ export class TenantHostService {
     return this._nomeCondominio;
   }
 
-  /** Host atual corresponde a um condomínio cadastrado (e não é host da plataforma). */
+  /** Slug do primeiro segmento da URL quando o condomínio foi resolvido no backend. */
+  get urlSlug(): string | null {
+    return this._urlSlug;
+  }
+
+  /** Contexto de acesso por URL do condomínio (app.../identificador/...). */
   get isTenantHost(): boolean {
-    return this._idCondominio != null;
+    return this._urlSlug != null && this._idCondominio != null;
   }
 
   get loginPath(): '/entrar' | '/login' {
@@ -37,39 +48,42 @@ export class TenantHostService {
   async init(): Promise<void> {
     if (this.resolved || typeof window === 'undefined') return;
     this.resolved = true;
+    const segment = firstPathSegment(window.location.pathname);
+    if (!segment || isReservedTenantSlug(segment)) return;
+    await this.resolveBySlug(segment);
+  }
 
-    const host = normalizarHost(window.location.hostname);
-    if (!host || ehHostPlataforma(host)) return;
+  async resolveBySlug(slug: string): Promise<boolean> {
+    const normalizado = slug.trim().toLowerCase();
+    if (!normalizado || isReservedTenantSlug(normalizado)) return false;
 
     try {
       const r = await firstValueFrom(
-        this.http.get<CondominioPorDominio>(`${environment.apiUrl}/lookup/condominio-por-dominio`, {
-          params: { host }
+        this.http.get<CondominioPorIdentificador>(`${environment.apiUrl}/lookup/condominio-por-dominio`, {
+          params: { slug: normalizado }
         })
       );
       if (r?.idCondominio) {
+        this._urlSlug = normalizado;
         this._idCondominio = r.idCondominio;
         this._nomeCondominio = r.nome ?? '';
+        return true;
       }
     } catch {
-      /* domínio não cadastrado — login administrador padrão */
+      /* identificador não cadastrado */
+    }
+    return false;
+  }
+
+  async slugForCondominio(idCondominio: number): Promise<string | null> {
+    try {
+      const r = await firstValueFrom(
+        this.http.get<{ dominio?: string }>(`${environment.apiUrl}/lookup/condominio-resumo/${idCondominio}`)
+      );
+      const slug = r?.dominio?.trim().toLowerCase();
+      return slug || null;
+    } catch {
+      return null;
     }
   }
-}
-
-function normalizarHost(host: string): string {
-  let h = host.trim().toLowerCase();
-  if (h.startsWith('http://')) h = h.slice(7);
-  else if (h.startsWith('https://')) h = h.slice(8);
-  const path = h.indexOf('/');
-  if (path >= 0) h = h.slice(0, path);
-  const port = h.indexOf(':');
-  if (port > 0) h = h.slice(0, port);
-  if (h.startsWith('www.')) h = h.slice(4);
-  return h;
-}
-
-function ehHostPlataforma(host: string): boolean {
-  const lista = environment.platformHosts ?? ['localhost', '127.0.0.1'];
-  return lista.some(p => normalizarHost(p) === host);
 }

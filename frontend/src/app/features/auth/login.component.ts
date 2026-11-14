@@ -1,16 +1,28 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { ToastService } from '../../core/services/toast.service';
 import { TenantHostService } from '../../core/services/tenant-host.service';
+import { isReservedTenantSlug } from '../../core/tenancy/tenant-route.constants';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
+import { LoginPassosComponent } from './login-passos.component';
+import { LoginSelecaoPerfilComponent } from './login-selecao-perfil.component';
+import {
+  CondominioVinculo,
+  DestinoLogin,
+  PerfilVinculo,
+  destinoAposCondominio,
+  destinoAposCredenciais,
+  mensagemErroLogin
+} from './login-fluxo';
+import { LoginTrilha } from './login-trilha';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent],
+  imports: [FormsModule, ComboboxCustomizadaComponent, LoginPassosComponent, LoginSelecaoPerfilComponent],
   template: `
     <div class="login-screen">
       <img
@@ -35,35 +47,65 @@ import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combo
           <div class="login-container">
             <div class="login-card">
               <div class="login-card-form">
-                <h1 class="login-title">Login</h1>
-                <p class="login-subtitle">Administração de Condomínios</p>
-                <form (ngSubmit)="entrar()">
-                  <div class="form-group">
-                    <label for="usuario">Usuário (e-mail)</label>
-                    <input id="usuario" name="usuario" type="text" [(ngModel)]="usuario" (input)="onUsuarioAlterado()" placeholder="E-mail" required autocomplete="username" />
-                  </div>
-                  <div class="form-group">
-                    <label for="senha">Senha</label>
-                    <input id="senha" name="senha" type="password" [(ngModel)]="senha" placeholder="••••••••" required autocomplete="current-password" />
-                  </div>
-                  <div class="form-group">
-                    <label for="condominio">Condomínio</label>
-                    <app-combobox-customizada
-                      inputId="condominio"
-                      [options]="condominioOptions"
-                      [(value)]="idCondominio"
-                      placeholder="Digite 3+ letras do nome"
-                      [required]="true"
-                      [remoteSearch]="true"
-                      [minSearchLength]="3"
-                      minLengthMessage="Digite ao menos 3 letras."
-                      (searchChange)="onCondominioBusca($event)" />
-                    <p class="login-hint" *ngIf="condominioBusca.trim().length > 0 && condominioBusca.trim().length < 3">Digite ao menos 3 letras.</p>
-                  </div>
-                  <div class="actions">
-                    <button class="btn-entrar" type="submit" [disabled]="!idCondominio">Entrar</button>
-                  </div>
-                </form>
+                <app-login-passos
+                  [deslocamento]="trilha.deslocamento"
+                  [semTransicao]="trilha.semTransicao"
+                  (fimTransicao)="trilha.aoFimTransicao($event)"
+                  (elemento)="trilha.anexar($event)">
+                  @for (passo of trilha.passos; track passo) {
+                    <section
+                      class="login-step"
+                      [attr.aria-hidden]="passo !== trilha.atual && !trilha.animando ? true : null"
+                      [attr.inert]="passo !== trilha.atual && !trilha.animando ? '' : null">
+                      @switch (passo) {
+                        @case ('LOGIN') {
+                          <form (ngSubmit)="entrar()">
+                            <h1 class="login-title">Login</h1>
+                            <p class="login-subtitle">Administração de Condomínios</p>
+                            <div class="form-group">
+                              <label for="usuario">Usuário (e-mail)</label>
+                              <input id="usuario" name="usuario" type="text" [(ngModel)]="usuario" placeholder="E-mail" required autocomplete="username" />
+                            </div>
+                            <div class="form-group">
+                              <label for="senha">Senha</label>
+                              <input id="senha" name="senha" type="password" [(ngModel)]="senha" placeholder="••••••••" required autocomplete="current-password" />
+                            </div>
+                            <div class="actions">
+                              <button class="btn-entrar" type="submit" [disabled]="enviando || trilha.animando">{{ enviando && trilha.atual === 'LOGIN' ? 'Entrando...' : 'Entrar' }}</button>
+                            </div>
+                          </form>
+                        }
+                        @case ('SELECT_CONDO') {
+                          <form (ngSubmit)="confirmarCondominio()">
+                            <button class="login-voltar" type="button" (click)="voltar()" [disabled]="enviando">Voltar</button>
+                            <h1 class="login-title">Condomínio</h1>
+                            <p class="login-subtitle">Selecione o condomínio</p>
+                            <div class="form-group">
+                              <label for="condominio">Condomínio</label>
+                              <app-combobox-customizada
+                                inputId="condominio"
+                                [options]="condominioOptions"
+                                [(value)]="idCondominio"
+                                placeholder="Selecione o condomínio"
+                                [required]="true" />
+                            </div>
+                            <div class="actions">
+                              <button class="btn-entrar" type="submit" [disabled]="enviando || idCondominio == null">{{ enviando ? 'Entrando...' : rotuloPassoCondominio }}</button>
+                            </div>
+                          </form>
+                        }
+                        @case ('SELECT_PROFILE') {
+                          <app-login-selecao-perfil
+                            [subtitulo]="nomeCondominioSelecionado"
+                            [perfis]="perfisAtuais"
+                            [enviando]="enviando"
+                            (entrar)="confirmarPerfil($event)"
+                            (voltar)="voltar()" />
+                        }
+                      }
+                    </section>
+                  }
+                </app-login-passos>
               </div>
               <div class="login-card-panel">
                 <div class="login-panel-logo-frame">
@@ -77,23 +119,42 @@ import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combo
     </div>
   `
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   usuario = '';
   senha = '';
   idCondominio: number | null = null;
-  condominioBusca = '';
   condominioOptions: ComboboxOption[] = [];
+  perfisAtuais: PerfilVinculo[] = [];
+  enviando = false;
+  readonly trilha: LoginTrilha;
+
+  private vinculos: CondominioVinculo[] = [];
 
   constructor(
     private auth: AuthService,
     private router: Router,
     private toast: ToastService,
-    private tenantHost: TenantHostService
-  ) {}
+    private tenantHost: TenantHostService,
+    private condominioCtx: CondominioContextService,
+    cd: ChangeDetectorRef
+  ) {
+    this.trilha = new LoginTrilha(() => cd.detectChanges());
+  }
+
+  get rotuloPassoCondominio(): string {
+    const condo = this.vinculos.find(v => v.idCondominio === this.idCondominio);
+    return condo && condo.perfis.length > 1 ? 'Continuar' : 'Entrar';
+  }
+
+  get nomeCondominioSelecionado(): string {
+    return this.vinculos.find(v => v.idCondominio === this.idCondominio)?.nome ?? 'Selecione o perfil';
+  }
 
   ngOnInit(): void {
     if (this.auth.isLoggedIn) {
-      void this.router.navigate(['/']);
+      const id = this.condominioCtx.idCondominio;
+      if (id) void this.abrirNoTenant(id);
+      else void this.router.navigate(['/inicio']);
       return;
     }
     if (this.tenantHost.isTenantHost) {
@@ -101,43 +162,111 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  onCondominioBusca(termo: string): void {
-    this.condominioBusca = termo;
-    this.buscarCondominios();
-  }
-
-  onUsuarioAlterado(): void {
-    this.idCondominio = null;
-    this.buscarCondominios();
-  }
-
-  buscarCondominios(): void {
-    if (!this.usuario.trim() || this.condominioBusca.trim().length < 3) {
-      this.condominioOptions = [];
-      return;
-    }
-    this.auth.listCondominios(this.condominioBusca.trim(), this.usuario.trim()).subscribe({
-      next: r => (this.condominioOptions = r.map(c => ({ value: c.idCondominio, label: c.nome }))),
-      error: () => (this.condominioOptions = [])
-    });
+  ngOnDestroy(): void {
+    this.trilha.destruir();
   }
 
   entrar(): void {
-    if (!this.idCondominio) return;
-    this.auth.login({ usuario: this.usuario, senha: this.senha, idCondominio: this.idCondominio }).subscribe({
-      next: () => this.router.navigate(['/']),
-      error: (e: unknown) => this.avisarFalha(e)
+    if (this.enviando || this.trilha.animando) return;
+    const usuario = this.usuario.trim();
+    if (!usuario || !this.senha) return;
+    this.enviando = true;
+    this.auth.listarVinculos(usuario, this.senha).subscribe({
+      next: vinculos => {
+        this.vinculos = vinculos ?? [];
+        const destino = destinoAposCredenciais(this.vinculos);
+        if (destino.acao !== 'autenticar') this.enviando = false;
+        this.aplicarDestino(destino, false);
+      },
+      error: (e: unknown) => {
+        this.enviando = false;
+        this.toast.showError(mensagemErroLogin(e));
+      }
     });
   }
 
-  private avisarFalha(e: unknown): void {
-    const err = e as { status?: number; error?: { title?: string; message?: string } | string; message?: string };
-    if (err?.status === 0) {
-      this.toast.showError('Não foi possível conectar ao servidor. Verifique a rede e se a API está no ar.');
-      return;
+  confirmarCondominio(): void {
+    if (this.enviando || this.trilha.animando || this.idCondominio == null) return;
+    const condo = this.vinculos.find(v => v.idCondominio === this.idCondominio);
+    if (!condo) return;
+    const destino = destinoAposCondominio(condo);
+    if (destino.acao === 'autenticar') this.enviando = true;
+    this.aplicarDestino(destino, true);
+  }
+
+  confirmarPerfil(idPerfil: number): void {
+    if (this.enviando || this.trilha.animando || this.idCondominio == null) return;
+    this.autenticar(this.idCondominio, idPerfil);
+  }
+
+  voltar(): void {
+    if (this.enviando || !this.trilha.podeVoltar()) return;
+    const anterior = this.trilha.passos[this.trilha.indice - 1];
+    if (anterior === 'LOGIN') this.idCondominio = null;
+    this.trilha.irPara(anterior, this.trilha.passos);
+  }
+
+  private aplicarDestino(destino: DestinoLogin, veioDoCondominio: boolean): void {
+    switch (destino.acao) {
+      case 'sem-vinculo':
+        this.toast.showError('Usuário sem vínculo em condomínio.');
+        return;
+      case 'autenticar':
+        this.autenticar(destino.idCondominio, destino.idPerfil);
+        return;
+      case 'selecionar-condominio':
+        this.idCondominio = null;
+        this.condominioOptions = this.vinculos.map(v => ({ value: v.idCondominio, label: v.nome }));
+        this.trilha.irPara('SELECT_CONDO', ['LOGIN', 'SELECT_CONDO']);
+        return;
+      case 'selecionar-perfil':
+        this.prepararPerfis(destino.idCondominio);
+        this.trilha.irPara(
+          'SELECT_PROFILE',
+          veioDoCondominio ? ['LOGIN', 'SELECT_CONDO', 'SELECT_PROFILE'] : ['LOGIN', 'SELECT_PROFILE']
+        );
+        return;
     }
-    const body = err?.error;
-    const msg = typeof body === 'string' ? body : body?.title ?? body?.message;
-    this.toast.showError(msg || 'E-mail ou senha inválidos. Tente novamente.');
+  }
+
+  private prepararPerfis(idCondominio: number): void {
+    this.idCondominio = idCondominio;
+    const condo = this.vinculos.find(v => v.idCondominio === idCondominio);
+    this.perfisAtuais = [...(condo?.perfis ?? [])];
+  }
+
+  private autenticar(idCondominio: number, idPerfil: number | null): void {
+    this.enviando = true;
+    this.auth.login({
+      usuario: this.usuario.trim(),
+      senha: this.senha,
+      idCondominio,
+      ...(idPerfil != null ? { idPerfil } : {})
+    }).subscribe({
+      next: () => void this.abrirNoTenant(idCondominio),
+      error: (e: unknown) => {
+        this.enviando = false;
+        this.toast.showError(mensagemErroLogin(e));
+      }
+    });
+  }
+
+  /** Entra em /{identificador}/inicio para o tenant da sessão ficar resolvido na URL. */
+  private async abrirNoTenant(idCondominio: number): Promise<void> {
+    try {
+      const condo = this.vinculos.find(v => v.idCondominio === idCondominio);
+      let slug = condo?.dominio?.trim().toLowerCase() || null;
+      if (!slug || isReservedTenantSlug(slug)) {
+        slug = await this.tenantHost.slugForCondominio(idCondominio);
+      }
+      if (slug && !isReservedTenantSlug(slug)) {
+        await this.tenantHost.resolveBySlug(slug);
+      }
+      const abriu = await this.router.navigate(['/inicio']);
+      if (!abriu) this.enviando = false;
+    } catch {
+      this.enviando = false;
+      this.toast.showError('Não foi possível identificar o condomínio.');
+    }
   }
 }

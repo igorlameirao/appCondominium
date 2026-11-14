@@ -72,7 +72,7 @@
       {
         "Regra": "RT-Gerais 13",
         "Tipo": "Regra de Tela",
-        "Descricao": "Deverá haver dua telas de login: na primeira o sistema deverá exibir os campos usuário, senha e o condomínio (Combobox_customizada) ao qual o usuário está se logando; a lista de condomínios deve conter somente aqueles em que o e-mail informado tem vínculo (PessoaCondominio ou PessoaUnidade), após digitar ao menos 3 letras do nome; o layout de Tela será o padrão/fixo. Na segunda o sistema devera ter recebido o código do condomínio por querystring a partir do domínio do site do condomínio (se houver) e deverá exibir somente usuário e senha; o layout da tela mudará para as cofigurações de cor e imagem que o usuário escolherá e editará na entidade Configicuração do Condomínio."
+        "Descricao": "Deverá haver dua telas de login: na primeira o sistema deverá exibir os campos usuário, senha e o condomínio (Combobox_customizada) ao qual o usuário está se logando; a lista de condomínios deve conter somente aqueles em que o e-mail informado tem vínculo (PessoaCondominio ou PessoaUnidade), após digitar ao menos 3 letras do nome; o layout de Tela será o padrão/fixo (URL da plataforma, ex.: /login). Na segunda o sistema resolve o condomínio pelo primeiro segmento da URL (campo Dominio = identificador estável, ex.: appcondominium.com.br/{identificador}/entrar), podendo ainda aceitar idCondominio por querystring em fallback, e deverá exibir somente usuário e senha; o layout da tela mudará para as configurações de cor e imagem que o usuário escolherá e editará na entidade Configuração do Condomínio. O JWT e o header X-Id-Condominio devem coincidir com o condomínio resolvido pela URL."
       },
       {
         "Regra": "RN-Gerais 14",

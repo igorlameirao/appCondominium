@@ -1,18 +1,21 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { environment } from '../../../environments/environment';
 import { TenantHostService } from '../../core/services/tenant-host.service';
+import { LoginPassosComponent } from './login-passos.component';
+import { LoginSelecaoPerfilComponent } from './login-selecao-perfil.component';
+import { CondominioVinculo, PerfilVinculo, destinoNoTenant, mensagemErroLogin } from './login-fluxo';
+import { LoginTrilha } from './login-trilha';
 
-/** RT-Gerais 13 — login por domínio do condomínio (layout padrão, sem escolha de tenant). */
+/** RT-Gerais 13 — login pelo condomínio da URL. A escolha de condomínio não entra neste fluxo. */
 @Component({
   selector: 'app-login-condominio',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule, RouterLink, LoginPassosComponent, LoginSelecaoPerfilComponent],
   template: `
     <div class="login-screen">
       <img
@@ -37,38 +40,68 @@ import { TenantHostService } from '../../core/services/tenant-host.service';
           <div class="login-container">
             <div class="login-card">
               <div class="login-card-form">
-                <h1 class="login-title">Login</h1>
-                <p class="login-subtitle">{{ subtitulo }}</p>
-                <form (ngSubmit)="entrar()">
-                  <div class="form-group">
-                    <label for="usuario">Usuário (e-mail)</label>
-                    <input
-                      id="usuario"
-                      name="usuario"
-                      type="text"
-                      [(ngModel)]="usuario"
-                      placeholder="E-mail"
-                      required
-                      autocomplete="username" />
-                  </div>
-                  <div class="form-group">
-                    <label for="senha">Senha</label>
-                    <input
-                      id="senha"
-                      name="senha"
-                      type="password"
-                      [(ngModel)]="senha"
-                      placeholder="••••••••"
-                      required
-                      autocomplete="current-password" />
-                  </div>
-                  <div class="actions">
-                    <button class="btn-entrar" type="submit" [disabled]="!idCondominio">Entrar</button>
-                  </div>
-                </form>
-                <p class="login-footer-link" *ngIf="!tenantHost.isTenantHost">
-                  <a href="/login">Login administrador</a>
-                </p>
+                <app-login-passos
+                  [deslocamento]="trilha.deslocamento"
+                  [semTransicao]="trilha.semTransicao"
+                  (fimTransicao)="trilha.aoFimTransicao($event)"
+                  (elemento)="trilha.anexar($event)">
+                  @for (passo of trilha.passos; track passo) {
+                    <section
+                      class="login-step"
+                      [attr.aria-hidden]="passo !== trilha.atual && !trilha.animando ? true : null"
+                      [attr.inert]="passo !== trilha.atual && !trilha.animando ? '' : null">
+                      @switch (passo) {
+                        @case ('LOGIN') {
+                          <form (ngSubmit)="entrar()">
+                            <h1 class="login-title">Login</h1>
+                            <p class="login-subtitle">{{ subtitulo }}</p>
+                            <div class="form-group">
+                              <label for="usuario">Usuário (e-mail)</label>
+                              <input
+                                id="usuario"
+                                name="usuario"
+                                type="text"
+                                [(ngModel)]="usuario"
+                                placeholder="E-mail"
+                                required
+                                autocomplete="username" />
+                            </div>
+                            <div class="form-group">
+                              <label for="senha">Senha</label>
+                              <input
+                                id="senha"
+                                name="senha"
+                                type="password"
+                                [(ngModel)]="senha"
+                                placeholder="••••••••"
+                                required
+                                autocomplete="current-password" />
+                            </div>
+                            <div class="actions">
+                              <button class="btn-entrar" type="submit" [disabled]="enviando || trilha.animando || !idCondominio">
+                                {{ enviando && trilha.atual === 'LOGIN' ? 'Entrando...' : 'Entrar' }}
+                              </button>
+                            </div>
+                          </form>
+                          @if (!tenantHost.isTenantHost) {
+                            <p class="login-footer-link">
+                              <a routerLink="/login">Login administrador</a>
+                            </p>
+                          }
+                        }
+                        @case ('SELECT_PROFILE') {
+                          <app-login-selecao-perfil
+                            [subtitulo]="subtitulo"
+                            [perfis]="perfisTenant"
+                            [enviando]="enviando"
+                            inputId="perfil-tenant"
+                            (entrar)="confirmarPerfil($event)"
+                            (voltar)="voltar()" />
+                        }
+                      }
+                    </section>
+                  }
+                </app-login-passos>
               </div>
               <div class="login-card-panel">
                 <div class="login-panel-logo-frame">
@@ -88,11 +121,16 @@ import { TenantHostService } from '../../core/services/tenant-host.service';
     </div>
   `
 })
-export class LoginCondominioComponent implements OnInit {
+export class LoginCondominioComponent implements OnInit, OnDestroy {
   idCondominio: number | null = null;
   usuario = '';
   senha = '';
   nomeCondominio = '';
+  perfisTenant: PerfilVinculo[] = [];
+  enviando = false;
+  readonly trilha: LoginTrilha;
+
+  private vinculos: CondominioVinculo[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -100,8 +138,11 @@ export class LoginCondominioComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private toast: ToastService,
-    public tenantHost: TenantHostService
-  ) {}
+    public tenantHost: TenantHostService,
+    cd: ChangeDetectorRef
+  ) {
+    this.trilha = new LoginTrilha(() => cd.detectChanges());
+  }
 
   get subtitulo(): string {
     const nome = this.nomeCondominio || this.tenantHost.nomeCondominio;
@@ -119,8 +160,14 @@ export class LoginCondominioComponent implements OnInit {
 
     if (!this.idCondominio) {
       this.toast.showError(
-        'Condomínio não identificado. Acesse pelo domínio cadastrado ou use /entrar?idCondominio=1.'
+        'Condomínio não identificado. Acesse appcondominium.com.br/{identificador}/entrar ou use /entrar?idCondominio=1.'
       );
+      return;
+    }
+
+    if (this.tenantDiverge()) {
+      this.toast.showError('O condomínio da URL não confere com o informado.');
+      this.idCondominio = null;
       return;
     }
 
@@ -128,32 +175,91 @@ export class LoginCondominioComponent implements OnInit {
     this.carregarNomeCondominio();
   }
 
+  ngOnDestroy(): void {
+    this.trilha.destruir();
+  }
+
+  entrar(): void {
+    if (this.enviando || this.trilha.animando || !this.idCondominio) return;
+    if (this.tenantDiverge()) {
+      this.toast.showError('Não é permitido entrar em outro condomínio por esta URL.');
+      return;
+    }
+    const usuario = this.usuario.trim();
+    if (!usuario || !this.senha) return;
+    const idCondominio = this.idCondominio;
+    this.enviando = true;
+    this.auth.listarVinculos(usuario, this.senha).subscribe({
+      next: vinculos => {
+        this.vinculos = vinculos ?? [];
+        const destino = destinoNoTenant(this.vinculos, idCondominio);
+        if (destino.acao !== 'autenticar') this.enviando = false;
+        if (destino.acao === 'sem-acesso') {
+          this.toast.showError('Usuário sem vínculo neste condomínio.');
+          return;
+        }
+        if (destino.acao === 'autenticar') {
+          this.autenticar(destino.idPerfil);
+          return;
+        }
+        const condo = this.vinculos.find(v => v.idCondominio === idCondominio);
+        this.perfisTenant = [...(condo?.perfis ?? [])];
+        this.trilha.irPara('SELECT_PROFILE', ['LOGIN', 'SELECT_PROFILE']);
+      },
+      error: (e: unknown) => {
+        this.enviando = false;
+        this.toast.showError(mensagemErroLogin(e));
+      }
+    });
+  }
+
+  confirmarPerfil(idPerfil: number): void {
+    if (this.enviando || this.trilha.animando || !this.idCondominio) return;
+    if (this.tenantDiverge()) {
+      this.toast.showError('Não é permitido entrar em outro condomínio por esta URL.');
+      return;
+    }
+    this.autenticar(idPerfil);
+  }
+
+  voltar(): void {
+    if (this.enviando || !this.trilha.podeVoltar()) return;
+    const anterior = this.trilha.passos[this.trilha.indice - 1];
+    this.trilha.irPara(anterior, this.trilha.passos);
+  }
+
+  private autenticar(idPerfil: number | null): void {
+    if (!this.idCondominio) return;
+    this.enviando = true;
+    this.auth.login({
+      usuario: this.usuario.trim(),
+      senha: this.senha,
+      idCondominio: this.idCondominio,
+      ...(idPerfil != null ? { idPerfil } : {})
+    }).subscribe({
+      next: () => void this.router.navigate(['/']),
+      error: (e: unknown) => {
+        this.enviando = false;
+        this.toast.showError(mensagemErroLogin(e));
+      }
+    });
+  }
+
+  private tenantDiverge(): boolean {
+    return (
+      this.tenantHost.isTenantHost &&
+      this.tenantHost.idCondominio != null &&
+      this.idCondominio !== this.tenantHost.idCondominio
+    );
+  }
+
   private carregarNomeCondominio(): void {
-    if (this.nomeCondominio) return;
+    if (this.nomeCondominio || !this.idCondominio) return;
     this.http
       .get<{ nome?: string }>(`${environment.apiUrl}/lookup/condominio-resumo/${this.idCondominio}`)
       .subscribe({
         next: c => (this.nomeCondominio = c.nome ?? ''),
         error: () => {}
       });
-  }
-
-  entrar(): void {
-    if (!this.idCondominio) return;
-    this.auth.login({ usuario: this.usuario, senha: this.senha, idCondominio: this.idCondominio }).subscribe({
-      next: () => this.router.navigate(['/']),
-      error: (e: unknown) => this.avisarFalha(e)
-    });
-  }
-
-  private avisarFalha(e: unknown): void {
-    const err = e as { status?: number; error?: { title?: string; message?: string } | string; message?: string };
-    if (err?.status === 0) {
-      this.toast.showError('Não foi possível conectar ao servidor. Verifique a rede e se a API está no ar.');
-      return;
-    }
-    const body = err?.error;
-    const msg = typeof body === 'string' ? body : body?.title ?? body?.message;
-    this.toast.showError(msg || 'E-mail ou senha inválidos. Tente novamente.');
   }
 }

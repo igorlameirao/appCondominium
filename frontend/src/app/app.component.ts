@@ -12,6 +12,7 @@ import { ComboboxCustomizadaComponent, ComboboxOption } from './shared/combobox-
 import { Icone } from './shared/icone';
 import { SidebarUsuarioComponent } from './shared/sidebar-usuario/sidebar-usuario.component';
 import { ContaService } from './core/services/conta.service';
+import { TenantHostService } from './core/services/tenant-host.service';
 
 interface MenuLink { label: string; route: string; }
 
@@ -81,7 +82,8 @@ export class AppComponent implements OnInit {
     public condominioCtx: CondominioContextService,
     public permissions: PermissionService,
     private router: Router,
-    private conta: ContaService
+    private conta: ContaService,
+    private tenantHost: TenantHostService
   ) {}
 
   ngOnInit(): void {
@@ -101,12 +103,16 @@ export class AppComponent implements OnInit {
   }
 
   private carregarSeNecessario(): void {
-    if (this.auth.isLoggedIn && !this.condominiosAutorizados.length) this.carregarCondominios();
+    if (!this.auth.isLoggedIn) return;
+    const id = this.condominioCtx.idCondominio;
+    const faltaAtivo = id != null && !this.condominiosAutorizados.some(c => Number(c.idCondominio) === Number(id));
+    if (!this.condominiosAutorizados.length || faltaAtivo) this.carregarCondominios();
   }
 
   get nomeCondominioAtivo(): string {
     const id = this.condominioCtx.idCondominio;
-    return this.condominiosAutorizados.find(c => c.idCondominio === id)?.nome ?? '';
+    const daLista = this.condominiosAutorizados.find(c => Number(c.idCondominio) === Number(id))?.nome;
+    return daLista || this.tenantHost.nomeCondominio || '';
   }
 
   get tenantOptions(): ComboboxOption[] {
@@ -128,9 +134,23 @@ export class AppComponent implements OnInit {
   trocarTenant(id: number): void {
     if (!id || id === this.condominioCtx.idCondominio) return;
     this.auth.trocarCondominio(id).subscribe({
-      next: () => this.router.navigate(['/inicio']).then(() => window.location.reload()),
+      next: () => {
+        void this.redirecionarAposTrocaTenant(id);
+      },
       error: () => this.carregarCondominios()
     });
+  }
+
+  private async redirecionarAposTrocaTenant(idCondominio: number): Promise<void> {
+    if (this.tenantHost.isTenantHost) {
+      const slug = await this.tenantHost.slugForCondominio(idCondominio);
+      if (slug) {
+        window.location.assign(`/${encodeURIComponent(slug)}/inicio`);
+        return;
+      }
+    }
+    await this.router.navigate(['/inicio']);
+    window.location.reload();
   }
 
   shouldShowMenu(): boolean {

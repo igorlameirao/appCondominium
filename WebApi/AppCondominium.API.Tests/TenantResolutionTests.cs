@@ -39,7 +39,10 @@ public class TenantResolutionTests
     public void Auth_login_skips_tenant_requirement()
     {
         Assert.True(TenantResolution.PathSkipsTenant("/api/auth/login"));
+        Assert.True(TenantResolution.PathSkipsTenant("/api/auth/vinculos"));
         Assert.True(TenantResolution.PathSkipsTenant("/api/auth/condominios"));
+        Assert.True(TenantResolution.PathSkipsTenant("/api/lookup/condominio-por-dominio"));
+        Assert.True(TenantResolution.PathSkipsTenant("/api/lookup/condominio-resumo/3"));
         Assert.False(TenantResolution.PathSkipsTenant("/api/auth/trocar-condominio"));
         Assert.False(TenantResolution.PathSkipsTenant("/api/bloco"));
     }

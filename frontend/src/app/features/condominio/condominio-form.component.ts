@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Icone } from '../../shared/icone';
 import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
@@ -12,7 +12,7 @@ import { Condominio } from './condominio.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
 import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
-import { CondominioContextService } from '../../core/services/condominio-context.service';
+import { AuthService } from '../../core/services/auth.service';
 import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-widget.component';
 
 @Component({
@@ -94,7 +94,7 @@ import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-w
             </div>
             <div class="form-group fg-col-12">
               <label>Domínio *</label>
-              <input type="text" [(ngModel)]="model.dominio" name="dominio" maxlength="255" [readonly]="fieldDisabled('dominio')" required />
+              <input type="text" [(ngModel)]="model.dominio" name="dominio" maxlength="255" [readonly]="fieldDisabled('dominio')" required placeholder="ex.: residencial-verde (URL app.../residencial-verde)" />
             </div>
           </div>
           </div>
@@ -110,6 +110,7 @@ import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-w
               [(idEndereco)]="model.idEndereco"
               [(numero)]="model.numeroEndereco"
               [(complemento)]="model.complementoEndereco"
+              [numeroObrigatorio]="true"
               [readonly]="isEdit && !canEdit" />
           </div>
         </form></div>
@@ -136,6 +137,7 @@ import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-w
   `,
 })
 export class CondominioFormComponent implements OnInit {
+  @ViewChild(EnderecoWidgetComponent) endereco?: EnderecoWidgetComponent;
   model: Condominio = {} as Condominio;
   isEdit = false;
   saving = false;
@@ -158,8 +160,7 @@ export class CondominioFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private permissions: PermissionService,
-    private condominioCtx: CondominioContextService
-    
+    private auth: AuthService
   ) {
     this.refreshPermissions();
   }
@@ -186,7 +187,6 @@ export class CondominioFormComponent implements OnInit {
     if (isNovo) {
       this.isEdit = false;
       this.refreshPermissions();
-      this.model.idCondominio = this.condominioCtx.idCondominio!;
       return;
     }
     if (idCondominio) {
@@ -210,20 +210,85 @@ export class CondominioFormComponent implements OnInit {
       this.toast.showError('Preencha os campos obrigatórios antes de gravar.');
       return;
     }
-    this.saving = true;
-    if (this.isEdit) {
-      this.service.update(this.model).subscribe({
-        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/condominio']); },
-        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
-        complete: () => this.saving = false
-      });
-    } else {
-      this.service.create(this.model).subscribe({
-        next: () => { this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.'); this.router.navigate(['/condominio']); },
-        error: (e: unknown) => { this.toast.showError((typeof (e as any)?.error === 'string' ? (e as any).error : null) ?? (e as any)?.error?.title ?? (e as any)?.error?.message ?? (e as any)?.message ?? 'Não foi possível salvar. Tente novamente.'); this.saving = false; },
-        complete: () => this.saving = false
-      });
+    const numeroTexto = String(this.model.numeroEndereco ?? '').trim();
+    const numero = Number(numeroTexto);
+    if (!numeroTexto || !Number.isFinite(numero)) {
+      this.aba = 'endereco';
+      this.toast.showError('Informe o número do endereço.');
+      return;
     }
+    this.saving = true;
+    const persistir = this.endereco?.persistirVinculo();
+    if (!persistir) {
+      this.saving = false;
+      this.aba = 'endereco';
+      this.toast.showError('Informe o endereço completo antes de gravar.');
+      return;
+    }
+    persistir.subscribe({
+      next: idEndereco => {
+        this.model.idEndereco = idEndereco;
+        this.model.numeroEndereco = numero;
+        if (!this.model.cNPJ?.trim()) this.model.cNPJ = undefined;
+        this.gravar();
+      },
+      error: () => {
+        this.saving = false;
+        this.aba = 'endereco';
+        this.toast.showError('Informe CEP, logradouro e bairro antes de gravar.');
+      }
+    });
+  }
+
+  private gravar(): void {
+    const sucesso = () => {
+      this.toast.showSuccess(this.isEdit ? 'Alterações salvas com sucesso.' : this.entityTitle + ' gravado com sucesso.');
+      this.router.navigate(['/condominio']);
+    };
+    const falha = (e: unknown) => {
+      const erro = e as { error?: { title?: string; message?: string } | string; message?: string };
+      const corpo = erro?.error;
+      this.toast.showError(
+        (typeof corpo === 'string' ? corpo : null)
+        ?? (typeof corpo === 'object' ? corpo?.message ?? corpo?.title : null)
+        ?? erro?.message
+        ?? 'Não foi possível salvar. Tente novamente.'
+      );
+      this.saving = false;
+    };
+    const payload = this.payloadParaGravar();
+    if (this.isEdit) {
+      this.service.update(payload).subscribe({
+        next: () => sucesso(),
+        error: falha,
+        complete: () => this.saving = false
+      });
+      return;
+    }
+    this.service.create(payload).subscribe({
+      next: created => {
+        const id = created?.idCondominio;
+        if (!id) {
+          sucesso();
+          return;
+        }
+        this.auth.trocarCondominio(id).subscribe({
+          next: () => sucesso(),
+          error: () => sucesso()
+        });
+      },
+      error: falha,
+      complete: () => this.saving = false
+    });
+  }
+
+  private payloadParaGravar(): Condominio {
+    const payload: Condominio = { ...this.model };
+    if (!this.isEdit) delete payload.idCondominio;
+    (Object.keys(payload) as (keyof Condominio)[]).forEach(chave => {
+      if (payload[chave] === '') delete payload[chave];
+    });
+    return payload;
   }
 
   private abaDoErro(f: NgForm): 'dados' | 'endereco' {

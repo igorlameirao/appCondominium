@@ -1,0 +1,48 @@
+/** Primeiro segmento de rota que não pode ser identificador de condomínio na URL. */
+export const RESERVED_TENANT_SLUGS = new Set([
+  'login',
+  'entrar',
+  'inicio',
+  'minha-conta',
+  'gerenciamento-permissoes',
+  'assets',
+  'api',
+  'uf',
+  'municipio',
+  'bairro',
+  'endereco',
+  'condominio',
+  'configuracaocondominio',
+  'bloco',
+  'tipounidade',
+  'unidade',
+  'hidrometro',
+  'consumoagua',
+  'pessoafisica',
+  'pessoajuridica',
+  'fornecedor',
+  'tipoatividadeeconomica',
+  'atividadeeconomica',
+  'pessoacondominio',
+  'equipamento',
+  'aluguelequipamento',
+  'concorrencia',
+  'tipodespesa',
+  'despesa',
+  'ofertaconcorrencia',
+  'banco',
+  'dadosbancarios',
+  'cobranca',
+  'guardaencomenda',
+  'local',
+  'tipomaterial',
+  'tipomaterialcondominio',
+  'material',
+  'alocacaomaterial',
+  'estoquematerialconsumo',
+  'entradasaidamaterialconsumo'
+]);
+
+export function isReservedTenantSlug(slug: string): boolean {
+  return RESERVED_TENANT_SLUGS.has(slug.trim().toLowerCase());
+}

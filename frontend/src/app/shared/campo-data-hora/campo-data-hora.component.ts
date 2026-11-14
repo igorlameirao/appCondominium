@@ -147,7 +147,7 @@ export class CampoDataHoraComponent implements ControlValueAccessor, Validator, 
   private ignorarWriteVazio = false;
   private separator: 'T' | ' ' = 'T';
 
-  private onChange: (value: string) => void = () => {};
+  private onChange: (value: string | null) => void = () => {};
   onTouched: () => void = () => {};
   private onValidatorChange: () => void = () => {};
 
@@ -164,7 +164,7 @@ export class CampoDataHoraComponent implements ControlValueAccessor, Validator, 
     }
   }
 
-  registerOnChange(fn: (value: string) => void): void { this.onChange = fn; }
+  registerOnChange(fn: (value: string | null) => void): void { this.onChange = fn; }
   registerOnTouched(fn: () => void): void { this.onTouched = fn; }
   setDisabledState(isDisabled: boolean): void { this.disabled = isDisabled; }
   registerOnValidatorChange(fn: () => void): void { this.onValidatorChange = fn; }
@@ -326,7 +326,7 @@ export class CampoDataHoraComponent implements ControlValueAccessor, Validator, 
     this.ignorarWriteVazio = true;
     this.dateValue = null;
     if (emitirVazio) {
-      this.onChange('');
+      this.onChange(null);
       this.onTouched();
       this.onValidatorChange();
     }
@@ -334,7 +334,7 @@ export class CampoDataHoraComponent implements ControlValueAccessor, Validator, 
 
   private emit(): void {
     if (!this.dateValue || Number.isNaN(this.dateValue.getTime())) {
-      this.onChange('');
+      this.onChange(null);
       this.onTouched();
       return;
     }

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AppCondominium.API.Authorization;
@@ -31,7 +32,26 @@ public class CondominioController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Condominio>> Create([FromBody] Condominio entity, CancellationToken ct = default)
     {
-        var created = await _repo.AddAsync(entity, ct);
+        if (string.IsNullOrWhiteSpace(entity.Nome)
+            || string.IsNullOrWhiteSpace(entity.Dominio)
+            || entity.IdEndereco is null
+            || entity.NumeroEndereco is null
+            || entity.AreaTerreno is null
+            || entity.AreaTotalEdificada is null
+            || entity.Ativo is null)
+        {
+            return BadRequest(new
+            {
+                title = "Dados incompletos",
+                message = "Informe nome, domínio, áreas, situação, endereço e número."
+            });
+        }
+
+        uint? idPessoa = null;
+        if (uint.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var pessoa))
+            idPessoa = pessoa;
+
+        var created = await _repo.AddAsync(entity, idPessoa, ct);
         return CreatedAtAction(nameof(GetById), new { idCondominio = created.IdCondominio }, created);
     }
 
