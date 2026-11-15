@@ -32,6 +32,9 @@ public static partial class DependencyInjection
         services.AddScoped<IFornecedorCadastroService, FornecedorCadastroService>();
         services.AddScoped<IPessoaConsultaService, PessoaConsultaService>();
         services.AddScoped<IFornecedorConsultaService, FornecedorConsultaService>();
+        services.AddHttpClient();
+        services.AddScoped<CnpjService>();
+        services.AddScoped<BancoCodigoService>();
         services.AddScoped<IPessoaEnderecoService, PessoaEnderecoService>();
         services.AddScoped<IConviteAcessoService, ConviteAcessoService>();
         services.AddScoped<IPasswordRecoveryService, PasswordRecoveryService>();

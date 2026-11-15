@@ -273,18 +273,4 @@ app-icone.sidebar-link__icon {
   overflow: hidden;
 }
 
-/* Rodapé: troca de condomínio (equivalente à unidade no SGE) */
-.tenant-switch {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 100%;
-}
-
-.tenant-switch__rotulo {
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--app-text-muted);
-}
+/* Rodapé: troca de condomínio — ver tenant-troca.css */

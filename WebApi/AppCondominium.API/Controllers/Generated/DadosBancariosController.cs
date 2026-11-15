@@ -21,10 +21,10 @@ public class DadosBancariosController : ControllerBase
     public async Task<ActionResult<PagedResult<DadosBancarios>>> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? filter = null, CancellationToken ct = default)
         => Ok(await _repo.GetPagedAsync(page, pageSize, filter, ct));
 
-    [HttpGet("{conta}/{codigoBanco}/{agencia}")]
-    public async Task<ActionResult<DadosBancarios>> GetById([FromRoute] uint? conta, [FromRoute] uint? codigoBanco, [FromRoute] string? agencia, CancellationToken ct = default)
+    [HttpGet("{conta}/{idBanco}/{agencia}")]
+    public async Task<ActionResult<DadosBancarios>> GetById([FromRoute] uint? conta, [FromRoute] uint? idBanco, [FromRoute] string? agencia, CancellationToken ct = default)
     {
-        var item = await _repo.GetByIdAsync(conta, codigoBanco, agencia, ct);
+        var item = await _repo.GetByIdAsync(conta, idBanco, agencia, ct);
         return item == null ? NotFound() : Ok(item);
     }
 
@@ -32,17 +32,17 @@ public class DadosBancariosController : ControllerBase
     public async Task<ActionResult<DadosBancarios>> Create([FromBody] DadosBancarios entity, CancellationToken ct = default)
     {
         var created = await _repo.AddAsync(entity, ct);
-        return CreatedAtAction(nameof(GetById), new { conta = created.Conta, codigoBanco = created.CodigoBanco, agencia = created.Agencia }, created);
+        return CreatedAtAction(nameof(GetById), new { conta = created.Conta, idBanco = created.IdBanco, agencia = created.Agencia }, created);
     }
 
-    [HttpPut("{conta}/{codigoBanco}/{agencia}")]
-    public async Task<IActionResult> Update([FromRoute] uint? conta, [FromRoute] uint? codigoBanco, [FromRoute] string? agencia, [FromBody] DadosBancarios entity, CancellationToken ct = default)
+    [HttpPut("{conta}/{idBanco}/{agencia}")]
+    public async Task<IActionResult> Update([FromRoute] uint? conta, [FromRoute] uint? idBanco, [FromRoute] string? agencia, [FromBody] DadosBancarios entity, CancellationToken ct = default)
     {
         await _repo.UpdateAsync(entity, ct);
         return NoContent();
     }
 
-    [HttpDelete("{conta}/{codigoBanco}/{agencia}")]
-    public async Task<IActionResult> Delete([FromRoute] uint? conta, [FromRoute] uint? codigoBanco, [FromRoute] string? agencia, CancellationToken ct = default)
-        => await _repo.DeleteAsync(conta, codigoBanco, agencia, ct) ? NoContent() : NotFound();
+    [HttpDelete("{conta}/{idBanco}/{agencia}")]
+    public async Task<IActionResult> Delete([FromRoute] uint? conta, [FromRoute] uint? idBanco, [FromRoute] string? agencia, CancellationToken ct = default)
+        => await _repo.DeleteAsync(conta, idBanco, agencia, ct) ? NoContent() : NotFound();
 }

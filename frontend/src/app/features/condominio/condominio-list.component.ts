@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';
 import { Paginacao } from '../../shared/paginacao';
-import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
+import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista, agendarPrimeiraCargaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
 import {
   iniciarCarregamentoLista,
   finalizarCarregamentoListaSucesso,
@@ -17,6 +17,11 @@ import { Condominio } from './condominio.model';
 import { PermissionService } from '../../core/services/permission.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/confirmar-exclusao.component';
+import {
+  condominioEnderecoLocalizacao,
+  condominioEnderecoPrincipal,
+} from './condominio-endereco-lista.util';
+import { condominioDominioExibicao } from './condominio-dominio-lista.util';
 
 @Component({
   selector: 'app-condominio-list',
@@ -24,7 +29,7 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
   imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent],
   template: `
     <div class="content-wrapper lst-wrapper" lstSgeViewport [tamanhoPagina]="pageSize" (tamanhoPaginaChange)="aplicarTamanhoPagina($event)" [totalItens]="totalCount" [itensNaPagina]="paged?.items?.length ?? 0" [filtrosRecolhidos]="filtrosRecolhidos">
-      <div class="lst-page">
+      <div class="lst-page lst-page--condominios">
         <header class="lst-cabecalho">
           <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
             <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
@@ -51,7 +56,7 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
               <div class="lst-filtros__grade">
                 <div class="form-group">
                   <label for="lst-filtro-texto">Busca</label>
-                  <input id="lst-filtro-texto" type="search" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" placeholder="Mín. 3 caracteres" />
+                  <input id="lst-filtro-texto" type="search" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" placeholder="Nome, logradouro, bairro ou município (mín. 3 caracteres)" />
                 </div>
               </div>
               <div class="lst-filtros__acoes">
@@ -62,11 +67,23 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
           </div>
           <div class="lst-tabela__scroll" [class.is-loading]="loading">
             <table class="lst-grade" *ngIf="paged?.items?.length && !erroCarregamento; else lstEmpty">
-              <thead><tr><th scope="col" class="lst-col--conteudo">Nome</th><th scope="col" class="lst-col--conteudo">Id Endereço</th><th scope="col">Número</th><th scope="col">Complemento Endereço</th><th scope="col">Área Terreno</th><th scope="col">Área Total Edificada</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
+              <thead><tr><th scope="col" class="lst-col--conteudo lst-col--condominio-nome">Nome</th><th scope="col" class="lst-col--conteudo lst-col--condominio-endereco">Endereço / Localização</th><th scope="col" class="lst-col--conteudo lst-col--condominio-dominio">Domínio</th><th scope="col" class="lst-grade__acoes lst-col--condominio-acoes">Ações</th></tr></thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
-                  <td class="lst-col--conteudo">{{ item.nome }}</td><td class="lst-col--conteudo">{{ item.idEndereco }}</td><td>{{ item.numeroEndereco }}</td><td>{{ item.complementoEndereco }}</td><td>{{ item.areaTerreno }}</td><td>{{ item.areaTotalEdificada }}</td>
-                  <td class="lst-grade__acoes">
+                  <td class="lst-col--conteudo lst-col--condominio-nome">{{ item.nome }}</td>
+                  <td class="lst-col--conteudo lst-col--condominio-endereco">
+                    <div class="lst-celula-stack">
+                      <span>{{ enderecoPrincipal(item) }}</span>
+                      <span class="lst-celula-stack__secundario">{{ enderecoLocalizacao(item) }}</span>
+                    </div>
+                  </td>
+                  <td class="lst-col--conteudo lst-col--condominio-dominio">
+                    <span
+                      class="lst-celula-truncada"
+                      [attr.title]="dominioExibicao(item) || null"
+                    >{{ dominioExibicao(item) || '—' }}</span>
+                  </td>
+                  <td class="lst-grade__acoes lst-col--condominio-acoes">
                     <div class="lst-acoes" role="group" aria-label="Ações">
                     <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="trash" [tamanho]="16" />
@@ -149,7 +166,7 @@ export class CondominioListComponent implements OnInit {
   }
 
 
-  ngOnInit(): void { this.loadPage(1); }
+  ngOnInit(): void { agendarPrimeiraCargaLista(() => this.loadPage(1)); }
 
   applyFilter(): void { this.page = 1; this.loadPage(1); }
   clearFilter(): void {
@@ -186,4 +203,8 @@ export class CondominioListComponent implements OnInit {
   goEdit(item: Condominio): void {
     this.router.navigate(['/condominio', item.idCondominio]);
   }
+
+  readonly enderecoPrincipal = condominioEnderecoPrincipal;
+  readonly enderecoLocalizacao = condominioEnderecoLocalizacao;
+  readonly dominioExibicao = condominioDominioExibicao;
 }

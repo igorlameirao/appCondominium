@@ -3,6 +3,20 @@ import { estimarTamanhoPaginaInicial } from './lista-sge-viewport.util';
 /** Tamanho inicial alinhado à altura útil da viewport (evita 1ª carga com 10 linhas). */
 export const TAMANHO_PAGINA_LISTA_PADRAO = estimarTamanhoPaginaInicial();
 
+/**
+ * Agenda a 1ª carga da API após o layout (e o lstSgeViewport em AfterViewInit) estabilizar,
+ * reduzindo flicker de pageSize e max-height na abertura da lista.
+ */
+export function agendarPrimeiraCargaLista(carregar: () => void): void {
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => carregar());
+    });
+    return;
+  }
+  setTimeout(carregar, 0);
+}
+
 /** Estado mínimo de uma listagem SGE com paginação por API. */
 export interface ListaComPaginaDinamica {
   pagina: number;

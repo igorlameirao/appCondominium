@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
@@ -8,11 +7,15 @@ import { PushToastComponent } from './shared/push-toast/push-toast.component';
 import { CondominioContextService } from './core/services/condominio-context.service';
 import { PermissionService } from './core/services/permission.service';
 import { VERSAO_SISTEMA } from './core/versao';
-import { ComboboxCustomizadaComponent, ComboboxOption } from './shared/combobox-customizada/combobox-customizada.component';
 import { Icone } from './shared/icone';
 import { SidebarUsuarioComponent } from './shared/sidebar-usuario/sidebar-usuario.component';
 import { ContaService } from './core/services/conta.service';
 import { TenantHostService } from './core/services/tenant-host.service';
+import { ToastService } from './core/services/toast.service';
+import {
+  CondominioTrocaItem,
+  TrocarCondominioModalComponent,
+} from './shared/trocar-condominio/trocar-condominio-modal.component';
 
 interface MenuLink { label: string; route: string; }
 
@@ -25,12 +28,13 @@ interface MenuGroup {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterOutlet, RouterLink, RouterLinkActive, PushToastComponent, ComboboxCustomizadaComponent, Icone, SidebarUsuarioComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, PushToastComponent, Icone, SidebarUsuarioComponent, TrocarCondominioModalComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
   private static readonly SIDEBAR_KEY = 'appcondominium-sidebar-collapsed';
+  private static readonly TENANT_SWITCH_TOAST_KEY = 'appcondominium-tenant-switch-ok';
 
   readonly versao = VERSAO_SISTEMA;
 
@@ -40,7 +44,7 @@ export class AppComponent implements OnInit {
   menuGroups: MenuGroup[] = [
     { label: 'Cadastros Gerais', icon: 'map-pin', links: [
       { label: 'UF', route: '/uf' }, { label: 'Município', route: '/municipio' },
-      { label: 'Bairro', route: '/bairro' }, { label: 'Endereço', route: '/endereco' },
+      { label: 'Bairro', route: '/bairro' },
       { label: 'Condomínio', route: '/condominio' }
     ]},
     { label: 'Condomínio', icon: 'building', links: [
@@ -82,7 +86,14 @@ export class AppComponent implements OnInit {
   ];
 
   openGroups = new Set<string>();
-  condominiosAutorizados: { idCondominio: number; nome: string }[] = [];
+  condominiosAutorizados: CondominioTrocaItem[] = [];
+
+  modalTrocarAberto = false;
+  selecaoCondominioModal: number | null = null;
+  trocandoTenant = false;
+  tenantTransicao: 'idle' | 'saindo' | 'carregando' | 'entrando' = 'idle';
+  mainEntrandoVisivel = false;
+  nomeCondominioCarregando = '';
 
   constructor(
     public auth: AuthService,
@@ -90,7 +101,8 @@ export class AppComponent implements OnInit {
     public permissions: PermissionService,
     private router: Router,
     private conta: ContaService,
-    private tenantHost: TenantHostService
+    private tenantHost: TenantHostService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -100,6 +112,7 @@ export class AppComponent implements OnInit {
 
     this.carregarSeNecessario();
     this.abrirGrupoDaRota();
+    this.finalizarTransicaoPosTroca();
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd)
     ).subscribe(() => {
@@ -122,29 +135,116 @@ export class AppComponent implements OnInit {
     return daLista || this.tenantHost.nomeCondominio || '';
   }
 
-  get tenantOptions(): ComboboxOption[] {
-    return this.condominiosAutorizados.map(c => ({ value: c.idCondominio, label: c.nome }));
+  abrirModalTrocar(): void {
+    if (this.trocandoTenant) return;
+    this.selecaoCondominioModal = null;
+    this.carregarCondominios();
+    this.modalTrocarAberto = true;
   }
 
-  onTenantChange(value: number | string | null): void {
-    if (value == null) return;
-    this.trocarTenant(Number(value));
+  fecharModalTrocar(): void {
+    if (this.trocandoTenant) return;
+    this.modalTrocarAberto = false;
+    this.selecaoCondominioModal = null;
+  }
+
+  onSelecionarCondominioModal(id: number): void {
+    this.selecaoCondominioModal = id;
+  }
+
+  confirmarTrocaModal(id: number): void {
+    if (this.trocandoTenant || !id || id === this.condominioCtx.idCondominio) return;
+    const nome =
+      this.condominiosAutorizados.find(c => Number(c.idCondominio) === Number(id))?.nome ?? '';
+    this.nomeCondominioCarregando = nome;
+    this.modalTrocarAberto = false;
+    this.selecaoCondominioModal = null;
+    this.trocandoTenant = true;
+    this.iniciarTransicaoTenant(id);
   }
 
   carregarCondominios(): void {
-    this.auth.listCondominios().subscribe({
-      next: items => this.condominiosAutorizados = items,
-      error: () => this.condominiosAutorizados = []
+    this.auth.listarVinculosAtivos().subscribe({
+      next: items =>
+        (this.condominiosAutorizados = (items ?? []).map(c => ({
+          idCondominio: c.idCondominio,
+          nome: c.nome,
+          dominio: c.dominio ?? null,
+        }))),
+      error: () => {
+        this.auth.listCondominios().subscribe({
+          next: items =>
+            (this.condominiosAutorizados = (items ?? []).map(c => ({
+              idCondominio: c.idCondominio,
+              nome: c.nome,
+            }))),
+          error: () => (this.condominiosAutorizados = []),
+        });
+      },
     });
   }
 
-  trocarTenant(id: number): void {
-    if (!id || id === this.condominioCtx.idCondominio) return;
-    this.auth.trocarCondominio(id).subscribe({
-      next: () => {
-        void this.redirecionarAposTrocaTenant(id);
-      },
-      error: () => this.carregarCondominios()
+  private iniciarTransicaoTenant(id: number): void {
+    const reducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fadeOutMs = reducedMotion ? 0 : 150;
+    this.tenantTransicao = 'saindo';
+    window.setTimeout(() => {
+      this.tenantTransicao = 'carregando';
+      this.auth.trocarCondominio(id).subscribe({
+        next: () => {
+          try {
+            sessionStorage.setItem(AppComponent.TENANT_SWITCH_TOAST_KEY, '1');
+          } catch {
+            /* sessionStorage indisponível */
+          }
+          void this.redirecionarAposTrocaTenant(id);
+        },
+        error: () => {
+          this.trocandoTenant = false;
+          this.tenantTransicao = 'idle';
+          this.nomeCondominioCarregando = '';
+          this.toast.showError('Não foi possível alterar o condomínio. Tente novamente.');
+          this.carregarCondominios();
+        },
+      });
+    }, fadeOutMs);
+  }
+
+  private finalizarTransicaoPosTroca(): void {
+    let pendente = false;
+    try {
+      pendente = sessionStorage.getItem(AppComponent.TENANT_SWITCH_TOAST_KEY) === '1';
+    } catch {
+      pendente = false;
+    }
+    if (!pendente) return;
+
+    try {
+      sessionStorage.removeItem(AppComponent.TENANT_SWITCH_TOAST_KEY);
+    } catch {
+      /* ignora */
+    }
+
+    const reducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reducedMotion) {
+      this.toast.showSuccess('Condomínio alterado com sucesso');
+      return;
+    }
+
+    this.tenantTransicao = 'entrando';
+    this.mainEntrandoVisivel = false;
+    requestAnimationFrame(() => {
+      this.mainEntrandoVisivel = true;
+      window.setTimeout(() => {
+        this.tenantTransicao = 'idle';
+        this.mainEntrandoVisivel = false;
+        this.toast.showSuccess('Condomínio alterado com sucesso');
+      }, 300);
     });
   }
 

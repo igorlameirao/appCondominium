@@ -81,6 +81,11 @@ export class AuthService {
     );
   }
 
+  /** Vínculos ativos do usuário logado (inclui domínio quando cadastrado). */
+  listarVinculosAtivos(): Observable<CondominioVinculo[]> {
+    return this.http.get<CondominioVinculo[]>(`${environment.apiUrl}/auth/vinculos-ativos`);
+  }
+
   trocarCondominio(idCondominio: number): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/trocar-condominio`, { idCondominio }).pipe(
       tap(res => {

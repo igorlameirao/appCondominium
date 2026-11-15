@@ -25,7 +25,7 @@ import {
       (input)="onInput($event)"
       [disabled]="disabled"
       [attr.maxlength]="maxLen" />
-    <span class="doc-erro" *ngIf="invalid && touched">Documento inválido</span>
+    <span class="doc-erro" *ngIf="exibirErro && invalid && touched">Documento inválido</span>
   `,
   styles: [`
     .doc-input { width: 100%; padding: 5px 10px; min-height: 2.125rem; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
@@ -35,15 +35,17 @@ import {
 })
 export class DocumentoInputComponent implements ControlValueAccessor {
   @Input() tipo: 'cpf' | 'cnpj' | 'cpfcnpj' = 'cpfcnpj';
-  @Input() set disabled(v: boolean) { this._disabled = v; }
-  get disabled(): boolean { return this._disabled; }
+  /** false: o host exibe a mensagem (ex.: `.field-error` fora do fluxo do grid). */
+  @Input() exibirErro = true;
   @Output() validChange = new EventEmitter<boolean>();
+  /** Emitido ao perder o foco, após validar e propagar o valor. */
+  @Output() blurCommit = new EventEmitter<string>();
 
   display = '';
   raw = '';
   invalid = false;
   touched = false;
-  private _disabled = false;
+  disabled = false;
   maxLen = 18;
 
   private onChange: (v: string) => void = () => {};
@@ -57,7 +59,7 @@ export class DocumentoInputComponent implements ControlValueAccessor {
 
   registerOnChange(fn: (v: string) => void): void { this.onChange = fn; }
   registerOnTouched(fn: () => void): void { this.onTouched = fn; }
-  setDisabledState(isDisabled: boolean): void { this._disabled = isDisabled; }
+  setDisabledState(isDisabled: boolean): void { this.disabled = isDisabled; }
 
   onFocus(): void {
     this.display = this.raw;
@@ -70,6 +72,7 @@ export class DocumentoInputComponent implements ControlValueAccessor {
     this.display = this.mask(this.raw);
     this.validate();
     this.onChange(this.raw);
+    this.blurCommit.emit(this.raw);
   }
 
   onInput(ev: Event): void {

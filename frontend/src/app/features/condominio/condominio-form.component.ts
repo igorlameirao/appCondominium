@@ -88,9 +88,31 @@ import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-w
               <label>Área Total Edificada *</label>
               <input type="number" [(ngModel)]="model.areaTotalEdificada" name="areaTotalEdificada" step="0.001" [readonly]="fieldDisabled('areaTotalEdificada')" required />
             </div>
-            <div class="form-group fg-col-3">
-              <label>Ativo *</label>
-              <input type="number" [(ngModel)]="model.ativo" name="ativo" [readonly]="fieldDisabled('ativo')" required />
+            <div class="form-group fg-col-3 fg-label-nowrap">
+              <label id="condominio-situacao-label">Situação *</label>
+              <div
+                class="cad-segment"
+                role="radiogroup"
+                aria-labelledby="condominio-situacao-label"
+                [class.cad-segment--desabilitado]="situacaoDesabilitada">
+                <button
+                  type="button"
+                  role="radio"
+                  class="cad-segment__opcao"
+                  [class.cad-segment__opcao--ativa]="model.ativo === 1"
+                  [attr.aria-checked]="model.ativo === 1"
+                  [disabled]="situacaoDesabilitada"
+                  (click)="definirAtivo(1)">Ativo</button>
+                <button
+                  type="button"
+                  role="radio"
+                  class="cad-segment__opcao"
+                  [class.cad-segment__opcao--ativa]="model.ativo === 0"
+                  [attr.aria-checked]="model.ativo === 0"
+                  [disabled]="situacaoDesabilitada"
+                  (click)="definirAtivo(0)">Inativo</button>
+              </div>
+              <input type="hidden" [(ngModel)]="model.ativo" name="ativo" required />
             </div>
             <div class="form-group fg-col-12">
               <label>Domínio *</label>
@@ -187,12 +209,16 @@ export class CondominioFormComponent implements OnInit {
     if (isNovo) {
       this.isEdit = false;
       this.refreshPermissions();
+      if (this.model.ativo == null) this.model.ativo = 1;
       return;
     }
     if (idCondominio) {
       this.isEdit = true;
       this.refreshPermissions();
-      this.pageLoad.run(this.service.getById(idCondominio), (r) => this.model = r, () => this.toast.showError('Registro não encontrado.'));
+      this.pageLoad.run(this.service.getById(idCondominio), (r) => {
+        this.model = r;
+        this.model.ativo = r.ativo === 0 ? 0 : 1;
+      }, () => this.toast.showError('Registro não encontrado.'));
     }
     this.pageLoad.seal();
   }
@@ -204,7 +230,25 @@ export class CondominioFormComponent implements OnInit {
     return roFields.includes(field);
   }
 
+  get situacaoDesabilitada(): boolean {
+    return this.fieldDisabled('ativo');
+  }
+
+  definirAtivo(valor: 0 | 1): void {
+    if (this.situacaoDesabilitada) return;
+    this.model.ativo = valor;
+  }
+
+  private ativoValido(): boolean {
+    return this.model.ativo === 0 || this.model.ativo === 1;
+  }
+
   submit(f: NgForm): void {
+    if (!this.ativoValido()) {
+      this.aba = 'dados';
+      this.toast.showError('Selecione a situação do condomínio (Ativo ou Inativo).');
+      return;
+    }
     if (!f.valid) {
       this.aba = this.abaDoErro(f);
       this.toast.showError('Preencha os campos obrigatórios antes de gravar.');
@@ -283,7 +327,7 @@ export class CondominioFormComponent implements OnInit {
   }
 
   private payloadParaGravar(): Condominio {
-    const payload: Condominio = { ...this.model };
+    const payload: Condominio = { ...this.model, ativo: this.model.ativo === 0 ? 0 : 1 };
     if (!this.isEdit) delete payload.idCondominio;
     (Object.keys(payload) as (keyof Condominio)[]).forEach(chave => {
       if (payload[chave] === '') delete payload[chave];

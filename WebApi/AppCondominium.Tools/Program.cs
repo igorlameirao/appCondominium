@@ -11,6 +11,8 @@ var migratePessoaVinculo = args.Any(a => string.Equals(a, "migrate-pessoa-vincul
 var migrateConviteAcesso = args.Any(a => string.Equals(a, "migrate-convite-acesso", StringComparison.OrdinalIgnoreCase));
 var migrateEmailModule = args.Any(a => string.Equals(a, "migrate-email-module", StringComparison.OrdinalIgnoreCase));
 var migrateRecuperacaoSenha = args.Any(a => string.Equals(a, "migrate-recuperacao-senha", StringComparison.OrdinalIgnoreCase));
+var migrateMaterialTables = args.Any(a => string.Equals(a, "migrate-material-tables", StringComparison.OrdinalIgnoreCase));
+var inspectMaterialTables = args.Any(a => string.Equals(a, "inspect-material-tables", StringComparison.OrdinalIgnoreCase));
 var transferSmtpFromSco = args.Any(a => string.Equals(a, "transfer-smtp-from-sco", StringComparison.OrdinalIgnoreCase));
 var allowDropLegacy = args.Any(a => string.Equals(a, "--allow-drop-legacy", StringComparison.OrdinalIgnoreCase));
 var dropColumns = args.Any(a => string.Equals(a, "--drop-columns", StringComparison.OrdinalIgnoreCase));
@@ -52,6 +54,12 @@ try
     if (migrateRecuperacaoSenha)
         return await RecuperacaoSenhaAwsMigration.EnsureAsync(host.Services, logger, CancellationToken.None);
 
+    if (inspectMaterialTables)
+        return await MaterialTablesMigration.InspectAsync(host.Services, logger, CancellationToken.None);
+
+    if (migrateMaterialTables)
+        return await MaterialTablesMigration.EnsureAsync(host.Services, logger, CancellationToken.None);
+
     if (transferSmtpFromSco)
         return await SmtpConfigScoTransfer.RunAsync(host.Services, logger, CancellationToken.None);
 
@@ -67,6 +75,8 @@ catch (Exception ex)
     : migrateConviteAcesso ? "Migração ConviteAcesso/RDS"
     : migrateEmailModule ? "Migração módulo e-mail/RDS"
     : migrateRecuperacaoSenha ? "Migração RecuperacaoSenha/RDS"
+    : inspectMaterialTables ? "Inspeção tabelas material"
+    : migrateMaterialTables ? "Migração tabelas AlocacaoMaterial / EntradaSaidaMaterialConsumo"
     : transferSmtpFromSco ? "Transferência SMTP SCO→AppCondominium"
     : "Migração de BLOBs para o S3";
   logger.LogError(ex, "{Ctx} interrompida.", ctx);

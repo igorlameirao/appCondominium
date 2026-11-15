@@ -1,28 +1,25 @@
 import { Component, OnInit } from '@angular/core';
-import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';
-import { Paginacao } from '../../shared/paginacao';
-import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
-import {
-  iniciarCarregamentoLista,
-  finalizarCarregamentoListaSucesso,
-  finalizarCarregamentoListaErro,
-} from '../../shared/lista-sge/lista-sge-erro.util';
 import { CommonModule } from '@angular/common';
 import { Icone } from '../../shared/icone';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';
+import { Paginacao } from '../../shared/paginacao';
+import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista, agendarPrimeiraCargaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
 import { PagedResult } from '../../core/models/paged-result';
 import { BancoService } from './banco.service';
 import { Banco } from './banco.model';
 import { PermissionService } from '../../core/services/permission.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/confirmar-exclusao.component';
+import { mascaraCnpj } from '../../core/utils/documento-validator';
+import { LstSituacaoCadastralComponent } from '../../shared/lst-situacao-cadastral/lst-situacao-cadastral.component';
 
 @Component({
   selector: 'app-banco-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent],
-  template: `
+  imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent, LstSituacaoCadastralComponent],
+    template: `
     <div class="content-wrapper lst-wrapper" lstSgeViewport [tamanhoPagina]="pageSize" (tamanhoPaginaChange)="aplicarTamanhoPagina($event)" [totalItens]="totalCount" [itensNaPagina]="paged?.items?.length ?? 0" [filtrosRecolhidos]="filtrosRecolhidos">
       <div class="lst-page">
         <header class="lst-cabecalho">
@@ -50,9 +47,8 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
             <div class="lst-filtros__corpo" id="lst-filtros-painel" *ngIf="!filtrosRecolhidos">
               <div class="lst-filtros__grade">
                 <div class="form-group">
-                  <label for="lst-filtro-texto">Busca</label>
-                  <input id="lst-filtro-texto" type="search" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" placeholder="Mín. 3 caracteres" />
-                </div>
+                <input type="search" aria-label="Buscar por código, nome ou ISPB" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" minlength="3" placeholder="Código, nome ou ISPB (mín. 3 caracteres)" />
+              </div>
               </div>
               <div class="lst-filtros__acoes">
                 <button type="button" class="btn-filtrar" (click)="applyFilter()">Filtrar</button>
@@ -61,14 +57,15 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
             </div>
           </div>
           <div class="lst-tabela__scroll" [class.is-loading]="loading">
-            <table class="lst-grade" *ngIf="paged?.items?.length && !erroCarregamento; else lstEmpty">
-              <thead><tr><th scope="col">CodigoBanco</th><th scope="col" class="lst-col--conteudo">DigitoVerificador</th><th scope="col" class="lst-col--conteudo">Nome</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
+            <table class="lst-grade" *ngIf="paged?.items?.length; else lstEmpty">
+              <thead><tr><th scope="col">Código</th><th scope="col" class="lst-col--conteudo">Nome</th><th scope="col">ISPB</th><th scope="col">CNPJ</th><th scope="col" class="lst-col--situacao">Situação</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
-                  <td>{{ item.codigoBanco }}</td><td class="lst-col--conteudo">{{ item.digitoVerificador }}</td><td class="lst-col--conteudo">{{ item.nome }}</td>
+                  <td>{{ item.codigoBanco }}</td><td class="lst-col--conteudo">{{ item.nome }}</td><td>{{ item.ispb }}</td><td>{{ cnpjExibicao(item.cnpj) }}</td>
+                  <td class="lst-col--situacao"><app-lst-situacao-cadastral [valor]="item.ativo" /></td>
                   <td class="lst-grade__acoes">
-                    <div class="lst-acoes" role="group" aria-label="Ações">
-                    <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
+                    <div class="lst-acoes" role="group" aria-label="Ações da linha">
+<button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="trash" [tamanho]="16" />
                     </button>
                     <button type="button" class="lst-acao lst-acao--editar" title="Editar" aria-label="Editar" (click)="goEdit(item)" (dblclick)="$event.stopPropagation()">
@@ -81,12 +78,7 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
             </table>
             <ng-template #lstEmpty>
               <p class="lst-vazio" *ngIf="loading">Carregando...</p>
-              <div class="lst-vazio lst-vazio--bloco lst-vazio--erro" *ngIf="!loading && erroCarregamento" role="alert">
-                <app-icone nome="alert-circle" [tamanho]="28" />
-                <p class="lst-vazio__titulo">Falha ao carregar</p>
-                <p class="lst-vazio__texto">{{ erroCarregamento }}</p>
-              </div>
-              <p class="lst-vazio" *ngIf="!loading && !erroCarregamento">Nenhum registro encontrado.</p>
+              <p class="lst-vazio" *ngIf="!loading">Nenhum registro encontrado.</p>
             </ng-template>
           </div>
           <div class="lst-rodape">
@@ -101,7 +93,6 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
 export class BancoListComponent implements OnInit {
   paged: PagedResult<Banco> | null = null;
   loading = false;
-  erroCarregamento: string | null = null;
   page = 1;
   pageSize = TAMANHO_PAGINA_LISTA_PADRAO;
   filtrosRecolhidos = false;
@@ -109,7 +100,6 @@ export class BancoListComponent implements OnInit {
   get totalCount(): number { return this.paged?.totalCount ?? 0; }
   get totalPages(): number { return this.paged?.totalPages ?? 0; }
 
-  constructor(private service: BancoService, private router: Router, private permissions: PermissionService, private toast: ToastService) {}
   readonly permissionKey = 'BANCO';
   confirmarExclusao = false;
   excluindo = false;
@@ -134,38 +124,43 @@ export class BancoListComponent implements OnInit {
     const item = this.itemExcluir;
     if (this.excluindo || !item) return;
     this.excluindo = true;
-    this.service.delete(item.codigoBanco!).subscribe({
+    this.service.delete(item.idBanco!).subscribe({
       next: () => {
         this.excluindo = false;
         this.confirmarExclusao = false;
         this.itemExcluir = null;
         this.loadPage(this.page);
       },
-      error: () => {
+      error: (e: unknown) => {
         this.excluindo = false;
-        this.toast.showError('Não foi possível excluir. Tente novamente.');
+        const err = (e as any)?.error;
+        this.toast.showError(typeof err === 'string' && err ? err : 'Não foi possível excluir. Tente novamente.');
       },
     });
   }
 
-
-  ngOnInit(): void { this.loadPage(1); }
-
-  applyFilter(): void { this.page = 1; this.loadPage(1); }
-  clearFilter(): void {
-    this.filterText = '';
-    this.page = 1;
-    this.loadPage(1);
+  cnpjExibicao(cnpj: string | null | undefined): string {
+    return cnpj ? mascaraCnpj(cnpj) : '';
   }
 
+  constructor(private service: BancoService, private router: Router, private permissions: PermissionService, private toast: ToastService) {}
+
+  ngOnInit(): void { agendarPrimeiraCargaLista(() => this.loadPage(1)); }
+
+  applyFilter(): void { this.page = 1; this.loadPage(1); }
+
+  clearFilter(): void { this.filterText = ''; this.applyFilter(); }
 
   loadPage(p: number): void {
     this.page = p;
-    iniciarCarregamentoLista(this);
+    this.loading = true;
     const f = this.filterText.trim().length >= 3 ? this.filterText.trim() : undefined;
     this.service.getPaged(this.page, this.pageSize, f).subscribe({
-      next: (r) => { this.paged = r; finalizarCarregamentoListaSucesso(this); },
-      error: (e) => finalizarCarregamentoListaErro(this, e)
+      next: (r) => { this.paged = r; this.loading = false; },
+      error: () => {
+        this.paged = { items: [], totalCount: 0, page: 1, pageSize: this.pageSize, totalPages: 0, hasPreviousPage: false, hasNextPage: false };
+        this.loading = false;
+      }
     });
   }
 
@@ -184,6 +179,6 @@ export class BancoListComponent implements OnInit {
 
   goNovo(): void { this.router.navigate(['/banco', 'novo']); }
   goEdit(item: Banco): void {
-    this.router.navigate(['/banco', item.codigoBanco]);
+    this.router.navigate(['/banco', item.idBanco]);
   }
 }

@@ -13,10 +13,6 @@
   opacity: 0.85;
 }
 
-.tenant-switch app-combobox-customizada {
-  display: block;
-  width: 100%;
-}
 
 .filter-row {
   display: flex;

@@ -91,6 +91,7 @@ public partial class AppDbContext
 
         ConfigureEntityKeys(modelBuilder);
         ConfigureTenantQueryFilters(modelBuilder);
+        ConfigureLegacyVarcharDecimals(modelBuilder);
 
         modelBuilder.Entity<Unidade>()
             .Property(u => u.IdUnidade)
@@ -101,10 +102,17 @@ public partial class AppDbContext
             .Property(c => c.IdCondominio)
             .ValueGeneratedOnAdd();
 
-        modelBuilder.Entity<Banco>(e =>
+        modelBuilder.Entity<Banco>(b =>
         {
-            e.Property(x => x.CodigoBanco).HasMaxLength(10);
-            e.Property(x => x.DigitoVerificador).HasMaxLength(2);
+            b.Property(e => e.IdBanco).ValueGeneratedOnAdd();
+            b.Property(e => e.CodigoBanco).HasMaxLength(3);
+            b.Property(e => e.DigitoVerificador).HasMaxLength(1);
+            b.Property(e => e.Nome).HasMaxLength(255).IsRequired();
+            b.Property(e => e.ISPB).HasMaxLength(8).IsRequired();
+            b.Property(e => e.CNPJ).HasMaxLength(14);
+            b.Property(e => e.Ativo).IsRequired();
+            b.HasIndex(e => e.CodigoBanco).IsUnique().HasDatabaseName("uq_Banco_CodigoBanco");
+            b.HasIndex(e => e.ISPB).IsUnique().HasDatabaseName("uq_Banco_ISPB");
         });
 
         base.OnModelCreating(modelBuilder);

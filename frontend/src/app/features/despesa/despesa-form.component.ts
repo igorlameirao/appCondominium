@@ -11,7 +11,6 @@ import { ToastService } from '../../core/services/toast.service';
 import { DespesaService } from './despesa.service';
 import { Despesa } from './despesa.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { FornecedorService } from '../fornecedor/fornecedor.service';
@@ -21,7 +20,7 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
 @Component({
   selector: 'app-despesa-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataComponent, CampoDataHoraComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataComponent, CampoDataHoraComponent, ComboboxCustomizadaComponent],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -37,7 +36,7 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
           <p class="cad-subtitulo">Cadastre e mantenha as informações de despesa</p>
         </header>
 
-        <section class="cad-card form-page">
+        <section class="cad-card form-page cad-card--secao-unica">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
             <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
               <app-icone nome="wallet" [tamanho]="16" />
@@ -53,62 +52,92 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
               </div>
             </div>
             <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
-            </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
-              <label>IdFornecedor *</label>
-              <app-combobox-customizada
-                [options]="fk_idFornecedor"
-                [(value)]="model.idFornecedor"
-                [disabled]="fieldDisabled('idFornecedor')" [required]="true" />
-            </div>
-            <div style="grid-column: 9 / span 4; grid-row: 1" class="form-group fg-col-4">
-              <label>DataLancamento *</label>
-              <app-campo-data-hora [(ngModel)]="model.dataLancamento" name="dataLancamento" [disabled]="fieldDisabled('dataLancamento')" [required]="true" [feedbackVisual]="true"/>
-            </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
-              <label>Descricao *</label>
-              <input type="text" [(ngModel)]="model.descricao" name="descricao" maxlength="255" [readonly]="fieldDisabled('descricao')" required />
-            </div>
-            <div style="grid-column: 1 / span 6; grid-row: 3" class="form-group fg-col-6">
-              <label>Id Concorrência</label>
-              <app-combobox-customizada
-                [options]="fk_idConcorrencia"
-                [(value)]="model.idConcorrencia"
-                [disabled]="fieldDisabled('idConcorrencia')" />
-            </div>
-            <div style="grid-column: 7 / span 2; grid-row: 3" class="form-group fg-col-2">
-              <label>DataDespesa *</label>
-              <app-campo-data [(ngModel)]="model.dataDespesa" name="dataDespesa" [disabled]="fieldDisabled('dataDespesa')" [required]="true" [feedbackVisual]="true" />
-            </div>
-            <div style="grid-column: 1 / span 6; grid-row: 4" class="form-group fg-col-6">
-              <label>idTipoDespesa *</label>
-              <app-combobox-customizada
-                [options]="fk_idTipoDespesa"
-                [(value)]="model.idTipoDespesa"
-                [disabled]="fieldDisabled('idTipoDespesa')" [required]="true" />
-            </div>
-            <div style="grid-column: 7 / span 2; grid-row: 4" class="form-group fg-col-2">
-              <label>Valor *</label>
-              <input type="number" [(ngModel)]="model.valor" name="valor" step="0.001" [readonly]="fieldDisabled('valor')" required />
-            </div>
-            <div style="grid-column: 1 / span 12; grid-row: 5" class="form-group fg-col-12">
-              <label>Observacoes</label>
-              <input type="text" [(ngModel)]="model.observacoes" name="observacoes" [readonly]="fieldDisabled('observacoes')" />
-            </div>
-          </div>
-        </form></div>
+              <div class="cad-blocos despesa-dados">
+                <div class="form-grid despesa-dados__linha despesa-dados__linha--1">
+                  <div class="form-group">
+                    <label>Fornecedor *</label>
+                    <app-combobox-customizada
+                      [options]="fk_idFornecedor"
+                      [(value)]="model.idFornecedor"
+                      [disabled]="fieldDisabled('idFornecedor')"
+                      [required]="true"
+                      ariaLabel="Fornecedor" />
+                  </div>
+                  <div class="form-group">
+                    <label>Tipo de despesa *</label>
+                    <app-combobox-customizada
+                      [options]="fk_idTipoDespesa"
+                      [(value)]="model.idTipoDespesa"
+                      [disabled]="fieldDisabled('idTipoDespesa')"
+                      [required]="true"
+                      ariaLabel="Tipo de despesa" />
+                  </div>
+                </div>
+                <div class="form-grid despesa-dados__linha despesa-dados__linha--2">
+                  <div class="form-group">
+                    <label>Descrição *</label>
+                    <input type="text" [(ngModel)]="model.descricao" name="descricao" maxlength="255" [readonly]="fieldDisabled('descricao')" required />
+                  </div>
+                </div>
+                <div class="form-grid despesa-dados__linha despesa-dados__linha--3">
+                  <div class="form-group despesa-dados__data-despesa">
+                    <label>Data da despesa *</label>
+                    <app-campo-data
+                      [(ngModel)]="model.dataDespesa"
+                      name="dataDespesa"
+                      [disabled]="fieldDisabled('dataDespesa')"
+                      [required]="true"
+                      [feedbackVisual]="true" />
+                  </div>
+                  <div class="form-group despesa-dados__lancamento">
+                    <div class="despesa-lancamento-rotulos">
+                      <label class="despesa-lancamento-rotulos__data">Data de lançamento *</label>
+                      <label class="despesa-lancamento-rotulos__hora">Hora *</label>
+                    </div>
+                    <app-campo-data-hora
+                      [(ngModel)]="model.dataLancamento"
+                      name="dataLancamento"
+                      [disabled]="fieldDisabled('dataLancamento')"
+                      [required]="true"
+                      [feedbackVisual]="true" />
+                  </div>
+                  <div class="form-group despesa-dados__valor">
+                    <label>Valor *</label>
+                    <input
+                      type="number"
+                      inputmode="decimal"
+                      [(ngModel)]="model.valor"
+                      name="valor"
+                      step="0.001"
+                      [readonly]="fieldDisabled('valor')"
+                      required />
+                  </div>
+                </div>
+                <div class="form-grid despesa-dados__linha despesa-dados__linha--4">
+                  <div class="form-group">
+                    <label>Concorrência</label>
+                    <app-combobox-customizada
+                      [options]="fk_idConcorrencia"
+                      [(value)]="model.idConcorrencia"
+                      [disabled]="fieldDisabled('idConcorrencia')"
+                      ariaLabel="Concorrência" />
+                  </div>
+                </div>
+                <div class="form-grid despesa-dados__linha despesa-dados__linha--5">
+                  <div class="form-group">
+                    <label>Observações</label>
+                    <input type="text" [(ngModel)]="model.observacoes" name="observacoes" [readonly]="fieldDisabled('observacoes')" />
+                  </div>
+                </div>
+              </div>
+            </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
-        <span class="cad-acoes__espaco"></span>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
-        <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
-      </div>
+            <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
+            <span class="cad-acoes__espaco"></span>
+            <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
+            <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
+          </div>
         </section>
       </div>
     </div>
@@ -123,6 +152,60 @@ import { TipoDespesaService } from '../tipodespesa/tipodespesa.service';
     </div>
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
+  styles: [`
+    .despesa-dados {
+      gap: 12px;
+    }
+    .despesa-dados__linha--1 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: end;
+    }
+    .despesa-dados__linha--2,
+    .despesa-dados__linha--4,
+    .despesa-dados__linha--5 {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: end;
+    }
+    .despesa-dados__linha--3 {
+      grid-template-columns: minmax(0, 28fr) minmax(0, 44fr) minmax(0, 28fr);
+      align-items: end;
+    }
+    .despesa-dados__data-despesa,
+    .despesa-dados__lancamento,
+    .despesa-dados__valor {
+      min-width: 0;
+    }
+    .despesa-lancamento-rotulos {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      width: 100%;
+      min-width: 0;
+    }
+    .despesa-lancamento-rotulos label {
+      margin-bottom: 4px;
+      min-height: 0;
+      line-height: 1.25;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+    }
+    .despesa-lancamento-rotulos__data {
+      flex: 28 1 0;
+      min-width: 0;
+    }
+    .despesa-lancamento-rotulos__hora {
+      flex: 16 1 0;
+      min-width: 0;
+      white-space: nowrap;
+    }
+    @media (max-width: 720px) {
+      .despesa-dados__linha--1,
+      .despesa-dados__linha--3 {
+        grid-template-columns: 1fr;
+      }
+    }
+  `],
 })
 export class DespesaFormComponent implements OnInit {
   model: Despesa = {} as Despesa;
@@ -163,12 +246,9 @@ export class DespesaFormComponent implements OnInit {
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
-  get pkDisplay(): string { return String(this.model.idDespesa); }
-
   ngOnInit(): void {
     if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();
 
-    
     this.pageLoad.run(this.fornecedorService.getPaged(1, 200), r => {
       this.fk_idFornecedor = r.items.map((x: any) => ({
         value: x.idFornecedor,
@@ -189,12 +269,14 @@ export class DespesaFormComponent implements OnInit {
         label: this.fkLabel_idTipoDespesa(x)
       }));
     });
+
     const idDespesa = this.route.snapshot.paramMap.get('idDespesa');
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
     if (isNovo) {
       this.isEdit = false;
       this.refreshPermissions();
       this.model.idCondominio = this.condominioCtx.idCondominio!;
+      this.preencherDataLancamentoInicial();
       return;
     }
     if (idDespesa) {
@@ -203,6 +285,15 @@ export class DespesaFormComponent implements OnInit {
       this.pageLoad.run(this.service.getById(idDespesa), (r) => this.model = r, () => this.toast.showError('Registro não encontrado.'));
     }
     this.pageLoad.seal();
+  }
+
+  /** Na inclusão, preenche data e hora de lançamento com o momento atual (não altera na edição). */
+  private preencherDataLancamentoInicial(): void {
+    if (this.model.dataLancamento) return;
+    const agora = new Date();
+    const p = (n: number) => String(n).padStart(2, '0');
+    this.model.dataLancamento =
+      `${agora.getFullYear()}-${p(agora.getMonth() + 1)}-${p(agora.getDate())}T${p(agora.getHours())}:${p(agora.getMinutes())}:00`;
   }
 
   fieldDisabled(field: string): boolean {

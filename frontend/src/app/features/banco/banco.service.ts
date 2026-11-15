@@ -17,8 +17,8 @@ export class BancoService {
     return this.http.get<PagedResult<Banco>>(this.base, { params });
   }
 
-  getById(codigoBanco: number | string): Observable<Banco> {
-    return this.http.get<Banco>(`${this.base}/${codigoBanco}`);
+  getById(idBanco: number | string): Observable<Banco> {
+    return this.http.get<Banco>(`${this.base}/${idBanco}`);
   }
 
   create(item: Banco): Observable<Banco> {
@@ -26,10 +26,10 @@ export class BancoService {
   }
 
   update(item: Banco): Observable<void> {
-    return this.http.put<void>(`${this.base}/${item.codigoBanco}`, item);
+    return this.http.put<void>(`${this.base}/${item.idBanco}`, item);
   }
 
-  delete(codigoBanco: number | string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${codigoBanco}`);
+  delete(idBanco: number | string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${idBanco}`);
   }
 }

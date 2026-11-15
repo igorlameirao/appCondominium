@@ -79,14 +79,22 @@
     </nav>
     <div class="app-premium-sidebar__foot">
       <app-sidebar-usuario />
-      <label class="tenant-switch" *ngIf="condominiosAutorizados.length > 1">
-        <span class="tenant-switch__rotulo">Condomínio</span>
-        <app-combobox-customizada
-          [options]="tenantOptions"
-          [value]="condominioCtx.idCondominio"
-          (valueChange)="onTenantChange($event)"
-          placeholder="Selecione o condomínio" />
-      </label>
+      <div class="tenant-switch" *ngIf="condominiosAutorizados.length > 1">
+        <div class="tenant-switch__texto">
+          <div class="tenant-switch__rotulo">Condomínio</div>
+          <div class="tenant-switch__nome" [title]="nomeCondominioAtivo">{{ nomeCondominioAtivo }}</div>
+        </div>
+        <button
+          type="button"
+          class="sidebar-user-block__settings tenant-switch__trocar"
+          title="Trocar condomínio"
+          aria-label="Trocar condomínio"
+          aria-haspopup="dialog"
+          [disabled]="trocandoTenant"
+          (click)="abrirModalTrocar()">
+          <app-icone nome="arrow-left-right" [tamanho]="18" />
+        </button>
+      </div>
       <button type="button" class="app-premium-btn-logout" (click)="logout()">
         <svg class="app-premium-btn-logout__icone" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 2v10"></path>
@@ -110,7 +118,12 @@
       </button>
       <div class="app-premium-topstrip-brand" *ngIf="showTopstripBrand()">Administração de Condomínios</div>
     </header>
-    <main class="app-premium-main">
+    <main
+      class="app-premium-main"
+      [class.app-premium-main--tenant-saindo]="tenantTransicao === 'saindo'"
+      [class.app-premium-main--tenant-entrando]="tenantTransicao === 'entrando'"
+      [class.app-premium-main--tenant-entrando-visivel]="mainEntrandoVisivel"
+      [class.app-premium-main--tenant-bloqueado]="trocandoTenant">
       <router-outlet />
     </main>
 
@@ -120,4 +133,28 @@
     </footer>
   </div>
 </div>
+
+<app-trocar-condominio-modal
+  [aberto]="modalTrocarAberto"
+  [condominios]="condominiosAutorizados"
+  [idAtual]="condominioCtx.idCondominio"
+  [selecionadoId]="selecaoCondominioModal"
+  (fechar)="fecharModalTrocar()"
+  (confirmar)="confirmarTrocaModal($event)"
+  (selecionadoIdChange)="onSelecionarCondominioModal($event)" />
+
+@if (tenantTransicao === 'carregando') {
+  <div class="tenant-troca-carregando" role="status" aria-live="polite" aria-busy="true">
+    <div class="loading-modal">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <p class="loading-text">
+        Alterando condomínio…
+        @if (nomeCondominioCarregando) {
+          <strong>{{ nomeCondominioCarregando }}</strong>
+        }
+      </p>
+    </div>
+  </div>
+}
+
 <app-push-toast />

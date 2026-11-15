@@ -1,9 +1,9 @@
 namespace AppCondominium.Domain.Entities;
 
-public class DadosBancarios
+public partial class DadosBancarios
 {
     public uint? Conta { get; set; }
-    public uint? CodigoBanco { get; set; }
+    public uint? IdBanco { get; set; }
     public string? Agencia { get; set; }
     public string? DigitoAgencia { get; set; }
     public string? DigitoConta { get; set; }

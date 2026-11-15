@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';
 import { Paginacao } from '../../shared/paginacao';
-import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
+import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista, agendarPrimeiraCargaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
 import {
   iniciarCarregamentoLista,
   finalizarCarregamentoListaSucesso,
@@ -149,7 +149,7 @@ export class CobrancaListComponent implements OnInit {
   }
 
 
-  ngOnInit(): void { this.loadPage(1); }
+  ngOnInit(): void { agendarPrimeiraCargaLista(() => this.loadPage(1)); }
 
   applyFilter(): void { this.page = 1; this.loadPage(1); }
   clearFilter(): void {
