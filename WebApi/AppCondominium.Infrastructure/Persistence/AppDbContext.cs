@@ -101,6 +101,12 @@ public partial class AppDbContext
             .Property(c => c.IdCondominio)
             .ValueGeneratedOnAdd();
 
+        modelBuilder.Entity<Banco>(e =>
+        {
+            e.Property(x => x.CodigoBanco).HasMaxLength(10);
+            e.Property(x => x.DigitoVerificador).HasMaxLength(2);
+        });
+
         base.OnModelCreating(modelBuilder);
     }
 }

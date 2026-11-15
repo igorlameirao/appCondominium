@@ -22,7 +22,7 @@ public class BancoController : ControllerBase
         => Ok(await _repo.GetPagedAsync(page, pageSize, filter, ct));
 
     [HttpGet("{codigoBanco}")]
-    public async Task<ActionResult<Banco>> GetById([FromRoute] uint? codigoBanco, CancellationToken ct = default)
+    public async Task<ActionResult<Banco>> GetById([FromRoute] string? codigoBanco, CancellationToken ct = default)
     {
         var item = await _repo.GetByIdAsync(codigoBanco, ct);
         return item == null ? NotFound() : Ok(item);
@@ -36,13 +36,13 @@ public class BancoController : ControllerBase
     }
 
     [HttpPut("{codigoBanco}")]
-    public async Task<IActionResult> Update([FromRoute] uint? codigoBanco, [FromBody] Banco entity, CancellationToken ct = default)
+    public async Task<IActionResult> Update([FromRoute] string? codigoBanco, [FromBody] Banco entity, CancellationToken ct = default)
     {
         await _repo.UpdateAsync(entity, ct);
         return NoContent();
     }
 
     [HttpDelete("{codigoBanco}")]
-    public async Task<IActionResult> Delete([FromRoute] uint? codigoBanco, CancellationToken ct = default)
+    public async Task<IActionResult> Delete([FromRoute] string? codigoBanco, CancellationToken ct = default)
         => await _repo.DeleteAsync(codigoBanco, ct) ? NoContent() : NotFound();
 }

@@ -2466,7 +2466,7 @@
           {
             "Campo": "CodigoBanco",
             "RotuloCampo": "CodigoBanco",
-            "TipoDado": "INT - Unsigned",
+            "TipoDado": "CHAR(3)",
             "Filtro": "Sim",
             "Obrigatorio": "Sim",
             "Indice": "Primary Key"
@@ -2474,7 +2474,7 @@
           {
             "Campo": "DigitoVerificador",
             "RotuloCampo": "DigitoVerificador",
-            "TipoDado": "INT - Unsigned",
+            "TipoDado": "CHAR(1)",
             "Obrigatorio": "Sim",
             "Indice": ""
           },

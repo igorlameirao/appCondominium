@@ -290,8 +290,8 @@ CREATE TABLE IF NOT EXISTS `OfertaConcorrencia` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `Banco` (
-  `CodigoBanco` INT UNSIGNED NOT NULL,
-  `DigitoVerificador` INT UNSIGNED NOT NULL,
+  `CodigoBanco` CHAR(3) NOT NULL,
+  `DigitoVerificador` CHAR(1) NOT NULL,
   `Nome` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`CodigoBanco`),
   UNIQUE KEY `uq_Banco_Nome` (`Nome`)

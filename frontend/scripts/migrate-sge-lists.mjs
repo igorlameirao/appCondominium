@@ -1,3 +1,8 @@
+/**
+ * Migra templates lst-* em massa. Após executar, rode:
+ *   npm run restore:list-acoes && npm run verify:list-acoes
+ * para reintroduzir Excluir/permissoes conforme baseline (6f516c6).
+ */
 import fs from 'fs';
 import path from 'path';
 
@@ -88,9 +93,14 @@ function buildTemplate(entityRoute, title, columns) {
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
                   ${colCells}
                   <td class="lst-grade__acoes">
+                    <div class="lst-acoes" role="group" aria-label="Ações">
+                    <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
+                      <app-icone nome="trash" [tamanho]="16" />
+                    </button>
                     <button type="button" class="lst-acao lst-acao--editar" title="Editar" aria-label="Editar" (click)="goEdit(item)" (dblclick)="$event.stopPropagation()">
                       <app-icone nome="pencil" [tamanho]="16" />
                     </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -109,8 +119,10 @@ function buildTemplate(entityRoute, title, columns) {
   `.replace('<motion *ngIf="!filtrosRecolhidos" />', `
             <div class="lst-filtros__corpo" id="lst-filtros-painel" *ngIf="!filtrosRecolhidos">
               <div class="lst-filtros__grade">
-                <h3 class="visually-hidden">Filtro</h3>
-                <input type="search" aria-label="Filtro" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" minlength="3" placeholder="Digite pelo menos 3 caracteres" />
+                <div class="form-group">
+                  <label for="lst-filtro-texto">Busca</label>
+                  <input id="lst-filtro-texto" type="search" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" placeholder="Mín. 3 caracteres" />
+                </div>
               </div>
               <div class="lst-filtros__acoes">
                 <button type="button" class="btn-filtrar" (click)="applyFilter()">Filtrar</button>
@@ -133,11 +145,21 @@ function patchTs(src, entityRoute) {
       "import { CommonModule } from '@angular/common';\nimport { Icone } from '../../shared/icone';"
     );
   }
-  if (!src.includes('ListaSgeViewport')) {
+  if (!src.includes("lista-sge-viewport.directive")) {
     src = src.replace(
       /import { LIST_CARD_HUG_LAYOUT_STYLES }[^\n]+\n/,
-      "import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';\nimport { Paginacao } from '../../shared/paginacao';\nimport { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';\n"
+      ''
     );
+    src = src.replace(
+      /(import { Icone }[^\n]+\n)/,
+      `$1import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';\nimport { Paginacao } from '../../shared/paginacao';\nimport { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';\n`
+    );
+    if (!src.includes("lista-sge-viewport.directive")) {
+      src = src.replace(
+        /(import { FormsModule }[^\n]+\n)/,
+        `$1import { Icone } from '../../shared/icone';\nimport { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';\nimport { Paginacao } from '../../shared/paginacao';\nimport { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';\n`
+      );
+    }
   }
   src = src.replace(/import { PaginationComponent }[^\n]+\n/, '');
   src = src.replace(/import { ListLoadingModalComponent }[^\n]+\n/, '');
@@ -146,10 +168,22 @@ function patchTs(src, entityRoute) {
     /imports: \[CommonModule, FormsModule, PaginationComponent, ListLoadingModalComponent\]/,
     'imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao]'
   );
-  if (!src.includes('filtrosRecolhidos')) {
+  if (!src.includes('filtrosRecolhidos = false')) {
     src = src.replace('pageSize = 20;', 'pageSize = TAMANHO_PAGINA_LISTA_PADRAO;\n  filtrosRecolhidos = false;');
   }
-  if (!src.includes('aplicarTamanhoPagina')) {
+  if (!src.includes('clearFilter(): void')) {
+    src = src.replace(
+      /applyFilter\(\): void \{ this\.page = 1; this\.loadPage\(1\); \}/,
+      `applyFilter(): void { this.page = 1; this.loadPage(1); }
+
+  clearFilter(): void {
+    this.filterText = '';
+    this.page = 1;
+    this.loadPage(1);
+  }`
+    );
+  }
+  if (!src.includes('aplicarTamanhoPagina(novo')) {
     const insert = `
   aplicarTamanhoPagina(novo: number): void {
     const ctx = {

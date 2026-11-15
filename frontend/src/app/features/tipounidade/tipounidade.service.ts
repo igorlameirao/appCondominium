@@ -32,4 +32,22 @@ export class TipoUnidadeService {
   delete(idTipoUnidade: number | string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${idTipoUnidade}`);
   }
+
+  private imagemUrl(idTipoUnidade: number, tipo: 'localizacao-unidade' | 'planta-baixa'): string {
+    return `${this.base}/${idTipoUnidade}/${tipo}`;
+  }
+
+  baixarImagem(idTipoUnidade: number, tipo: 'localizacao-unidade' | 'planta-baixa'): Observable<Blob> {
+    return this.http.get(this.imagemUrl(idTipoUnidade, tipo), { responseType: 'blob' });
+  }
+
+  enviarImagem(idTipoUnidade: number, tipo: 'localizacao-unidade' | 'planta-baixa', arquivo: File): Observable<void> {
+    const dados = new FormData();
+    dados.append('arquivo', arquivo, arquivo.name);
+    return this.http.put<void>(this.imagemUrl(idTipoUnidade, tipo), dados);
+  }
+
+  removerImagem(idTipoUnidade: number, tipo: 'localizacao-unidade' | 'planta-baixa'): Observable<void> {
+    return this.http.delete<void>(this.imagemUrl(idTipoUnidade, tipo));
+  }
 }

@@ -36,7 +36,7 @@ public class BancoRepository
         return new PagedResult<Banco> { Items = items, TotalCount = total, Page = page, PageSize = pageSize };
     }
 
-    public async Task<Banco?> GetByIdAsync(uint? codigoBanco, CancellationToken ct = default)
+    public async Task<Banco?> GetByIdAsync(string? codigoBanco, CancellationToken ct = default)
     {
         var q = ApplyCondominioFilter(BaseQuery());
         return await q.FirstOrDefaultAsync(e => e.CodigoBanco == codigoBanco, ct);
@@ -56,7 +56,7 @@ public class BancoRepository
         await _ctx.SaveChangesAsync(ct);
     }
 
-    public async Task<bool> DeleteAsync(uint? codigoBanco, CancellationToken ct = default)
+    public async Task<bool> DeleteAsync(string? codigoBanco, CancellationToken ct = default)
     {
         var e = await GetByIdAsync(codigoBanco, ct);
         if (e == null) return false;

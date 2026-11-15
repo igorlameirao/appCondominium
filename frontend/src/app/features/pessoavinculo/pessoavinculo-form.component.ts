@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Icone } from '../../shared/icone';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PessoaVinculoService } from './pessoavinculo.service';
 import { PessoaVinculo } from './pessoavinculo.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
@@ -17,87 +18,111 @@ import { PerfilAcessoLookupService } from '../../core/services/perfil-acesso-loo
 @Component({
   selector: 'app-pessoavinculo-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent, CampoDataComponent],
-  host: { class: 'form-page form-page--wide' },
+  imports: [CommonModule, RouterLink, Icone, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent, CampoDataComponent],
   template: `
-    <div class="form-layout">
-      <h2>{{ isEdit ? 'Editar' : 'Novo' }} Vínculo de Pessoa</h2>
-      <div class="form-scroll">
-        <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
-          <div class="form-grid">
-            
-          <div class="form-group fg-col-2">
-            <label>Id</label>
-            <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
+    <div class="content-wrapper cad-wrapper">
+      <div class="cad-page">
+        <header class="cad-cabecalho">
+          <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
+            <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <a [routerLink]="'/pessoavinculo'">Vínculos</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
+          </nav>
+          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} vínculo</h1>
+          <p class="cad-subtitulo">Vínculo de pessoa com papel, unidade e vigência no condomínio</p>
+        </header>
+        <section class="cad-card form-page">
+          <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
+            <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
+              <app-icone nome="users" [tamanho]="16" />
+              <span>Dados do vínculo</span>
+            </button>
           </div>
-          <div class="form-group fg-col-6">
+          <div class="cad-conteudo" role="tabpanel">
+            <div class="cad-secao">
+              <app-icone class="cad-secao__icone" nome="users" [tamanho]="26" />
+              <div>
+                <h2 class="cad-secao__titulo">Dados do vínculo</h2>
+                <p class="cad-secao__texto">Pessoa, papel, unidade, vigência e perfil RBAC</p>
+              </div>
+            </div>
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+          <div class="form-grid pessoa-vinculo-dados">
+          <div class="form-group pessoa-vinculo-dados__id" *ngIf="isEdit">
+            <label>Id</label>
+            <input type="text" [value]="pkDisplay" readonly class="readonly" />
+          </div>
+          <div class="form-group pessoa-vinculo-dados__pessoa" [class.pessoa-vinculo-dados__pessoa--novo]="!isEdit">
             <label>Pessoa *</label>
             <app-combobox-customizada
               [options]="fk_idPessoa"
               [(value)]="model.idPessoa"
-              [disabled]="fieldDisabled('idPessoa')" />
+              [disabled]="fieldDisabled('idPessoa')" [required]="true" />
           </div>
-          <div class="form-group fg-col-6">
+          <div class="form-group pessoa-vinculo-dados__papel">
             <label>Papel *</label>
             <app-combobox-customizada
               [options]="fk_codigoPapelVinculo"
               [(value)]="model.codigoPapelVinculo"
-              [disabled]="fieldDisabled('codigoPapelVinculo')" />
+              [disabled]="fieldDisabled('codigoPapelVinculo')" [required]="true" />
           </div>
-          <div class="form-group fg-col-6">
+          <div class="form-group pessoa-vinculo-dados__unidade">
             <label>Unidade</label>
             <app-combobox-customizada
               [options]="fk_idUnidade"
               [(value)]="model.idUnidade"
               [disabled]="fieldDisabled('idUnidade')" />
           </div>
-          <div class="form-group fg-col-6">
+          <div class="form-group pessoa-vinculo-dados__relacionada">
             <label>Pessoa relacionada</label>
             <app-combobox-customizada
               [options]="fk_idPessoaRelacionada"
               [(value)]="model.idPessoaRelacionada"
               [disabled]="fieldDisabled('idPessoaRelacionada')" />
           </div>
-          <div class="form-group fg-col-2">
+          <div class="form-group pessoa-vinculo-dados__inicio">
             <label>Início da vigência *</label>
-            <app-campo-data [(ngModel)]="model.dataInicio" name="dataInicio" [disabled]="fieldDisabled('dataInicio')" [required]="true" />
+            <app-campo-data [(ngModel)]="model.dataInicio" name="dataInicio" [feedbackVisual]="true" [disabled]="fieldDisabled('dataInicio')" [required]="true" />
           </div>
-          <div class="form-group fg-col-2">
+          <div class="form-group pessoa-vinculo-dados__fim">
             <label>Fim da vigência</label>
-            <app-campo-data [(ngModel)]="model.dataFim" name="dataFim" [disabled]="fieldDisabled('dataFim')" />
+            <app-campo-data [(ngModel)]="model.dataFim" name="dataFim" [feedbackVisual]="true" [disabled]="fieldDisabled('dataFim')" />
           </div>
-          <div class="form-group fg-col-6">
+          <div class="form-group pessoa-vinculo-dados__perfil">
             <label>Perfil RBAC</label>
             <app-combobox-customizada
               [options]="fk_idPerfil"
               [(value)]="model.idPerfil"
               [disabled]="fieldDisabled('idPerfil')" />
           </div>
-          <div class="form-group fg-col-2">
+          <div class="form-group pessoa-vinculo-dados__responsavel">
             <label>Responsável pela unidade *</label>
-            <input type="text" [(ngModel)]="model.responsavel" name="responsavel" [readonly]="fieldDisabled('responsavel')" />
+            <input type="text" [(ngModel)]="model.responsavel" name="responsavel" required [readonly]="fieldDisabled('responsavel')" />
           </div>
-          <div class="form-group fg-col-12">
+          <div class="form-group pessoa-vinculo-dados__obs">
             <label>Observação</label>
             <input type="text" [(ngModel)]="model.observacao" name="observacao" maxlength="500" [readonly]="fieldDisabled('observacao')" />
           </div>
           </div>
-        </form>
+        </form></div>
+          </div>
+          <div class="actions form-actions cad-acoes"><button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
+        <span class="cad-acoes__espaco"></span>
+        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
+        <button type="button" class="btn-excluir" *ngIf="isEdit && podeEncerrar" (click)="showEncerrarConfirm=true">Encerrar vínculo</button></div>
+        </section>
       </div>
-      <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Cancelar</button>
-        <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
-      </div>
-      <div class="msg-erro" *ngIf="formError">{{ formError }}</div>
     </div>
-    <div class="confirm-overlay" *ngIf="showDeleteConfirm">
+    <div class="confirm-overlay" *ngIf="showEncerrarConfirm">
       <div class="confirm-modal">
-        <p>Deseja realmente excluir este registro?</p>
-        <button type="button" class="btn-cancelar" (click)="showDeleteConfirm=false">Cancelar</button>
-        <button type="button" class="btn-excluir" (click)="confirmDelete()">Excluir</button>
+        <p>Encerrar este vínculo? O histórico será preservado.</p>
+        <button type="button" class="btn-cancelar" (click)="showEncerrarConfirm=false">Cancelar</button>
+        <button type="button" class="btn-excluir" (click)="confirmEncerrar()">Encerrar</button>
       </div>
     </div>
+    <p class="msg-erro cad-erro" *ngIf="formError">{{ formError }}</p>
   `
 })
 export class PessoaVinculoFormComponent implements OnInit {
@@ -105,10 +130,9 @@ export class PessoaVinculoFormComponent implements OnInit {
   isEdit = false;
   saving = false;
   formError = '';
-  showDeleteConfirm = false;
+  showEncerrarConfirm = false;
   readonly permissionKey = 'PESSOAVINCULO';
   canEdit = true;
-  canDelete = true;
   fk_idPessoa: ComboboxOption[] = [];
   fk_codigoPapelVinculo: ComboboxOption[] = [];
   fk_idUnidade: ComboboxOption[] = [];
@@ -135,9 +159,18 @@ export class PessoaVinculoFormComponent implements OnInit {
       : this.permissions.can(this.permissionKey, 'Incluir');
   }
 
+  get podeEncerrar(): boolean {
+    return this.isEdit && this.permissions.can(this.permissionKey, 'Alterar') && !this.jaEncerrado;
+  }
+
+  get jaEncerrado(): boolean {
+    if (!this.model.dataFim) return false;
+    const hoje = new Date().toISOString().slice(0, 10);
+    return this.model.dataFim < hoje;
+  }
+
   private refreshPermissions(): void {
     this.canEdit = this.podeGravar;
-    this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
   get pkDisplay(): string { return String(this.model.idVinculo); }
@@ -167,7 +200,7 @@ export class PessoaVinculoFormComponent implements OnInit {
 
     this.pessoafisicaService.getPaged(1, 200).subscribe(r => {
       this.fk_idPessoaRelacionada = r.items.map((x: any) => ({
-        value: x.idPessoaRelacionada,
+        value: x.idPessoa,
         label: this.fkLabel_idPessoaRelacionada(x)
       }));
     });
@@ -181,6 +214,8 @@ export class PessoaVinculoFormComponent implements OnInit {
       this.isEdit = false;
       this.refreshPermissions();
       this.model.idCondominio = this.condominioCtx.idCondominio!;
+      const idPessoaQ = this.route.snapshot.queryParamMap.get('idPessoa');
+      if (idPessoaQ) this.model.idPessoa = Number(idPessoaQ);
       return;
     }
     if (idVinculo) {
@@ -221,8 +256,15 @@ export class PessoaVinculoFormComponent implements OnInit {
 
   cancel(): void { this.router.navigate(['/pessoavinculo']); }
 
-  confirmDelete(): void {
-    this.service.delete(this.model.idVinculo!).subscribe({ next: () => this.router.navigate(['/pessoavinculo']) });
+  confirmEncerrar(): void {
+    if (!this.model.idVinculo) return;
+    this.service.encerrar(this.model.idVinculo).subscribe({
+      next: () => this.router.navigate(['/pessoavinculo']),
+      error: (e: unknown) => {
+        this.formError = (e as { error?: string })?.error ?? 'Não foi possível encerrar o vínculo.';
+        this.showEncerrarConfirm = false;
+      }
+    });
   }
 
   fkLabel_idPessoa(x: any): string {

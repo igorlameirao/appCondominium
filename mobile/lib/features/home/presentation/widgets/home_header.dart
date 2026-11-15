@@ -25,10 +25,10 @@ class HomeHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final primary = HomeHeader._primaryText(context);
     final vinculosAsync = ref.watch(vinculosAtivosProvider);
-    final canSwitchCondominio = vinculosAsync.maybeWhen(
-      data: (vinculos) => vinculos.length > 1,
-      orElse: () => false,
-    );
+    final vinculos = vinculosAsync.asData?.value;
+    final singleCondominio =
+        vinculos != null && vinculos.length <= 1;
+    final showCondominioSwitcher = !singleCondominio;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -72,8 +72,7 @@ class HomeHeader extends ConsumerWidget {
               const SizedBox(height: 1),
               _CondominiumNameRow(
                 name: condominium.name,
-                canSwitch: canSwitchCondominio,
-                loadingVinculos: vinculosAsync.isLoading,
+                showSwitcher: showCondominioSwitcher,
                 onTap: () => showTrocarCondominioSheet(context, ref),
               ),
             ],
@@ -106,14 +105,12 @@ class HomeHeader extends ConsumerWidget {
 class _CondominiumNameRow extends StatelessWidget {
   const _CondominiumNameRow({
     required this.name,
-    required this.canSwitch,
-    required this.loadingVinculos,
+    required this.showSwitcher,
     required this.onTap,
   });
 
   final String name;
-  final bool canSwitch;
-  final bool loadingVinculos;
+  final bool showSwitcher;
   final VoidCallback onTap;
 
   @override
@@ -132,7 +129,7 @@ class _CondominiumNameRow extends StatelessWidget {
       ),
     );
 
-    if (!canSwitch) {
+    if (!showSwitcher) {
       return Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.xs,
@@ -145,8 +142,11 @@ class _CondominiumNameRow extends StatelessWidget {
       );
     }
 
-    return InkWell(
-      onTap: loadingVinculos ? null : onTap,
+    return Semantics(
+      button: true,
+      label: 'Trocar condomínio. Atual: $name',
+      child: InkWell(
+      onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -164,6 +164,7 @@ class _CondominiumNameRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

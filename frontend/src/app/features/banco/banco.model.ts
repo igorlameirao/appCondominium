@@ -1,5 +1,5 @@
 export interface Banco {
-  codigoBanco?: number;
-  digitoVerificador?: number;
+  codigoBanco?: string;
+  digitoVerificador?: string;
   nome?: string;
 }

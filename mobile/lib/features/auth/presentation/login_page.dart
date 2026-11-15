@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -64,30 +65,54 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     FocusScope.of(context).unfocus();
     final loginState = ref.read(loginControllerProvider);
     final controller = ref.read(loginControllerProvider.notifier);
-    final success = loginState.step == LoginStep.credentials
+    final fromCredentials = loginState.step == LoginStep.credentials;
+    final success = fromCredentials
         ? await controller.submit(
             usuarioRaw: _emailController.text,
             senha: _passwordController.text,
           )
         : false;
     if (!mounted) return;
+    if (fromCredentials) {
+      _finishCredentialAutofillContext(success: success);
+    }
     if (success) {
       context.go(AppRoute.home.path);
     }
+  }
+
+  /// Informa ao SO se as credenciais do passo inicial devem ser salvas.
+  void _finishCredentialAutofillContext({required bool success}) {
+    final after = ref.read(loginControllerProvider);
+    final credentialsAccepted = success ||
+        after.step == LoginStep.selectCondominio ||
+        after.step == LoginStep.selectPerfil;
+    final shouldSave = credentialsAccepted && after.errorMessage == null;
+    TextInput.finishAutofillContext(shouldSave: shouldSave);
+  }
+
+  void _finishAutofillOnFullLoginSuccess() {
+    TextInput.finishAutofillContext(shouldSave: true);
   }
 
   Future<void> _onSelectCondominio(int id) async {
     final success =
         await ref.read(loginControllerProvider.notifier).selectCondominio(id);
     if (!mounted) return;
-    if (success) context.go(AppRoute.home.path);
+    if (success) {
+      _finishAutofillOnFullLoginSuccess();
+      context.go(AppRoute.home.path);
+    }
   }
 
   Future<void> _onSelectPerfil(int idPerfil) async {
     final success =
         await ref.read(loginControllerProvider.notifier).selectPerfil(idPerfil);
     if (!mounted) return;
-    if (success) context.go(AppRoute.home.path);
+    if (success) {
+      _finishAutofillOnFullLoginSuccess();
+      context.go(AppRoute.home.path);
+    }
   }
 
   void _showGoogleLoginComingSoon() {
@@ -285,32 +310,48 @@ class _LoginStepBody extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm + 2),
         if (loginState.step == LoginStep.credentials) ...[
-          AuthTextField(
-            hint: 'E-mail ou CPF',
-            isDark: isDark,
-            controller: emailController,
-            textInputAction: TextInputAction.next,
-          ),
-          const SizedBox(height: AppSpacing.xs + 2),
-          AuthTextField(
-            hint: 'Senha',
-            isDark: isDark,
-            obscureText: obscurePassword,
-            controller: passwordController,
-            textInputAction: TextInputAction.done,
-            suffix: IconButton(
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              onPressed: onTogglePassword,
-              icon: Icon(
-                obscurePassword
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                color: isDark
-                    ? AppColors.textMutedDark
-                    : AppColors.textMutedLight,
-                size: 18,
-              ),
+          AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AuthTextField(
+                  hint: 'E-mail ou CPF',
+                  isDark: isDark,
+                  controller: emailController,
+                  textInputAction: TextInputAction.next,
+                  keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [
+                    AutofillHints.username,
+                    AutofillHints.email,
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs + 2),
+                AuthTextField(
+                  hint: 'Senha',
+                  isDark: isDark,
+                  obscureText: obscurePassword,
+                  controller: passwordController,
+                  textInputAction: TextInputAction.done,
+                  keyboardType: TextInputType.visiblePassword,
+                  autofillHints: const [AutofillHints.password],
+                  onSubmitted: (_) => onSubmitCredentials(),
+                  suffix: IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
+                    onPressed: onTogglePassword,
+                    icon: Icon(
+                      obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      color: isDark
+                          ? AppColors.textMutedDark
+                          : AppColors.textMutedLight,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Align(

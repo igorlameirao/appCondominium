@@ -1,9 +1,16 @@
 import { Component, OnInit } from '@angular/core';
+import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';
+import { Paginacao } from '../../shared/paginacao';
+import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
+import {
+  iniciarCarregamentoLista,
+  finalizarCarregamentoListaSucesso,
+  finalizarCarregamentoListaErro,
+} from '../../shared/lista-sge/lista-sge-erro.util';
 import { CommonModule } from '@angular/common';
+import { Icone } from '../../shared/icone';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { PaginationComponent } from '../../shared/pagination/pagination.component';
-import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
+import { Router, RouterLink } from '@angular/router';
 import { PagedResult } from '../../core/models/paged-result';
 import { AutorizacaoAcessoTemporarioService } from './autorizacaoacessotemporario.service';
 import { AutorizacaoAcessoTemporario } from './autorizacaoacessotemporario.model';
@@ -11,51 +18,83 @@ import { AutorizacaoAcessoTemporario } from './autorizacaoacessotemporario.model
 @Component({
   selector: 'app-autorizacaoacessotemporario-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent, ListLoadingModalComponent],
+  imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao],
   template: `
-    <div class="list-page">
-      <div class="list-header">
-        <h2>Autorização de Acesso Temporário</h2>
-        <div class="filter-row">
-          <label>Filtro:</label>
-          <input type="text" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" />
-          <button type="button" class="btn-filtrar" (click)="applyFilter()">Filtrar</button>
-        </div>
-        <div class="top-actions">
-          <app-pagination
-            [page]="page" [totalPages]="totalPages" [totalCount]="totalCount"
-            [hasPreviousPage]="paged?.hasPreviousPage ?? false" [hasNextPage]="paged?.hasNextPage ?? false"
-            (novo)="goNovo()" [showPagination]="false" [showNovo]="true" [alignRight]="true" />
-        </div>
-      </div>
-      <div class="table-scroll-wrapper">
-        <div class="table-container">
-          <table *ngIf="paged?.items?.length; else empty">
-            <thead><tr><th>Unidade</th><th>Visitante</th><th>Nome do visitante</th><th>Documento do visitante</th><th>Autorizado por</th><th>Início</th></tr></thead>
-            <tbody>
-              <tr *ngFor="let item of paged?.items" (click)="goEdit(item)" class="row-click">
-                <td>{{ item.idUnidade }}</td><td>{{ item.idPessoaVisitante }}</td><td>{{ item.nomeVisitante }}</td><td>{{ item.documentoVisitante }}</td><td>{{ item.idPessoaAutorizador }}</td><td>{{ item.dataHoraInicio }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <ng-template #empty><p *ngIf="!loading" class="empty">Nenhum registro encontrado.</p></ng-template>
-        </div>
-      </div>
-      <div class="list-footer">
-        <app-pagination
-          [page]="page" [totalPages]="totalPages" [totalCount]="totalCount"
-          [hasPreviousPage]="paged?.hasPreviousPage ?? false" [hasNextPage]="paged?.hasNextPage ?? false"
-          (pageChange)="loadPage($event)" [showPagination]="true" [showNovo]="false" [alignRight]="true" />
+    <div class="content-wrapper lst-wrapper" lstSgeViewport [tamanhoPagina]="pageSize" (tamanhoPaginaChange)="aplicarTamanhoPagina($event)" [totalItens]="totalCount" [itensNaPagina]="paged?.items?.length ?? 0" [filtrosRecolhidos]="filtrosRecolhidos">
+      <div class="lst-page">
+        <header class="lst-cabecalho">
+          <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
+            <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <span aria-current="page">Autorização de Acesso Temporário</span>
+          </nav>
+          <div class="lst-cabecalho__linha">
+            <div>
+              <h1 class="lst-titulo">Autorização de Acesso Temporário</h1>
+              <p class="lst-subtitulo">Visualize e gerencie os autorização de acesso temporários cadastrados no AppCondominium</p>
+            </div>
+            <button type="button" class="btn-novo" (click)="goNovo()">Novo Autorização de Acesso Temporário</button>
+          </div>
+        </header>
+
+        <section class="lst-card lst-painel" [attr.aria-busy]="loading">
+          <div class="lst-filtros">
+            <button type="button" class="lst-filtros__topo" (click)="filtrosRecolhidos = !filtrosRecolhidos" [attr.aria-expanded]="!filtrosRecolhidos" aria-controls="lst-filtros-painel">
+              <span class="lst-filtros__titulo"><app-icone nome="filter" [tamanho]="18" /> Filtros</span>
+              <app-icone class="lst-filtros__seta" [nome]="filtrosRecolhidos ? 'chevron-down' : 'chevron-up'" [tamanho]="18" />
+            </button>
+            
+            <div class="lst-filtros__corpo" id="lst-filtros-painel" *ngIf="!filtrosRecolhidos">
+              <div class="lst-filtros__grade">
+                <div class="form-group">
+                  <label for="lst-filtro-texto">Busca</label>
+                  <input id="lst-filtro-texto" type="search" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" placeholder="Mín. 3 caracteres" />
+                </div>
+              </div>
+              <div class="lst-filtros__acoes">
+                <button type="button" class="btn-filtrar" (click)="applyFilter()">Filtrar</button>
+                <button type="button" class="btn-limpar" (click)="clearFilter()">Limpar</button>
+              </div>
+            </div>
+          </div>
+          <div class="lst-tabela__scroll" [class.is-loading]="loading">
+            <table class="lst-grade" *ngIf="paged?.items?.length && !erroCarregamento; else lstEmpty">
+              <thead><tr><th scope="col">Unidade</th><th scope="col" class="lst-col--conteudo">Visitante</th><th scope="col" class="lst-col--conteudo">Nome do visitante</th><th scope="col">Documento do visitante</th><th scope="col">Autorizado por</th><th scope="col">Início</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
+                  <td>{{ item.idUnidade }}</td><td class="lst-col--conteudo">{{ item.idPessoaVisitante }}</td><td class="lst-col--conteudo">{{ item.nomeVisitante }}</td><td>{{ item.documentoVisitante }}</td><td>{{ item.idPessoaAutorizador }}</td><td>{{ item.dataHoraInicio }}</td>
+                  <td class="lst-grade__acoes">
+                    <button type="button" class="lst-acao lst-acao--editar" title="Editar" aria-label="Editar" (click)="goEdit(item)" (dblclick)="$event.stopPropagation()">
+                      <app-icone nome="pencil" [tamanho]="16" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <ng-template #lstEmpty>
+              <p class="lst-vazio" *ngIf="loading">Carregando...</p>
+              <div class="lst-vazio lst-vazio--bloco lst-vazio--erro" *ngIf="!loading && erroCarregamento" role="alert">
+                <app-icone nome="alert-circle" [tamanho]="28" />
+                <p class="lst-vazio__titulo">Falha ao carregar</p>
+                <p class="lst-vazio__texto">{{ erroCarregamento }}</p>
+              </div>
+              <p class="lst-vazio" *ngIf="!loading && !erroCarregamento">Nenhum registro encontrado.</p>
+            </ng-template>
+          </div>
+          <div class="lst-rodape">
+            <app-paginacao modo="sge" rotulo="autorização de acesso temporários" [pagina]="page" [total]="totalCount" [tamanho]="pageSize" (paginaChange)="loadPage($event)" />
+          </div>
+        </section>
       </div>
     </div>
-    <app-list-loading-modal [visible]="loading" />
-  `
-})
+  `,})
 export class AutorizacaoAcessoTemporarioListComponent implements OnInit {
   paged: PagedResult<AutorizacaoAcessoTemporario> | null = null;
   loading = false;
+  erroCarregamento: string | null = null;
   page = 1;
-  pageSize = 20;
+  pageSize = TAMANHO_PAGINA_LISTA_PADRAO;
+  filtrosRecolhidos = false;
   filterText = '';
   get totalCount(): number { return this.paged?.totalCount ?? 0; }
   get totalPages(): number { return this.paged?.totalPages ?? 0; }
@@ -65,18 +104,34 @@ export class AutorizacaoAcessoTemporarioListComponent implements OnInit {
   ngOnInit(): void { this.loadPage(1); }
 
   applyFilter(): void { this.page = 1; this.loadPage(1); }
+  clearFilter(): void {
+    this.filterText = '';
+    this.page = 1;
+    this.loadPage(1);
+  }
+
 
   loadPage(p: number): void {
     this.page = p;
-    this.loading = true;
+    iniciarCarregamentoLista(this);
     const f = this.filterText.trim().length >= 3 ? this.filterText.trim() : undefined;
     this.service.getPaged(this.page, this.pageSize, f).subscribe({
-      next: (r) => { this.paged = r; this.loading = false; },
-      error: () => {
-        this.paged = { items: [], totalCount: 0, page: 1, pageSize: this.pageSize, totalPages: 0, hasPreviousPage: false, hasNextPage: false };
-        this.loading = false;
-      }
+      next: (r) => { this.paged = r; finalizarCarregamentoListaSucesso(this); },
+      error: (e) => finalizarCarregamentoListaErro(this, e)
     });
+  }
+
+  aplicarTamanhoPagina(novo: number): void {
+    const ctx = {
+      pagina: this.page,
+      total: this.totalCount,
+      tamanhoPagina: this.pageSize,
+      itens: this.paged?.items ?? [],
+      carregar: () => this.loadPage(this.page),
+    };
+    ajustarTamanhoPaginaLista(ctx, novo);
+    this.page = ctx.pagina;
+    this.pageSize = ctx.tamanhoPagina;
   }
 
   goNovo(): void { this.router.navigate(['/autorizacaoacessotemporario', 'novo']); }
