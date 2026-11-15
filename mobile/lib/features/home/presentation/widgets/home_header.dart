@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/constants/asset_paths.dart';
 import '../../../../shared/widgets/auth/coming_soon_message.dart';
+import '../../../units/application/selected_unit_notifier.dart';
+import '../../../context/presentation/context_switch_sheets.dart';
 import '../../domain/models/home_models.dart';
 
-class HomeHeader extends StatelessWidget {
+class HomeHeader extends ConsumerWidget {
   const HomeHeader({
     super.key,
     required this.condominium,
@@ -19,8 +22,13 @@ class HomeHeader extends StatelessWidget {
   final HomeResidentContext resident;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final primary = HomeHeader._primaryText(context);
+    final vinculosAsync = ref.watch(vinculosAtivosProvider);
+    final canSwitchCondominio = vinculosAsync.maybeWhen(
+      data: (vinculos) => vinculos.length > 1,
+      orElse: () => false,
+    );
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -62,37 +70,11 @@ class HomeHeader extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 1),
-              InkWell(
-                onTap: () => showComingSoonMessage(context),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xs,
-                    vertical: 2,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          condominium.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: HomeHeader._secondaryText(context),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                        ),
-                      ),
-                      Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 18,
-                        color: HomeHeader._secondaryText(context),
-                      ),
-                    ],
-                  ),
-                ),
+              _CondominiumNameRow(
+                name: condominium.name,
+                canSwitch: canSwitchCondominio,
+                loadingVinculos: vinculosAsync.isLoading,
+                onTap: () => showTrocarCondominioSheet(context, ref),
               ),
             ],
           ),
@@ -118,6 +100,72 @@ class HomeHeader extends StatelessWidget {
   static Color _secondaryText(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+  }
+}
+
+class _CondominiumNameRow extends StatelessWidget {
+  const _CondominiumNameRow({
+    required this.name,
+    required this.canSwitch,
+    required this.loadingVinculos,
+    required this.onTap,
+  });
+
+  final String name;
+  final bool canSwitch;
+  final bool loadingVinculos;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: HomeHeader._secondaryText(context),
+          fontWeight: FontWeight.w500,
+        );
+
+    final label = Flexible(
+      child: Text(
+        name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      ),
+    );
+
+    if (!canSwitch) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: 2,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [label],
+        ),
+      );
+    }
+
+    return InkWell(
+      onTap: loadingVinculos ? null : onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: 2,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            label,
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: HomeHeader._secondaryText(context),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

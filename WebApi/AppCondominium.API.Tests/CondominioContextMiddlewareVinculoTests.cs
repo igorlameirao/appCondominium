@@ -2,6 +2,7 @@ using System.Security.Claims;
 using AppCondominium.API.Middleware;
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Domain.Entities;
+using AppCondominium.Domain.Vinculos;
 using AppCondominium.Infrastructure.Persistence;
 using AppCondominium.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
@@ -82,17 +83,28 @@ public class CondominioContextMiddlewareVinculoTests
 
         db.Condominio.Add(new Condominio { IdCondominio = 1, Nome = "Alpha" });
         db.Unidade.Add(new Unidade { IdUnidade = 10, IdCondominio = 1 });
+        db.PerfilAcesso.Add(new PerfilAcesso { IdPerfil = 1, Descricao = "Administrador" });
 
-        db.PessoaCondominio.Add(new PessoaCondominio
+        db.PessoaVinculo.Add(new PessoaVinculo
         {
-            IdPessoa = 1, IdCondominio = 1, IdPerfil = 1,
-            DataInicio = ontem, DataFim = null, TipoVinculo = 1
+            IdPessoa = 1,
+            IdCondominio = 1,
+            CodigoPapelVinculo = PapelVinculoCodigos.Funcionario,
+            IdPerfil = 1,
+            DataInicio = ontem,
+            DataFim = null,
+            Responsavel = 0,
         });
 
-        db.PessoaCondominio.Add(new PessoaCondominio
+        db.PessoaVinculo.Add(new PessoaVinculo
         {
-            IdPessoa = 6, IdCondominio = 1, IdPerfil = 1,
-            DataInicio = ontem, DataFim = ontem, TipoVinculo = 1
+            IdPessoa = 6,
+            IdCondominio = 1,
+            CodigoPapelVinculo = PapelVinculoCodigos.Funcionario,
+            IdPerfil = 1,
+            DataInicio = ontem,
+            DataFim = ontem,
+            Responsavel = 0,
         });
 
         await db.SaveChangesAsync();

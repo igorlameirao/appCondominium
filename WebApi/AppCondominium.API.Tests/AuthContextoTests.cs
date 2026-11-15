@@ -1,5 +1,6 @@
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Domain.Entities;
+using AppCondominium.Domain.Vinculos;
 using AppCondominium.Infrastructure.Persistence;
 using AppCondominium.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ public class AuthContextoTests
     public async Task Minhas_unidades_lista_apenas_vinculos_ativos_no_tenant()
     {
         await using var db = await SeedMinhasUnidadesAsync();
-        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
+        var hoje = PessoaVinculoAtivo.HojeUtc();
         var condominio = new TenantFixo(1);
 
         var items = await QueryMinhasUnidadesAsync(db, condominio, 20, hoje);
@@ -28,7 +29,7 @@ public class AuthContextoTests
     public async Task Minhas_unidades_nao_expoem_outro_condominio()
     {
         await using var db = await SeedMinhasUnidadesAsync();
-        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
+        var hoje = PessoaVinculoAtivo.HojeUtc();
         var condominio = new TenantFixo(2);
 
         var items = await QueryMinhasUnidadesAsync(db, condominio, 20, hoje);
@@ -66,14 +67,17 @@ public class AuthContextoTests
     {
         var idCondominio = condominio.RequireTenantId();
         return await (
-            from pu in db.PessoaUnidade.IgnoreQueryFilters()
-            join u in db.Unidade.IgnoreQueryFilters() on pu.IdUnidade equals u.IdUnidade
+            from v in db.PessoaVinculo.IgnoreQueryFilters()
+            join u in db.Unidade.IgnoreQueryFilters() on v.IdUnidade equals u.IdUnidade
             join b in db.Bloco.IgnoreQueryFilters() on u.IdBloco equals b.IdBloco into blocoJoin
             from b in blocoJoin.DefaultIfEmpty()
-            where pu.IdPessoa == idPessoa
+            where v.IdPessoa == idPessoa
+                  && v.IdUnidade != null
+                  && v.IdCondominio == idCondominio
                   && u.IdCondominio == idCondominio
-                  && (pu.DataInicio == null || pu.DataInicio <= hoje)
-                  && (pu.DataFim == null || pu.DataFim >= hoje)
+                  && v.DataInicio != null
+                  && v.DataInicio <= hoje
+                  && (v.DataFim == null || v.DataFim >= hoje)
             orderby b != null ? b.Descricao : null, u.Numero, u.IdUnidade
             select new ValueTuple<uint, string>(
                 u.IdUnidade!.Value,
@@ -105,17 +109,23 @@ public class AuthContextoTests
         db.Unidade.Add(new Unidade { IdUnidade = 102, IdCondominio = 1, IdBloco = 1, Numero = 202 });
         db.Unidade.Add(new Unidade { IdUnidade = 201, IdCondominio = 2, IdBloco = 2, Numero = 10 });
         var inicio = new DateOnly(2024, 1, 1);
-        db.PessoaUnidade.Add(new PessoaUnidade { IdPessoa = 20, IdUnidade = 101, DataInicio = inicio });
-        db.PessoaUnidade.Add(new PessoaUnidade { IdPessoa = 20, IdUnidade = 102, DataInicio = inicio });
-        db.PessoaUnidade.Add(new PessoaUnidade { IdPessoa = 20, IdUnidade = 201, DataInicio = inicio });
-        db.Unidade.Add(new Unidade { IdUnidade = 103, IdCondominio = 1, IdBloco = 1, Numero = 303 });
-        db.PessoaUnidade.Add(new PessoaUnidade
+
+        static PessoaVinculo Vu(uint pessoa, uint condo, uint unidade, DateOnly ini, DateOnly? fim = null) => new()
         {
-            IdPessoa = 20,
-            IdUnidade = 103,
-            DataInicio = inicio,
-            DataFim = new DateOnly(2020, 1, 1),
-        });
+            IdPessoa = pessoa,
+            IdCondominio = condo,
+            IdUnidade = unidade,
+            CodigoPapelVinculo = PapelVinculoCodigos.Morador,
+            DataInicio = ini,
+            DataFim = fim,
+            Responsavel = 0,
+        };
+
+        db.PessoaVinculo.Add(Vu(20, 1, 101, inicio));
+        db.PessoaVinculo.Add(Vu(20, 1, 102, inicio));
+        db.PessoaVinculo.Add(Vu(20, 2, 201, inicio));
+        db.Unidade.Add(new Unidade { IdUnidade = 103, IdCondominio = 1, IdBloco = 1, Numero = 303 });
+        db.PessoaVinculo.Add(Vu(20, 1, 103, inicio, new DateOnly(2020, 1, 1)));
         await db.SaveChangesAsync();
         return db;
     }
@@ -134,20 +144,23 @@ public class AuthContextoTests
         db.PerfilAcesso.Add(new PerfilAcesso { IdPerfil = 3, Descricao = "Síndico" });
         db.Condominio.Add(new Condominio { IdCondominio = 1, Nome = "Alpha", Dominio = "alpha" });
         db.Unidade.Add(new Unidade { IdUnidade = 100, IdCondominio = 1 });
-        db.PessoaCondominio.Add(new PessoaCondominio
+        db.PessoaVinculo.Add(new PessoaVinculo
         {
             IdPessoa = 11,
             IdCondominio = 1,
+            CodigoPapelVinculo = PapelVinculoCodigos.Funcionario,
             IdPerfil = 1,
             DataInicio = new DateOnly(2024, 1, 1),
-            TipoVinculo = 1,
+            Responsavel = 0,
         });
-        db.PessoaUnidade.Add(new PessoaUnidade
+        db.PessoaVinculo.Add(new PessoaVinculo
         {
             IdPessoa = 11,
+            IdCondominio = 1,
+            CodigoPapelVinculo = PapelVinculoCodigos.Morador,
             IdUnidade = 100,
-            TipoVinculo = 1,
             DataInicio = new DateOnly(2024, 1, 1),
+            Responsavel = 0,
         });
         await db.SaveChangesAsync();
         return db;

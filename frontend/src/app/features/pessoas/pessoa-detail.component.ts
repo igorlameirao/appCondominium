@@ -22,6 +22,7 @@ import { PessoaPfCamposComponent } from './pessoa-pf-campos.component';
 import { PessoaPjCamposComponent } from './pessoa-pj-campos.component';
 import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
 import { ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
+import { ConviteEmitirPanelComponent } from '../convite/convite-emitir-panel.component';
 
 @Component({
   selector: 'app-pessoa-detail',
@@ -34,7 +35,8 @@ import { ComboboxOption } from '../../shared/combobox-customizada/combobox-custo
     ListLoadingModalComponent,
     PessoaEnderecosPanelComponent,
     PessoaPfCamposComponent,
-    PessoaPjCamposComponent
+    PessoaPjCamposComponent,
+    ConviteEmitirPanelComponent
   ],
   template: `
     <app-list-loading-modal [visible]="loading" />
@@ -109,6 +111,10 @@ import { ComboboxOption } from '../../shared/combobox-customizada/combobox-custo
             </div>
 
             <div class="cad-conteudo" role="tabpanel" *ngIf="aba === 'vinculos'">
+              <app-convite-emitir-panel *ngIf="tipo === 'PF'"
+                [idPessoaDestinatario]="idPessoa"
+                [emailInicial]="modelPf.email ?? ''"
+                [cpfInicial]="modelPf.cpfcnpj ?? ''" />
               <div class="cad-lista-cabecalho" *ngIf="canVinculoIncluir">
                 <a class="btn-novo" [routerLink]="['/pessoavinculo/novo']" [queryParams]="{ idPessoa }">Novo vínculo</a>
               </div>

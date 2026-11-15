@@ -300,6 +300,26 @@
   line-height: 1.35;
 }
 
+.login-card-form .login-hint--erro {
+  color: #b91c1c;
+}
+
+.login-card-form .login-forgot-link {
+  margin: 8px 0 0;
+  text-align: right;
+  font-size: 12px;
+}
+
+.login-card-form .login-forgot-link a {
+  color: #64748b;
+  text-decoration: none;
+}
+
+.login-card-form .login-forgot-link a:hover {
+  color: #0891b2;
+  text-decoration: underline;
+}
+
 .login-card-form .login-footer-link {
   margin: 20px 0 0;
   text-align: center;

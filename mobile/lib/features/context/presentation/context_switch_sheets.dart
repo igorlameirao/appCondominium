@@ -11,8 +11,29 @@ import '../../units/application/selected_unit_notifier.dart';
 import '../application/tenant_context_actions.dart';
 
 Future<void> showTrocarCondominioSheet(BuildContext context, WidgetRef ref) async {
-  final vinculos = await ref.read(vinculosAtivosProvider.future);
+  late final List<CondominioVinculoDto> vinculos;
+  try {
+    vinculos = await ref.read(vinculosAtivosProvider.future);
+  } catch (_) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Não foi possível carregar seus condomínios. Tente novamente.',
+        ),
+      ),
+    );
+    return;
+  }
   if (!context.mounted) return;
+  if (vinculos.length <= 1) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Você está vinculado apenas a este condomínio.'),
+      ),
+    );
+    return;
+  }
   final atual = ref.read(authSessionProvider).idCondominio;
 
   await showModalBottomSheet<void>(

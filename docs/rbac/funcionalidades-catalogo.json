@@ -179,6 +179,30 @@
       "status": "ativo"
     },
     {
+      "permissionKey": "CONVITEACESSO",
+      "displayName": "Convites de acesso",
+      "module": "Pessoas",
+      "tipo": "Administracao",
+      "route": "/convites",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "FILAEMAIL",
+      "displayName": "Fila de e-mails",
+      "module": "Administração",
+      "tipo": "Administracao",
+      "route": "/fila-email",
+      "status": "ativo"
+    },
+    {
+      "permissionKey": "CONFIGURACAOEMAIL",
+      "displayName": "Configuração SMTP",
+      "module": "Administração",
+      "tipo": "Administracao",
+      "route": "/configuracao-email",
+      "status": "ativo"
+    },
+    {
       "permissionKey": "EQUIPAMENTO",
       "displayName": "Equipamento",
       "module": "Outros",

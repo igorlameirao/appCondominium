@@ -41,11 +41,23 @@ public class FornecedorRepository
         return await q.FirstOrDefaultAsync(e => e.IdFornecedor == idFornecedor, ct);
     }
 
-    public Task<Fornecedor> AddAsync(Fornecedor entity, CancellationToken ct = default)
-        => throw new InvalidOperationException("Use POST api/fornecedor/cadastro-integrado para incluir fornecedor.");
+    public async Task<Fornecedor> AddAsync(Fornecedor entity, CancellationToken ct = default)
+    {
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
 
-    public Task UpdateAsync(Fornecedor entity, CancellationToken ct = default)
-        => throw new InvalidOperationException("Use PUT api/fornecedor/cadastro-integrado/{id} para alterar fornecedor.");
+        await _ctx.Set<Fornecedor>().AddAsync(entity, ct);
+        await _ctx.SaveChangesAsync(ct);
+        return entity;
+    }
+
+    public async Task UpdateAsync(Fornecedor entity, CancellationToken ct = default)
+    {
+        var tenantId = _condominio.RequireTenantId();
+        entity.IdCondominio = tenantId;
+        _ctx.Set<Fornecedor>().Update(entity);
+        await _ctx.SaveChangesAsync(ct);
+    }
 
     public async Task<bool> DeleteAsync(uint? idFornecedor, CancellationToken ct = default)
     {

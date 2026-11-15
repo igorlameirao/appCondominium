@@ -19,7 +19,6 @@ import '../../../shared/widgets/auth/auth_header.dart';
 import '../../../shared/widgets/auth/auth_or_divider.dart';
 import '../../../shared/widgets/auth/auth_outline_button.dart';
 import '../../../shared/widgets/auth/auth_text_field.dart';
-import '../../../shared/widgets/auth/coming_soon_message.dart';
 
 /// Tela de login — autenticação real via API (`/api/auth/vinculos` + `/api/auth/login`).
 class LoginPage extends ConsumerStatefulWidget {
@@ -160,8 +159,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 onVoltar: () => ref
                                     .read(loginControllerProvider.notifier)
                                     .voltar(),
-                                onForgotPassword: () =>
-                                    showComingSoonMessage(context),
+                                onForgotPassword: () => context.push(
+                                  AppRoute.recuperacaoSenhaEsqueci.path,
+                                ),
                                 onGoogle: _showGoogleLoginComingSoon,
                               ),
                             ),

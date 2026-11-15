@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -22,7 +22,7 @@ import { LoginTrilha } from './login-trilha';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, ComboboxCustomizadaComponent, LoginPassosComponent, LoginSelecaoPerfilComponent],
+  imports: [FormsModule, RouterLink, ComboboxCustomizadaComponent, LoginPassosComponent, LoginSelecaoPerfilComponent],
   template: `
     <div class="login-screen">
       <img
@@ -70,6 +70,9 @@ import { LoginTrilha } from './login-trilha';
                               <label for="senha">Senha</label>
                               <input id="senha" name="senha" type="password" [(ngModel)]="senha" placeholder="••••••••" required autocomplete="current-password" />
                             </div>
+                            <p class="login-forgot-link">
+                              <a routerLink="/recuperacao-senha/esqueci">Esqueci minha senha</a>
+                            </p>
                             <div class="actions">
                               <button class="btn-entrar" type="submit" [disabled]="enviando || trilha.animando">{{ enviando && trilha.atual === 'LOGIN' ? 'Entrando...' : 'Entrar' }}</button>
                             </div>

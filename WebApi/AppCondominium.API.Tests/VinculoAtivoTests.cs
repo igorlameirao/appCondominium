@@ -1,5 +1,6 @@
 using AppCondominium.Domain;
 using AppCondominium.Domain.Entities;
+using AppCondominium.Domain.Vinculos;
 using AppCondominium.Infrastructure.Persistence;
 using AppCondominium.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -97,42 +98,31 @@ public class VinculoAtivoTests
         db.Unidade.Add(new Unidade { IdUnidade = 20, IdCondominio = 2 });
         db.PerfilAcesso.Add(new PerfilAcesso { IdPerfil = 2, Descricao = "Morador" });
 
-        db.PessoaCondominio.Add(new PessoaCondominio
+        static PessoaVinculo V(
+            uint pessoa,
+            uint? condo,
+            uint? unidade,
+            DateOnly ini,
+            DateOnly? fim,
+            uint? perfil = 2) => new()
         {
-            IdPessoa = 1, IdCondominio = 1, IdPerfil = 2,
-            DataInicio = Ontem, DataFim = null, TipoVinculo = 1
-        });
+            IdPessoa = pessoa,
+            IdCondominio = condo,
+            IdUnidade = unidade,
+            CodigoPapelVinculo = unidade is null ? PapelVinculoCodigos.Funcionario : PapelVinculoCodigos.Morador,
+            IdPerfil = unidade is null ? perfil : null,
+            DataInicio = ini,
+            DataFim = fim,
+            Responsavel = 0,
+        };
 
-        db.PessoaCondominio.Add(new PessoaCondominio
-        {
-            IdPessoa = 2, IdCondominio = 1, IdPerfil = 2,
-            DataInicio = Ontem, DataFim = Ontem, TipoVinculo = 1
-        });
-
-        db.PessoaUnidade.Add(new PessoaUnidade
-        {
-            IdPessoa = 3, IdUnidade = 10, DataInicio = Ontem, DataFim = Ontem, TipoVinculo = 1
-        });
-
-        db.PessoaCondominio.Add(new PessoaCondominio
-        {
-            IdPessoa = 4, IdCondominio = 1, IdPerfil = 2,
-            DataInicio = Ontem, DataFim = Ontem, TipoVinculo = 1
-        });
-        db.PessoaUnidade.Add(new PessoaUnidade
-        {
-            IdPessoa = 4, IdUnidade = 10, DataInicio = Ontem, DataFim = null, TipoVinculo = 1
-        });
-
-        db.PessoaCondominio.Add(new PessoaCondominio
-        {
-            IdPessoa = 5, IdCondominio = 1, IdPerfil = 2,
-            DataInicio = Ontem, DataFim = Ontem, TipoVinculo = 1
-        });
-        db.PessoaUnidade.Add(new PessoaUnidade
-        {
-            IdPessoa = 5, IdUnidade = 10, DataInicio = Ontem, DataFim = Ontem, TipoVinculo = 1
-        });
+        db.PessoaVinculo.Add(V(1, 1, null, Ontem, null));
+        db.PessoaVinculo.Add(V(2, 1, null, Ontem, Ontem));
+        db.PessoaVinculo.Add(V(3, 1, 10, Ontem, Ontem, perfil: null));
+        db.PessoaVinculo.Add(V(4, 1, null, Ontem, Ontem));
+        db.PessoaVinculo.Add(V(4, 1, 10, Ontem, null, perfil: null));
+        db.PessoaVinculo.Add(V(5, 1, null, Ontem, Ontem));
+        db.PessoaVinculo.Add(V(5, 1, 10, Ontem, Ontem, perfil: null));
 
         await db.SaveChangesAsync();
         return db;

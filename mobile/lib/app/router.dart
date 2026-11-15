@@ -8,6 +8,9 @@ import '../features/auth/presentation/login_page.dart';
 import '../features/home/presentation/home_page.dart';
 import '../features/home/presentation/home_pending_list_page.dart';
 import '../features/splash/presentation/splash_page.dart';
+import '../features/convite/presentation/convite_aceite_page.dart';
+import '../features/auth/presentation/forgot_password_page.dart';
+import '../features/auth/presentation/reset_password_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -15,7 +18,10 @@ enum AppRoute {
   splash('/'),
   login('/login'),
   home('/home'),
-  homePendencias('/home/pendencias');
+  homePendencias('/home/pendencias'),
+  conviteAceitar('/convite/aceitar'),
+  recuperacaoSenhaEsqueci('/recuperacao-senha/esqueci'),
+  recuperacaoSenhaRedefinir('/recuperacao-senha/redefinir');
 
   const AppRoute(this.path);
   final String path;
@@ -35,28 +41,34 @@ final _routerRefreshListenableProvider = Provider<ValueNotifier<int>>((ref) {
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(_routerRefreshListenableProvider);
-  final auth = ref.watch(authSessionProvider);
-  final bootstrap = ref.watch(authBootstrapProvider);
 
-  return GoRouter(
+  final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: AppRoute.login.path,
+    initialLocation: AppRoute.splash.path,
     refreshListenable: refresh,
     redirect: (context, state) {
+      final bootstrap = ref.read(authBootstrapProvider);
       if (bootstrap.isLoading) return null;
 
+      final auth = ref.read(authSessionProvider);
       final location = state.matchedLocation;
       final onLogin = location == AppRoute.login.path;
       final onSplash = location == AppRoute.splash.path;
 
+      // A SplashPage controla saída (tempo mínimo + restauração de sessão).
+      if (onSplash) return null;
+      final onConvite = location.startsWith(AppRoute.conviteAceitar.path);
+      final onRecuperacaoSenha =
+          location.startsWith('/recuperacao-senha/');
+
       if (auth.status == AuthStatus.unknown) return null;
 
       if (!auth.isAuthenticated) {
-        if (onLogin || onSplash) return null;
+        if (onLogin || onSplash || onConvite || onRecuperacaoSenha) return null;
         return AppRoute.login.path;
       }
 
-      if (onLogin || onSplash) return AppRoute.home.path;
+      if (onLogin) return AppRoute.home.path;
       return null;
     },
     routes: [
@@ -69,6 +81,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.login.path,
         name: AppRoute.login.name,
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoute.conviteAceitar.path,
+        name: AppRoute.conviteAceitar.name,
+        builder: (context, state) => ConviteAceitePage(
+          token: state.uri.queryParameters['token'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: AppRoute.recuperacaoSenhaEsqueci.path,
+        name: AppRoute.recuperacaoSenhaEsqueci.name,
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: AppRoute.recuperacaoSenhaRedefinir.path,
+        name: AppRoute.recuperacaoSenhaRedefinir.name,
+        builder: (context, state) => ResetPasswordPage(
+          token: state.uri.queryParameters['token'] ?? '',
+        ),
       ),
       GoRoute(
         path: AppRoute.home.path,
@@ -84,4 +115,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+  ref.onDispose(router.dispose);
+  return router;
 });

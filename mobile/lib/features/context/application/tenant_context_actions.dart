@@ -50,6 +50,7 @@ class TenantContextActions {
             condominioNome: _ref.read(authSessionProvider).condominioNome,
           );
       invalidateTenantScopedCachesFromRef(_ref);
+      await _ref.read(selectedUnitProvider.notifier).refreshAfterLogin();
       return null;
     } on AppFailure catch (e) {
       return e.message;

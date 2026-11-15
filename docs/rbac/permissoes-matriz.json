@@ -315,6 +315,20 @@
       }
     },
     {
+      "permissionKey": "CONVITEACESSO",
+      "displayName": "Convites de acesso",
+      "permissions": {
+        "Visualizar": "Sim",
+        "Incluir": "Sim",
+        "Alterar": "Sim",
+        "Excluir": "Não",
+        "Exportar": "Não Aplicável",
+        "Importar": "Não Aplicável",
+        "Aprovar": "Não Aplicável",
+        "Imprimir": "Não Aplicável"
+      }
+    },
+    {
       "permissionKey": "EQUIPAMENTO",
       "displayName": "Equipamento",
       "permissions": {

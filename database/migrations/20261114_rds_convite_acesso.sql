@@ -1,0 +1,11 @@
+-- Migração incremental — tabela ConviteAcesso no schema condominium (AWS RDS).
+-- Não recria o banco nem altera dados existentes. Idempotente via CREATE TABLE IF NOT EXISTS
+-- e ADD INDEX quando aplicável. Execute via AppCondominium.Tools (migrate-convite-acesso).
+--
+-- Pré-requisitos no RDS: tabelas referenciadas (Condominio, Pessoa, PapelVinculo, PerfilAcesso,
+-- Unidade, PessoaVinculo). A connection string em appsettings/UserSecrets deve apontar para
+-- database=condominium; o utilitário aborta se SELECT DATABASE() ≠ condominium.
+--
+-- RBAC: este script não sincroniza PermissionKey nem PerfilPermissao. A chave CONVITEACESSO
+-- sobe com a API (PermissionCatalogSync + docs/rbac). Perfis Síndico e Funcionário Administração
+-- recebem concessões do catálogo; usuários com role Administrador ou claim AcessoTotal ignoram RBAC na API.

@@ -9,6 +9,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/pump_splash.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -35,6 +37,7 @@ void main() {
       ),
     );
     await tester.pump();
+    await pumpPastSplashMinimum(tester);
     await tester.pumpAndSettle();
 
     expect(find.text('Bem-vindo(a)!'), findsOneWidget);

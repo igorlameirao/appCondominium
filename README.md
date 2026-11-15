@@ -83,6 +83,22 @@ dotnet run --project AppCondominium.Tools -- migrate-blobs-to-s3 --drop-columns
 
 O script equivalente está em `database/migrations/20261111_drop_blob_columns.sql`. Instalações novas usam `database/schema.sql` já sem essas colunas.
 
+### Migrações incrementais no RDS (`condominium`)
+
+Os comandos abaixo usam a mesma connection string da API (`AppCondominium.API/appsettings` + UserSecrets). Cada um executa **apenas** o fluxo indicado (não migra BLOBs nem altera RBAC). Antes de qualquer DDL, o utilitário confirma `SELECT DATABASE() = condominium`.
+
+```powershell
+cd WebApi
+# PessoaVinculo / Fornecedor / FKs relacionadas
+dotnet run --project AppCondominium.Tools -- migrate-pessoa-vinculo
+dotnet run --project AppCondominium.Tools -- inspect-pessoa-vinculo
+
+# Tabela ConviteAcesso (índices alinhados a database/schema.sql)
+dotnet run --project AppCondominium.Tools -- migrate-convite-acesso
+```
+
+Referência SQL: `database/migrations/20261115_rds_pessoa_vinculo_incremental.sql`, `database/migrations/20261114_rds_convite_acesso.sql`. Código de saída `1` indica divergência estrutural reportada nos logs (tabela já existente com schema incompleto).
+
 ```powershell
 cd WebApi
 dotnet run --project AppCondominium.API

@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Icone } from '../../shared/icone';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AutorizacaoAcessoTemporarioService } from './autorizacaoacessotemporario.service';
 import { AutorizacaoAcessoTemporario } from './autorizacaoacessotemporario.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
@@ -16,37 +15,13 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
 @Component({
   selector: 'app-autorizacaoacessotemporario-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent, CampoDataHoraComponent],
+  imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent, CampoDataHoraComponent],
+  host: { class: 'form-page form-page--wide' },
   template: `
-    <div class="content-wrapper cad-wrapper">
-      <div class="cad-page">
-        <header class="cad-cabecalho">
-          <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
-            <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
-            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
-            <a [routerLink]="'/autorizacaoacessotemporario'">Autorização de Acesso Temporário</a>
-            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
-            <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
-          </nav>
-          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Autorização de Acesso Temporário</h1>
-          <p class="cad-subtitulo">Cadastre e mantenha as informações de autorização de acesso temporário</p>
-        </header>
-        <section class="cad-card form-page">
-          <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
-            <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
-              <app-icone nome="key" [tamanho]="16" />
-              <span>Dados de Autorização de Acesso Temporário</span>
-            </button>
-          </div>
-          <div class="cad-conteudo" role="tabpanel">
-            <div class="cad-secao">
-              <app-icone class="cad-secao__icone" nome="key" [tamanho]="26" />
-              <div>
-                <h2 class="cad-secao__titulo">Dados de Autorização de Acesso Temporário</h2>
-                <p class="cad-secao__texto">Informe as informações principais</p>
-              </div>
-            </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+    <div class="form-layout">
+      <h2>{{ isEdit ? 'Editar' : 'Novo' }} Autorização de Acesso Temporário</h2>
+      <div class="form-scroll">
+        <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
           <div class="form-grid">
             
           <div class="form-group fg-col-2">
@@ -84,11 +59,11 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
           </div>
           <div class="form-group fg-col-4">
             <label>Início *</label>
-            <app-campo-data-hora [(ngModel)]="model.dataHoraInicio" name="dataHoraInicio" [feedbackVisual]="true" [disabled]="fieldDisabled('dataHoraInicio')" [required]="true" />
+            <app-campo-data-hora [(ngModel)]="model.dataHoraInicio" name="dataHoraInicio" [disabled]="fieldDisabled('dataHoraInicio')" [required]="true" />
           </div>
           <div class="form-group fg-col-4">
             <label>Fim *</label>
-            <app-campo-data-hora [(ngModel)]="model.dataHoraFim" name="dataHoraFim" [feedbackVisual]="true" [disabled]="fieldDisabled('dataHoraFim')" [required]="true" />
+            <app-campo-data-hora [(ngModel)]="model.dataHoraFim" name="dataHoraFim" [disabled]="fieldDisabled('dataHoraFim')" [required]="true" />
           </div>
           <div class="form-group fg-col-2">
             <label>Tipo de acesso *</label>
@@ -102,14 +77,14 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
             <input type="text" [(ngModel)]="model.motivo" name="motivo" maxlength="500" [readonly]="fieldDisabled('motivo')" />
           </div>
           </div>
-        </form></div>
-          </div>
-          <div class="actions form-actions cad-acoes"><button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Salvar</button>
-        <span class="cad-acoes__espaco"></span>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
-        <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button></div>
-        </section>
+        </form>
       </div>
+      <div class="actions form-actions">
+        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
+        <button type="button" class="btn-cancelar" (click)="cancel()">Cancelar</button>
+        <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
+      </div>
+      <div class="msg-erro" *ngIf="formError">{{ formError }}</div>
     </div>
     <div class="confirm-overlay" *ngIf="showDeleteConfirm">
       <div class="confirm-modal">
@@ -118,7 +93,6 @@ import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
         <button type="button" class="btn-excluir" (click)="confirmDelete()">Excluir</button>
       </div>
     </div>
-    <p class="msg-erro cad-erro" *ngIf="formError">{{ formError }}</p>
   `
 })
 export class AutorizacaoAcessoTemporarioFormComponent implements OnInit {

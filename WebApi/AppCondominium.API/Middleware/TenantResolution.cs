@@ -43,6 +43,8 @@ public static class TenantResolution
             || value.StartsWith("/api/lookup/condominio-por-dominio", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/api/lookup/condominio-resumo/", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/api/lookup/configuracao-por-condominio/", StringComparison.OrdinalIgnoreCase)
-            || value.StartsWith("/api/lookup/condominios/", StringComparison.OrdinalIgnoreCase);
+            || value.StartsWith("/api/lookup/condominios/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/api/convites/validar", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/api/convites/aceitar", StringComparison.OrdinalIgnoreCase);
     }
 }

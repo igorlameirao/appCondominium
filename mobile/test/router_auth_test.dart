@@ -16,6 +16,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/fake_jwt.dart';
+import 'support/pump_splash.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -93,6 +94,7 @@ void main() {
         ),
       ),
     );
+    await pumpPastSplashMinimum(tester);
     await tester.pumpAndSettle();
 
     expect(find.byType(HomePage), findsOneWidget);
@@ -135,6 +137,7 @@ void main() {
         ),
       ),
     );
+    await pumpPastSplashMinimum(tester);
     await tester.pumpAndSettle();
 
     expect(find.byType(LoginPage), findsOneWidget);

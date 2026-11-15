@@ -11,4 +11,11 @@ abstract final class ApiPaths {
   static const condominio = '/api/condominio';
   static const permissao = '/api/permissao';
   static const lookup = '/api/lookup';
+  static const convitesValidar = '/api/convites/validar';
+  static const convitesAceitar = '/api/convites/aceitar';
+  static const recuperacaoSenhaSolicitar =
+      '/api/auth/recuperacao-senha/solicitar';
+  static const recuperacaoSenhaValidar = '/api/auth/recuperacao-senha/validar';
+  static const recuperacaoSenhaRedefinir =
+      '/api/auth/recuperacao-senha/redefinir';
 }

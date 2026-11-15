@@ -52,7 +52,8 @@ export class AppComponent implements OnInit {
       { label: 'Pessoas', route: '/pessoas' },
       { label: 'Vínculos', route: '/pessoavinculo' },
       { label: 'Fornecedores', route: '/fornecedor' },
-      { label: 'Autorizações Temporárias', route: '/autorizacaoacessotemporario' }
+      { label: 'Autorizações Temporárias', route: '/autorizacaoacessotemporario' },
+      { label: 'Convites', route: '/convites' }
     ]},
     { label: 'Financeiro', icon: 'wallet', links: [
       { label: 'Banco', route: '/banco' }, { label: 'Dados Bancários', route: '/dadosbancarios' },
@@ -69,6 +70,10 @@ export class AppComponent implements OnInit {
     { label: 'Outros', icon: 'layers', links: [
       { label: 'Guarda Encomenda', route: '/guardaencomenda' }, { label: 'Local', route: '/local' },
       { label: 'Aluguel Equipamento', route: '/aluguelequipamento' }
+    ]},
+    { label: 'Administração', icon: 'settings', links: [
+      { label: 'Fila de E-mails', route: '/fila-email' },
+      { label: 'Configuração SMTP', route: '/configuracao-email' }
     ]},
     { label: 'Permissões', icon: 'shield', links: [
       { label: 'Por perfil', route: '/gerenciamento-permissoes/perfil' },
@@ -168,7 +173,9 @@ export class AppComponent implements OnInit {
     if (!this.hugShell()) return false;
     const segs = this.routePath().split('/').filter(Boolean);
     if (segs.length !== 1) return false;
-    return segs[0] !== 'inicio' && !segs[0]?.startsWith('gerenciamento-permissoes');
+    return segs[0] !== 'inicio'
+      && segs[0] !== 'configuracao-email'
+      && !segs[0]?.startsWith('gerenciamento-permissoes');
   }
 
   isEntityFormRoute(): boolean {
@@ -192,6 +199,9 @@ export class AppComponent implements OnInit {
 
   private canVisualizarRota(route: string): boolean {
     const path = route.replace(/^\//, '').toLowerCase();
+    if (path === 'fila-email' || path === 'configuracao-email') {
+      return this.permissions.acessoTotal;
+    }
     if (path === 'pessoas') {
       return this.permissions.canAny(['PESSOAFISICA', 'PESSOAJURIDICA'], 'Visualizar');
     }

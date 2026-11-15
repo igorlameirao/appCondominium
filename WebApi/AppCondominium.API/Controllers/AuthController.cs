@@ -5,6 +5,7 @@ using AppCondominium.API.Authorization;
 using AppCondominium.Application.Authorization;
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Domain.Entities;
+using AppCondominium.Domain.Vinculos;
 using AppCondominium.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -191,21 +192,29 @@ public class AuthController : ControllerBase
             return Forbid();
         }
 
-        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
+        var hoje = PessoaVinculoAtivo.HojeUtc();
         var items = await (
-            from pu in _db.PessoaUnidade.IgnoreQueryFilters()
-            join u in _db.Unidade.IgnoreQueryFilters() on pu.IdUnidade equals u.IdUnidade
+            from v in _db.PessoaVinculo.IgnoreQueryFilters()
+            join u in _db.Unidade.IgnoreQueryFilters() on v.IdUnidade equals u.IdUnidade
             join b in _db.Bloco.IgnoreQueryFilters() on u.IdBloco equals b.IdBloco into blocoJoin
             from b in blocoJoin.DefaultIfEmpty()
-            where pu.IdPessoa == idPessoa
+            where v.IdPessoa == idPessoa
+                  && v.IdUnidade != null
+                  && v.IdCondominio == idCondominio
                   && u.IdCondominio == idCondominio
-                  && (pu.DataInicio == null || pu.DataInicio <= hoje)
-                  && (pu.DataFim == null || pu.DataFim >= hoje)
+                  && v.DataInicio != null
+                  && v.DataInicio <= hoje
+                  && (v.DataFim == null || v.DataFim >= hoje)
             orderby b != null ? b.Descricao : null, u.Numero, u.IdUnidade
             select new MinhaUnidadeItem(
                 u.IdUnidade!.Value,
                 FormatarDescricaoUnidade(b != null ? b.Descricao : null, u.Numero)))
             .ToListAsync(ct);
+
+        items = items
+            .GroupBy(i => i.IdUnidade)
+            .Select(g => g.First())
+            .ToList();
 
         return Ok(items);
     }

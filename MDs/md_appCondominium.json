@@ -1739,6 +1739,257 @@
         "EscopoTenant": "Condominio"
       },
       {
+        "Entidade": "ConviteAcesso",
+        "RotuloEntidade": "Convite de Acesso",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [
+          "Administrador",
+          "Síndico",
+          "Funcionário Administração"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdConvite",
+            "RotuloCampo": "Id Convite",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Filtro": "Sim",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Condomínio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "IdPessoaDestinatario",
+            "RotuloCampo": "Pessoa destinatária",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "EmailDestinatario",
+            "RotuloCampo": "E-mail do destinatário",
+            "TipoDado": "VARCHAR(255)",
+            "Obrigatorio": "Sim",
+            "Filtro": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "CpfDestinatario",
+            "RotuloCampo": "CPF normalizado",
+            "TipoDado": "VARCHAR(11)",
+            "Obrigatorio": "Não",
+            "Filtro": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "TipoConvite",
+            "RotuloCampo": "Tipo de convite",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Ativação conta nova",
+              "Ativação credencial existente",
+              "Vínculo condomínio adicional"
+            ],
+            "Indice": "Index"
+          },
+          {
+            "Campo": "CodigoPapelVinculo",
+            "RotuloCampo": "Papel operacional",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "PapelVinculo"
+          },
+          {
+            "Campo": "IdPerfil",
+            "RotuloCampo": "Perfil RBAC",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "PerfilAcesso"
+          },
+          {
+            "Campo": "IdUnidade",
+            "RotuloCampo": "Unidade",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Filtro": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Unidade"
+          },
+          {
+            "Campo": "IdPessoaRelacionada",
+            "RotuloCampo": "Pessoa relacionada",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "TokenHash",
+            "RotuloCampo": "Hash do token",
+            "TipoDado": "VARCHAR(64)",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key"
+          },
+          {
+            "Campo": "DataEmissao",
+            "RotuloCampo": "Emissão",
+            "TipoDado": "DATETIME",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "DataExpiracao",
+            "RotuloCampo": "Expiração",
+            "TipoDado": "DATETIME",
+            "Obrigatorio": "Sim",
+            "Indice": "Index"
+          },
+          {
+            "Campo": "Estado",
+            "RotuloCampo": "Estado",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Pendente",
+              "Aceito",
+              "Expirado",
+              "Revogado"
+            ],
+            "Indice": "Index"
+          },
+          {
+            "Campo": "IdPessoaEmissor",
+            "RotuloCampo": "Emitido por",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "DataAceite",
+            "RotuloCampo": "Data de aceite",
+            "TipoDado": "DATETIME",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "IdVinculoCriado",
+            "RotuloCampo": "Vínculo criado",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "PessoaVinculo"
+          },
+          {
+            "Campo": "IdConviteAnterior",
+            "RotuloCampo": "Convite substituído",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Não",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "ConviteAcesso"
+          },
+          {
+            "Campo": "EstadoEnvioEmail",
+            "RotuloCampo": "Estado do envio",
+            "TipoDado": "TinyInt(1) - Unsigned",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Pendente",
+              "Enviado",
+              "Falha"
+            ],
+            "Indice": "Index"
+          },
+          {
+            "Campo": "TentativasEnvioEmail",
+            "RotuloCampo": "Tentativas de envio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "UltimoErroEnvio",
+            "RotuloCampo": "Último erro de envio",
+            "TipoDado": "VARCHAR(500)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "Observacao",
+            "RotuloCampo": "Observação",
+            "TipoDado": "VARCHAR(500)",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          }
+        ],
+        "IndicesEspeciais": [
+          {
+            "Indice": "IdxConviteAcessoPendenteDest",
+            "Tipo": "Index",
+            "Campos": [
+              "IdCondominio",
+              "EmailDestinatario",
+              "Estado"
+            ],
+            "MensagemErroViolacao": "Consulta de convites pendentes por condomínio e e-mail."
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - ConviteAcesso 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Convite pendente não concede acesso nem cria PessoaVinculo. O vínculo operacional e o perfil RBAC só são aplicados no aceite explícito do destinatário, em transação única com consumo do token."
+          },
+          {
+            "Regra": "RN - ConviteAcesso 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Token de convite é criptograficamente aleatório (mínimo 32 bytes), uso único, com expiração configurável. Persistir somente hash SHA-256; nunca registrar o token em texto claro em logs ou banco."
+          },
+          {
+            "Regra": "RN - ConviteAcesso 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Reenvio invalida o token anterior (novo hash no mesmo convite ou revogação do convite anterior com IdConviteAnterior). Revogação torna o convite imediatamente inválido."
+          },
+          {
+            "Regra": "RN - ConviteAcesso 04",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Aceite de conta nova cria ou reutiliza Pessoa única (CPF/e-mail validados), define senha somente quando não houver credencial ativa e cria PessoaVinculo conforme dados fixados no convite. Não aceitar IdPerfil, IdCondominio ou papel enviados livremente no payload de aceite."
+          },
+          {
+            "Regra": "RN - ConviteAcesso 05",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Pessoa com conta ativa aceita convite para outro condomínio autenticada na conta existente; o sistema confirma identidade (CPF/e-mail/IdPessoa) e não altera a senha. Vínculo encerrado permite novo convite criando novo PessoaVinculo sem reabrir histórico."
+          },
+          {
+            "Regra": "RN - ConviteAcesso 06",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Emissão exige permissão administrativa no condomínio emissor e impede elevação indevida de privilégio (perfil Administrador só por emissor com acesso total). Tentativas concorrentes de aceite são idempotentes quando o convite já foi consumido."
+          },
+          {
+            "Regra": "RN - ConviteAcesso 07",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Envio de e-mail transacional distingue convite criado, envio pendente, envio confirmado pelo provedor e falha de entrega, com novas tentativas controladas sem marcar enviado antes da confirmação."
+          },
+          {
+            "Regra": "RT - ConviteAcesso 01",
+            "Tipo": "Regra de Tela",
+            "Descricao": "Administração: ação Enviar convite em Pessoas/Vínculos, listagem de convites com estado e envio, reenvio e revogação. Página pública /convite/aceitar para ativação via navegador (Hug). Mobile: mesma API, deep link HTTPS com fallback Web."
+          }
+        ],
+        "EscopoTenant": "Condominio"
+      },
+      {
         "Entidade": "Equipamento",
         "RotuloEntidade": "Equipamento",
         "Gerar CRUD": "Sim",

@@ -11,7 +11,11 @@ export const entityPermissionGuard: CanActivateChildFn = (child) => {
     ? 'HOME'
     : segment === 'gerenciamento-permissoes'
       ? 'PERMISSOES_GERENCIAR'
-      : segment.toUpperCase();
+      : segment === 'fila-email'
+        ? 'FILAEMAIL'
+        : segment === 'configuracao-email'
+          ? 'CONFIGURACAOEMAIL'
+          : segment.toUpperCase();
 
   if (key === 'HOME' || segment === 'minha-conta') return true;
   const permissions = inject(PermissionService);
@@ -19,6 +23,7 @@ export const entityPermissionGuard: CanActivateChildFn = (child) => {
     if (permissions.canAny(['PESSOAFISICA', 'PESSOAJURIDICA'], 'Visualizar')) return true;
     return inject(Router).createUrlTree(['/inicio']);
   }
+  if ((key === 'FILAEMAIL' || key === 'CONFIGURACAOEMAIL') && permissions.acessoTotal) return true;
   if (permissions.can(key, 'Visualizar')) return true;
   return inject(Router).createUrlTree(['/inicio']);
 };
