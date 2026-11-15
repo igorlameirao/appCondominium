@@ -93,7 +93,7 @@ const entityRoutes: Routes = [
   { path: 'ofertaconcorrencia/:idOfertaConcorrencia', loadComponent: () => import('./features/ofertaconcorrencia/ofertaconcorrencia-form.component').then(m => m.OfertaConcorrenciaFormComponent) },
   { path: 'banco', loadComponent: () => import('./features/banco/banco-list.component').then(m => m.BancoListComponent) },
   { path: 'banco/novo', loadComponent: () => import('./features/banco/banco-form.component').then(m => m.BancoFormComponent) },
-  { path: 'banco/:idBanco', loadComponent: () => import('./features/banco/banco-form.component').then(m => m.BancoFormComponent) },
+  { path: 'banco/:codigoBanco', loadComponent: () => import('./features/banco/banco-form.component').then(m => m.BancoFormComponent) },
   { path: 'dadosbancarios', loadComponent: () => import('./features/dadosbancarios/dadosbancarios-list.component').then(m => m.DadosBancariosListComponent) },
   { path: 'dadosbancarios/novo', loadComponent: () => import('./features/dadosbancarios/dadosbancarios-form.component').then(m => m.DadosBancariosFormComponent) },
   { path: 'dadosbancarios/:idDadosBancarios', loadComponent: () => import('./features/dadosbancarios/dadosbancarios-form.component').then(m => m.DadosBancariosFormComponent) },

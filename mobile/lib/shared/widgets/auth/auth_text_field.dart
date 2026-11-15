@@ -12,6 +12,10 @@ class AuthTextField extends StatelessWidget {
     this.suffix,
     this.controller,
     this.textInputAction,
+    this.autofillHints,
+    this.keyboardType,
+    this.onEditingComplete,
+    this.onSubmitted,
   });
 
   final String hint;
@@ -20,6 +24,10 @@ class AuthTextField extends StatelessWidget {
   final Widget? suffix;
   final TextEditingController? controller;
   final TextInputAction? textInputAction;
+  final Iterable<String>? autofillHints;
+  final TextInputType? keyboardType;
+  final VoidCallback? onEditingComplete;
+  final ValueChanged<String>? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +43,12 @@ class AuthTextField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       textInputAction: textInputAction,
+      autofillHints: autofillHints,
+      keyboardType: keyboardType,
+      autocorrect: false,
+      enableSuggestions: !obscureText,
+      onEditingComplete: onEditingComplete,
+      onSubmitted: onSubmitted,
       style: TextStyle(
         color: textColor,
         fontWeight: FontWeight.w300,

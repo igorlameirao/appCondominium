@@ -77,6 +77,43 @@ void main() {
       expect(find.byIcon(Icons.keyboard_arrow_down_rounded), findsNothing);
     });
 
+    testWidgets('vínculos carregando: exibe seta e toque abre seletor',
+        (tester) async {
+      await tester.pumpWidget(
+        _headerHarness(
+          condominiumName: 'Condomínio Alpha',
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            vinculosAtivosProvider.overrideWith(
+              (ref) async {
+                await Future<void>.delayed(const Duration(milliseconds: 60));
+                return const [
+                  CondominioVinculoDto(
+                    idCondominio: 1,
+                    nome: 'Condomínio Alpha',
+                    perfis: [],
+                  ),
+                  CondominioVinculoDto(
+                    idCondominio: 2,
+                    nome: 'Condomínio Beta',
+                    perfis: [],
+                  ),
+                ];
+              },
+            ),
+          ],
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byIcon(Icons.keyboard_arrow_down_rounded), findsOneWidget);
+      await tester.tap(find.text('Condomínio Alpha'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Trocar condomínio'), findsOneWidget);
+    });
+
     testWidgets('vários vínculos: exibe seta e abre seletor ao tocar',
         (tester) async {
       await tester.pumpWidget(

@@ -1,3 +1,4 @@
+/** @deprecated Use `npm run restore:list-acoes` (restore-sge-list-acoes.mjs). */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

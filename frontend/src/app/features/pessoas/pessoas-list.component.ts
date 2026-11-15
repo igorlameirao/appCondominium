@@ -6,6 +6,11 @@ import { Icone } from '../../shared/icone';
 import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';
 import { Paginacao } from '../../shared/paginacao';
 import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
+import {
+  iniciarCarregamentoLista,
+  finalizarCarregamentoListaSucesso,
+  finalizarCarregamentoListaErro,
+} from '../../shared/lista-sge/lista-sge-erro.util';
 import { PermissionService } from '../../core/services/permission.service';
 import { PessoaConsultaService, PessoaListagemItem } from '../../core/services/pessoa-consulta.service';
 import { PagedResult } from '../../core/models/paged-result';
@@ -16,7 +21,7 @@ import { PagedResult } from '../../core/models/paged-result';
   imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao],
   template: `
     <div class="content-wrapper lst-wrapper" lstSgeViewport [tamanhoPagina]="pageSize" (tamanhoPaginaChange)="aplicarTamanhoPagina($event)" [totalItens]="totalCount" [itensNaPagina]="paged?.items?.length ?? 0" [filtrosRecolhidos]="filtrosRecolhidos">
-      <div class="lst-page">
+      <div class="lst-page lst-page--pessoas">
         <header class="lst-cabecalho">
           <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
             <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
@@ -43,19 +48,26 @@ import { PagedResult } from '../../core/models/paged-result';
             </button>
             <div class="lst-filtros__corpo" id="lst-filtros-pessoas" *ngIf="!filtrosRecolhidos">
               <div class="lst-filtros__grade lst-filtros__grade--pessoas">
-                <input type="search" aria-label="Filtro por nome ou documento" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" placeholder="Nome, CPF ou CNPJ (mín. 3)" />
-                <select aria-label="Tipo de pessoa" [(ngModel)]="filtroTipo" (change)="applyFilter()">
-                  <option value="">Tipo: todos</option>
-                  <option value="PF">Pessoa física</option>
-                  <option value="PJ">Pessoa jurídica</option>
-                </select>
-                <select aria-label="Situação do vínculo" [(ngModel)]="filtroSituacao" (change)="applyFilter()">
-                  <option value="">Situação: todas</option>
-                  <option value="ativo">Com vínculo ativo</option>
-                  <option value="encerrado">Somente histórico</option>
-                </select>
-              </div>
-              <div class="lst-filtros__acoes">
+                <div class="form-group">
+                  <label for="pessoas-filtro-texto">Nome, CPF ou CNPJ</label>
+                  <input id="pessoas-filtro-texto" type="search" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" placeholder="Mín. 3 caracteres" />
+                </div>
+                <div class="form-group">
+                  <label for="pessoas-filtro-tipo">Tipo</label>
+                  <select id="pessoas-filtro-tipo" [(ngModel)]="filtroTipo" (change)="applyFilter()">
+                    <option value="">Todos</option>
+                    <option value="PF">Pessoa física</option>
+                    <option value="PJ">Pessoa jurídica</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="pessoas-filtro-situacao">Situação</label>
+                  <select id="pessoas-filtro-situacao" [(ngModel)]="filtroSituacao" (change)="applyFilter()">
+                    <option value="">Todas</option>
+                    <option value="ativo">Com vínculo ativo</option>
+                    <option value="encerrado">Somente histórico</option>
+                  </select>
+                </div>
                 <button type="button" class="btn-filtrar" (click)="applyFilter()">Filtrar</button>
                 <button type="button" class="btn-limpar" (click)="clearFilter()">Limpar</button>
               </div>
@@ -63,7 +75,7 @@ import { PagedResult } from '../../core/models/paged-result';
           </div>
 
           <div class="lst-tabela__scroll" [class.is-loading]="loading">
-            <table class="lst-grade" *ngIf="paged?.items?.length; else lstEmpty">
+            <table class="lst-grade" *ngIf="paged?.items?.length && !erroCarregamento; else lstEmpty">
               <thead>
                 <tr>
                   <th scope="col">Tipo</th>
@@ -76,22 +88,35 @@ import { PagedResult } from '../../core/models/paged-result';
               </thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="abrir(item)">
-                  <td>{{ item.tipo }}</td>
+                  <td><span class="lst-badge lst-badge--neutro">{{ item.tipo }}</span></td>
                   <td class="lst-col--conteudo">{{ item.nome }}</td>
                   <td>{{ item.cpfcnpj ?? '—' }}</td>
-                  <td>{{ item.complemento ?? '—' }}</td>
-                  <td><span [class.lst-situacao--inativa]="item.situacaoVinculo !== 'Ativo'">{{ item.situacaoVinculo }}</span></td>
+                  <td class="lst-col--resumo" [title]="item.complemento || ''">{{ item.complemento ?? '—' }}</td>
+                  <td>
+                    <span class="lst-status" [ngClass]="classeSituacaoVinculo(item.situacaoVinculo)">{{ item.situacaoVinculo }}</span>
+                  </td>
                   <td class="lst-grade__acoes">
-                    <button type="button" class="lst-acao lst-acao--editar" title="Abrir detalhe" aria-label="Abrir detalhe" (click)="abrir(item)" (dblclick)="$event.stopPropagation()">
-                      <app-icone nome="pencil" [tamanho]="16" />
-                    </button>
+                    <div class="lst-acoes" role="group" [attr.aria-label]="'Ações de ' + item.nome">
+                      <button type="button" class="lst-acao lst-acao--editar" title="Editar" aria-label="Editar" (click)="abrir(item)" (dblclick)="$event.stopPropagation()">
+                        <app-icone nome="pencil" [tamanho]="16" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
             </table>
             <ng-template #lstEmpty>
               <p class="lst-vazio" *ngIf="loading">Carregando...</p>
-              <p class="lst-vazio" *ngIf="!loading">Nenhum registro encontrado.</p>
+              <div class="lst-vazio lst-vazio--bloco lst-vazio--erro" *ngIf="!loading && erroCarregamento" role="alert">
+                <app-icone nome="alert-circle" [tamanho]="28" />
+                <p class="lst-vazio__titulo">Falha ao carregar</p>
+                <p class="lst-vazio__texto">{{ erroCarregamento }}</p>
+              </div>
+              <div class="lst-vazio lst-vazio--bloco" *ngIf="!loading && !erroCarregamento">
+                <app-icone nome="users" [tamanho]="28" />
+                <p class="lst-vazio__titulo">{{ consultaComFiltro ? 'Nenhuma pessoa encontrada' : 'Nenhuma pessoa cadastrada' }}</p>
+                <p class="lst-vazio__texto">{{ consultaComFiltro ? 'Ajuste os filtros ou limpe a busca para ver outros registros.' : 'As pessoas com vínculo no condomínio aparecerão nesta lista.' }}</p>
+              </div>
             </ng-template>
           </div>
 
@@ -102,15 +127,11 @@ import { PagedResult } from '../../core/models/paged-result';
       </div>
     </div>
   `,
-  styles: [
-    `.lst-filtros__grade--pessoas { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; }`,
-    `@media (max-width: 720px) { .lst-filtros__grade--pessoas { grid-template-columns: 1fr; } }`,
-    `.lst-cabecalho__acoes { display: flex; gap: 8px; flex-wrap: wrap; }`
-  ]
 })
 export class PessoasListComponent implements OnInit {
   paged: PagedResult<PessoaListagemItem> | null = null;
   loading = false;
+  erroCarregamento: string | null = null;
   filterText = '';
   filtroTipo: '' | 'PF' | 'PJ' = '';
   filtroSituacao: '' | 'ativo' | 'encerrado' = '';
@@ -128,7 +149,15 @@ export class PessoasListComponent implements OnInit {
   get canPj(): boolean { return this.permissions.can('PESSOAJURIDICA', 'Incluir'); }
   get totalCount(): number { return this.paged?.totalCount ?? 0; }
 
+  get consultaComFiltro(): boolean {
+    return !!(this.filterText.trim() || this.filtroTipo || this.filtroSituacao);
+  }
+
   ngOnInit(): void { this.loadPage(1); }
+
+  classeSituacaoVinculo(situacao: string): string {
+    return situacao === 'Ativo' ? 'ativo' : 'inativo';
+  }
 
   aplicarTamanhoPagina(novo: number): void {
     const ctx = {
@@ -155,14 +184,11 @@ export class PessoasListComponent implements OnInit {
 
   loadPage(p: number): void {
     this.page = p;
-    this.loading = true;
+    iniciarCarregamentoLista(this);
     const f = this.filterText.trim().length >= 3 ? this.filterText.trim() : undefined;
     this.consulta.listar(this.page, this.pageSize, f, this.filtroTipo, this.filtroSituacao).subscribe({
-      next: r => { this.paged = r; this.loading = false; },
-      error: () => {
-        this.paged = { items: [], totalCount: 0, page: 1, pageSize: this.pageSize, totalPages: 0, hasPreviousPage: false, hasNextPage: false };
-        this.loading = false;
-      }
+      next: r => { this.paged = r; finalizarCarregamentoListaSucesso(this); },
+      error: (e) => finalizarCarregamentoListaErro(this, e)
     });
   }
 

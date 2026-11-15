@@ -6,7 +6,11 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "verify:forms": "node scripts/verify-cad-forms.mjs",
+    "verify:banco-routes": "node scripts/verify-banco-routes.mjs",
+    "restore:list-acoes": "node scripts/restore-sge-list-acoes.mjs",
+    "verify:list-acoes": "node scripts/verify-list-acoes.mjs"
   },
   "private": true,
   "dependencies": {

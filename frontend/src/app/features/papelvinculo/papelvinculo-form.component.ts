@@ -1,79 +1,114 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Icone } from '../../shared/icone';
+import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-loading-modal.component';
+import { FormInitialLoad } from '../../shared/form-initial-load';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ToastService } from '../../core/services/toast.service';
 import { PapelVinculoService } from './papelvinculo.service';
 import { PapelVinculo } from './papelvinculo.model';
-import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
-
 
 @Component({
   selector: 'app-papelvinculo-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ComboboxCustomizadaComponent, DocumentoInputComponent],
-  host: { class: 'form-page' },
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule],
   template: `
-    <div class="form-layout">
-      <h2>{{ isEdit ? 'Editar' : 'Novo' }} Papel de Vínculo</h2>
-      <div class="form-scroll">
-        <form id="entityForm" (ngSubmit)="submit(f)" #f="ngForm">
+    <div class="content-wrapper cad-wrapper">
+      <div class="cad-page">
+        <header class="cad-cabecalho">
+          <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
+            <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <a [routerLink]="'/papelvinculo'">Papel de Vínculo</a>
+            <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
+            <span aria-current="page">{{ isEdit ? 'Editar' : 'Novo' }}</span>
+          </nav>
+          <h1 class="cad-titulo">{{ isEdit ? 'Editar' : 'Novo' }} Papel de Vínculo</h1>
+          <p class="cad-subtitulo">Cadastre papéis usados nos vínculos de pessoas</p>
+        </header>
+
+        <section class="cad-card form-page">
+          <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
+            <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
+              <app-icone nome="layers" [tamanho]="16" />
+              <span>Dados do papel</span>
+            </button>
+          </div>
+          <div class="cad-conteudo" role="tabpanel">
+            <div class="cad-secao">
+              <app-icone class="cad-secao__icone" nome="layers" [tamanho]="26" />
+              <div>
+                <h2 class="cad-secao__titulo">Dados do papel</h2>
+                <p class="cad-secao__texto">Informe código, descrição e escopo</p>
+              </div>
+            </div>
+            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
           <div class="form-grid">
-            
-          <div class="form-group fg-col-2">
-            <label>Código *</label>
-            <input type="number" [(ngModel)]="model.codigoPapelVinculo" name="codigoPapelVinculo" [readonly]="fieldDisabled('codigoPapelVinculo')" />
+            <div *ngIf="isEdit" class="form-group fg-col-2">
+              <label>Código</label>
+              <input type="text" [value]="pkDisplay" readonly class="readonly" />
+            </div>
+            <div class="form-group fg-col-12">
+              <label>Descrição *</label>
+              <input type="text" [(ngModel)]="model.descricao" name="descricao" maxlength="150" [readonly]="fieldDisabled('descricao')" required />
+            </div>
+            <div class="form-group fg-col-4">
+              <label>Escopo *</label>
+              <select [(ngModel)]="model.escopoPapel" name="escopoPapel" [disabled]="fieldDisabled('escopoPapel')" required>
+                <option [ngValue]="null">Selecione…</option>
+                <option [ngValue]="0">Condomínio</option>
+                <option [ngValue]="1">Unidade</option>
+                <option [ngValue]="2">Pessoa</option>
+              </select>
+            </div>
+            <div class="form-group fg-col-2" *ngIf="!isEdit">
+              <label>Código *</label>
+              <input type="number" [(ngModel)]="model.codigoPapelVinculo" name="codigoPapelVinculo" [readonly]="fieldDisabled('codigoPapelVinculo')" required />
+            </div>
           </div>
-          <div class="form-group fg-col-12">
-            <label>Descrição *</label>
-            <input type="text" [(ngModel)]="model.descricao" name="descricao" maxlength="150" [readonly]="fieldDisabled('descricao')" />
+        </form></div>
           </div>
-          <div class="form-group fg-col-2">
-            <label>Escopo *</label>
-            <select [(ngModel)]="model.escopoPapel" name="escopoPapel" [disabled]="fieldDisabled('escopoPapel')" required>
-              <option [ngValue]="null">Selecione…</option>
-              <option [ngValue]="0">Condominio</option><option [ngValue]="1">Unidade</option><option [ngValue]="2">Pessoa</option>
-            </select>
-          </div>
-          </div>
-        </form>
-      </div>
-      <div class="actions form-actions">
-        <button type="submit" class="btn-gravar" form="entityForm" [disabled]="saving || !podeGravar">Gravar</button>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Cancelar</button>
+          <div class="actions form-actions cad-acoes">
+        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
+        <span class="cad-acoes__espaco"></span>
+        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
         <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
       </div>
-      <div class="msg-erro" *ngIf="formError">{{ formError }}</div>
+        </section>
+      </div>
     </div>
     <div class="confirm-overlay" *ngIf="showDeleteConfirm">
       <div class="confirm-modal">
         <p>Deseja realmente excluir este registro?</p>
-        <button type="button" class="btn-cancelar" (click)="showDeleteConfirm=false">Cancelar</button>
-        <button type="button" class="btn-excluir" (click)="confirmDelete()">Excluir</button>
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancelar-modal" (click)="showDeleteConfirm=false">Cancelar</button>
+          <button type="button" class="btn-confirm-danger" (click)="confirmDelete()">Excluir</button>
+        </div>
       </div>
     </div>
-  `
+    <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
+  `,
 })
 export class PapelVinculoFormComponent implements OnInit {
   model: PapelVinculo = {} as PapelVinculo;
   isEdit = false;
   saving = false;
-  formError = '';
+  readonly pageLoad = new FormInitialLoad();
+  private readonly toast = inject(ToastService);
   showDeleteConfirm = false;
   readonly permissionKey = 'PAPELVINCULO';
   canEdit = true;
   canDelete = true;
-  
 
   constructor(
     private service: PapelVinculoService,
     private route: ActivatedRoute,
     private router: Router,
     private permissions: PermissionService,
-    private condominioCtx: CondominioContextService
-    
+    public condominioCtx: CondominioContextService,
   ) {
     this.refreshPermissions();
   }
@@ -89,50 +124,67 @@ export class PapelVinculoFormComponent implements OnInit {
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
-  get pkDisplay(): string { return String(this.model.codigoPapelVinculo); }
+  get pkDisplay(): string { return String(this.model.codigoPapelVinculo ?? ''); }
 
   ngOnInit(): void {
-    
+    if (!this.route.snapshot.url.some(s => s.path === 'novo')) {
+      this.pageLoad.beginEdit();
+    }
     const codigoPapelVinculo = this.route.snapshot.paramMap.get('codigoPapelVinculo');
     const isNovo = this.route.snapshot.url.some(s => s.path === 'novo');
     if (isNovo) {
       this.isEdit = false;
       this.refreshPermissions();
-      
+      this.pageLoad.seal();
       return;
     }
     if (codigoPapelVinculo) {
       this.isEdit = true;
       this.refreshPermissions();
-      this.service.getById(codigoPapelVinculo).subscribe({
-        next: (r) => this.model = r,
-        error: () => this.formError = 'Registro não encontrado.'
-      });
+      this.pageLoad.run(
+        this.service.getById(codigoPapelVinculo),
+        (r) => { this.model = r; },
+        () => this.toast.showError('Registro não encontrado.'),
+      );
     }
+    this.pageLoad.seal();
   }
 
   fieldDisabled(field: string): boolean {
     if (!this.canEdit) return true;
     if (!this.isEdit) return false;
-    const roFields: string[] = [];
-    return roFields.includes(field);
+    return false;
   }
 
   submit(f: NgForm): void {
-    if (!f.valid) { this.formError = 'Preencha os campos obrigatórios.'; return; }
+    if (!f.valid) {
+      this.toast.showError('Preencha os campos obrigatórios.');
+      return;
+    }
     this.saving = true;
-    this.formError = '';
     if (this.isEdit) {
       this.service.update(this.model).subscribe({
-        next: () => this.router.navigate(['/papelvinculo']),
-        error: (e: unknown) => { this.formError = (e as any)?.error?.title ?? (e as any)?.message ?? 'Erro ao gravar'; this.saving = false; },
-        complete: () => this.saving = false
+        next: () => {
+          this.toast.showSuccess('Alterações salvas com sucesso.');
+          this.router.navigate(['/papelvinculo']);
+        },
+        error: (e: unknown) => {
+          this.toast.showError((e as { error?: { title?: string }; message?: string })?.error?.title ?? (e as Error)?.message ?? 'Erro ao gravar');
+          this.saving = false;
+        },
+        complete: () => { this.saving = false; },
       });
     } else {
       this.service.create(this.model).subscribe({
-        next: () => this.router.navigate(['/papelvinculo']),
-        error: (e: unknown) => { this.formError = (e as any)?.error?.title ?? (e as any)?.message ?? 'Erro ao gravar'; this.saving = false; },
-        complete: () => this.saving = false
+        next: () => {
+          this.toast.showSuccess('Papel de Vínculo gravado com sucesso.');
+          this.router.navigate(['/papelvinculo']);
+        },
+        error: (e: unknown) => {
+          this.toast.showError((e as { error?: { title?: string }; message?: string })?.error?.title ?? (e as Error)?.message ?? 'Erro ao gravar');
+          this.saving = false;
+        },
+        complete: () => { this.saving = false; },
       });
     }
   }
@@ -140,7 +192,9 @@ export class PapelVinculoFormComponent implements OnInit {
   cancel(): void { this.router.navigate(['/papelvinculo']); }
 
   confirmDelete(): void {
-    this.service.delete(this.model.codigoPapelVinculo!).subscribe({ next: () => this.router.navigate(['/papelvinculo']) });
+    this.service.delete(this.model.codigoPapelVinculo!).subscribe({
+      next: () => this.router.navigate(['/papelvinculo']),
+      error: () => this.toast.showError('Não foi possível excluir. Tente novamente.'),
+    });
   }
-
 }

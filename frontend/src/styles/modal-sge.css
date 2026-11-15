@@ -247,3 +247,15 @@
   font-weight: 500;
   color: var(--cad-campo-erro, #dc3545);
 }
+
+/* Leitura de detalhe (fila de e-mails e equivalentes). */
+.confirm-modal--leitura {
+  width: min(640px, 100%);
+  max-width: min(640px, calc(100vw - 32px));
+  max-height: min(90vh, 720px);
+  overflow: auto;
+}
+
+.confirm-modal--leitura .lst-contexto__titulo {
+  margin-bottom: 12px;
+}

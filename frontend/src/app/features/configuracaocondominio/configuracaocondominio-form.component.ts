@@ -10,13 +10,13 @@ import { ConfiguracaoCondominioService } from './configuracaocondominio.service'
 import { ConfiguracaoCondominio } from './configuracaocondominio.model';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
-import { ArquivoAnexoComponent } from '../../shared/arquivo-anexo/arquivo-anexo.component';
+import { ImagemCadastroComponent } from '../../shared/imagem-cadastro/imagem-cadastro.component';
 import { LookupService } from '../../core/services/lookup.service';
 
 @Component({
   selector: 'app-configuracaocondominio-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, ArquivoAnexoComponent],
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, ImagemCadastroComponent],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -49,26 +49,30 @@ import { LookupService } from '../../core/services/lookup.service';
             </div>
             <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
           <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
+            <div *ngIf="isEdit && model.idConfiguracao" style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
               <label>Id Configuração</label>
               <input type="text" [value]="model.idConfiguracao" readonly class="readonly" />
             </div>
-            <app-arquivo-anexo style="grid-column: 3 / span 6; grid-row: 1" class="fg-col-6"
+            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
+            <app-imagem-cadastro
               label="Imagem Tela de Login"
-              modo="imagem"
+              infoTexto="Imagem exibida na tela de login do condomínio (máx. 5 MB)."
               [previewUrl]="previewLogin"
               [disabled]="!canEdit || !model.idCondominio"
               [maxMb]="5"
               (arquivoSelecionado)="enviarImagem('imagem-login', $event)"
               (removido)="removerImagem('imagem-login')" />
-            <app-arquivo-anexo style="grid-column: 1 / span 6; grid-row: 2" class="fg-col-6"
+            </div>
+            <div style="grid-column: 1 / span 6; grid-row: 2" class="form-group fg-col-6 imagem-cadastro--logotipo">
+            <app-imagem-cadastro
               label="Ícone do Condomínio"
-              modo="imagem"
+              infoTexto="Ícone do condomínio na aplicação (máx. 2 MB)."
               [previewUrl]="previewIcone"
               [disabled]="!canEdit || !model.idCondominio"
               [maxMb]="2"
               (arquivoSelecionado)="enviarImagem('imagem-icone', $event)"
               (removido)="removerImagem('imagem-icone')" />
+            </div>
             <div style="grid-column: 7 / span 2; grid-row: 2" class="form-group fg-col-2">
               <label>Cor Padrão (RT-Gerais 13)</label>
               <input type="color" [(ngModel)]="corHex" name="corPadrao" [disabled]="!canEdit" />

@@ -529,6 +529,8 @@ public class {name}Controller : ControllerBase
 
 
 def gen_angular_list(entity):
+    # Listagem legada (list-page). Após migrar para lst-* (migrate-sge-lists.mjs),
+    # execute frontend: npm run restore:list-acoes — preserva Excluir/permissoes do baseline.
     name = pascal(entity["Entidade"])
     kebab = re.sub(r"(?<!^)(?=[A-Z])", "-", name).lower().replace("--", "-")
     folder = entity["Entidade"].lower()
@@ -581,7 +583,11 @@ import {{ {name} }} from './{folder}.model';
               </tr>
             </tbody>
           </table>
-          <ng-template #empty><p *ngIf="!loading" class="empty">Nenhum registro encontrado.</p></ng-template>
+          <ng-template #empty>
+            <p *ngIf="loading" class="empty">Carregando...</p>
+            <p *ngIf="!loading && erroCarregamento" class="empty" role="alert">{{ erroCarregamento }}</p>
+            <p *ngIf="!loading && !erroCarregamento" class="empty">Nenhum registro encontrado.</p>
+          </ng-template>
         </div>
       </div>
       <div class="list-footer">
@@ -597,6 +603,7 @@ import {{ {name} }} from './{folder}.model';
 export class {name}ListComponent implements OnInit {{
   paged: PagedResult<{name}> | null = null;
   loading = false;
+  erroCarregamento: string | null = null;
   page = 1;
   pageSize = 20;
   filterText = '';
@@ -612,12 +619,13 @@ export class {name}ListComponent implements OnInit {{
   loadPage(p: number): void {{
     this.page = p;
     this.loading = true;
+    this.erroCarregamento = null;
     const f = this.filterText.trim().length >= 3 ? this.filterText.trim() : undefined;
     this.service.getPaged(this.page, this.pageSize, f).subscribe({{
-      next: (r) => {{ this.paged = r; this.loading = false; }},
+      next: (r) => {{ this.paged = r; this.loading = false; this.erroCarregamento = null; }},
       error: () => {{
-        this.paged = {{ items: [], totalCount: 0, page: 1, pageSize: this.pageSize, totalPages: 0, hasPreviousPage: false, hasNextPage: false }};
         this.loading = false;
+        this.erroCarregamento = 'Não foi possível carregar os registros. Tente novamente.';
       }}
     }});
   }}

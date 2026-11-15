@@ -5,6 +5,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:appcondominium.com.br</string>
+		<string>webcredentials:appcondominium.com.br</string>
 	</array>
 </dict>
 </plist>
