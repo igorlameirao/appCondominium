@@ -18,7 +18,7 @@ public class CondominioController : ControllerBase
     public CondominioController(CondominioRepository repo) => _repo = repo;
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<Condominio>>> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? filter = null, CancellationToken ct = default)
+    public async Task<ActionResult<PagedResult<CondominioListItemDto>>> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? filter = null, CancellationToken ct = default)
         => Ok(await _repo.GetPagedAsync(page, pageSize, filter, ct));
 
     [HttpGet("{idCondominio}")]

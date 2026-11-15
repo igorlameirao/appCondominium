@@ -50,7 +50,11 @@ Regras gerais: `box-sizing: border-box`; altura **38px**; raio **6px**; sem somb
 
 ## Listagem (`lst-*`)
 
-`lst-wrapper` + viewport; card `lst-card lst-painel`; duplo clique ou lápis para editar; `app-paginacao` com `rotulo="..."` (atributo).
+`lst-wrapper` + viewport (`lstSgeViewport`); card `lst-card lst-painel`; duplo clique ou lápis para editar; `app-paginacao` com `rotulo="..."` (atributo). **1ª carga:** `ngOnInit` deve usar `agendarPrimeiraCargaLista(() => this.loadPage(1))` (não chamar `loadPage` direto), para o viewport medir antes da API e evitar flicker de `pageSize`/`max-height`.
+
+**Coluna Situação (campo ativo numérico/booleano):** não exibir `0`/`1` nem `true`/`false` crus. Usar cabeçalho **Situação**, classe `lst-col--situacao` e `<app-lst-situacao-cadastral [valor]="item.ativo" />` (badges `lst-badge--sucesso` / `lst-badge--perigo`). Referência: `banco-list`, `dadosbancarios-list`.
+
+**Coluna Ações (regra permanente):** o eixo central do cabeçalho «Ações» (`th.lst-grade__acoes`) deve coincidir com o eixo central do conjunto de botões. `th` e `td` permanecem células de tabela — **proibido** `display: flex`/`grid` diretamente em `td`/`th` da coluna. Botões dentro de `<div class="lst-acoes" role="group">`; estilos em `lista-sge.css` (`text-align: center`, `gap: 8px`, `min-width` estável para 1 ou 2 ícones). Sem override por tela, exceto largura % já aprovada (ex.: Condomínios).
 
 **Filtros:** campos em `.lst-filtros` seguem o **mesmo contrato de controles** que `cad-*` (borda `#cbd5e1`, 38px, raio 6px, sem sombra de repouso, foco com `--cad-primary` / `--cad-focus-ring`). Ao aplicar a rule numa listagem, inspecionar estilos **computados** dos inputs/selects/combos do painel de filtros e corrigir divergências em `lista-sge.css`, não por entidade.
 

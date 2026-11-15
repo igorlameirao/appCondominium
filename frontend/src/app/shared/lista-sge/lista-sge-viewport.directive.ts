@@ -45,6 +45,7 @@ export class ListaSgeViewport implements OnInit, AfterViewInit, OnChanges, OnDes
   private filtroObserver: MutationObserver | null = null;
   private frame = 0;
   private ultimaCapacidade = -1;
+  private emitirCapacidadeTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     this.aplicarEstimativaScroll();
@@ -73,6 +74,7 @@ export class ListaSgeViewport implements OnInit, AfterViewInit, OnChanges, OnDes
     this.observer?.disconnect();
     this.filtroObserver?.disconnect();
     if (this.frame) cancelAnimationFrame(this.frame);
+    if (this.emitirCapacidadeTimer) clearTimeout(this.emitirCapacidadeTimer);
     visualViewport?.removeEventListener('resize', this.onViewportResize);
     window.removeEventListener('resize', this.onViewportResize);
   }
@@ -122,7 +124,7 @@ export class ListaSgeViewport implements OnInit, AfterViewInit, OnChanges, OnDes
       return;
     }
 
-    const altura = estimarAlturaScrollMaxInicial(linhas);
+    const altura = estimarAlturaScrollMaxInicial(linhas, this.filtrosRecolhidos);
     if (altura != null) {
       const valor = `${altura}px`;
       if (this.host.style.getPropertyValue('--lst-scroll-max-altura-estimada') !== valor) {
@@ -165,16 +167,25 @@ export class ListaSgeViewport implements OnInit, AfterViewInit, OnChanges, OnDes
     if (!this.paginacaoApi) return;
 
     const capacidade = medicao.capacidade;
-    if (capacidade !== this.ultimaCapacidade) {
-      this.ultimaCapacidade = capacidade;
-      if (capacidade !== this.tamanhoPagina) {
-        // Evita NG0100: o host atualiza `[tamanhoPagina]` (ex.: 14 → 16) após o check da view.
-        setTimeout(() => {
-          if (capacidade !== this.tamanhoPagina) {
-            this.tamanhoPaginaChange.emit(capacidade);
-          }
-        }, 0);
-      }
+    if (capacidade === this.ultimaCapacidade) return;
+
+    const scroll = this.host.querySelector('.lst-tabela__scroll');
+    const temLinhasGrade = !!scroll?.querySelector('tbody tr');
+
+    // Antes da grade existir, ignorar capacidade inflada (conteúdo ainda não limitou o layout).
+    if (!temLinhasGrade && capacidade > this.tamanhoPagina + 3) {
+      return;
     }
+
+    this.ultimaCapacidade = capacidade;
+    if (capacidade === this.tamanhoPagina) return;
+
+    if (this.emitirCapacidadeTimer) clearTimeout(this.emitirCapacidadeTimer);
+    this.emitirCapacidadeTimer = setTimeout(() => {
+      this.emitirCapacidadeTimer = null;
+      if (capacidade !== this.tamanhoPagina) {
+        this.tamanhoPaginaChange.emit(capacidade);
+      }
+    }, 80);
   }
 }

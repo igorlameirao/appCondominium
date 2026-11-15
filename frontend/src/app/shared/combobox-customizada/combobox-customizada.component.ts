@@ -54,7 +54,7 @@ const MIN_ESPACO_ABAIXO = 180;
         <button
           type="button"
           class="combo-clear"
-          *ngIf="value != null && value !== '' && !disabled"
+          *ngIf="allowClear && value != null && value !== '' && !disabled"
           (mousedown)="$event.preventDefault()"
           (click)="clear()"
           tabindex="-1"
@@ -105,6 +105,8 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   @Input() ariaLabel = '';
   @Input() emptyMessage = 'Nenhum registro';
   @Input() minLengthMessage = 'Digite ao menos {n} letras.';
+  /** Exibe o botão × para limpar a seleção (desligar em troca de contexto obrigatória). */
+  @Input() allowClear = true;
   @Output() valueChange = new EventEmitter<number | string | null>();
   @Output() blurCommit = new EventEmitter<number | string | null>();
   @Output() searchChange = new EventEmitter<string>();
@@ -118,6 +120,8 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   painelEstilo: Record<string, string> = {};
   page = 1;
   filtered: ComboboxOption[] = [];
+  /** Após abrir, o primeiro input do usuário passa a filtrar localmente. */
+  private filtrarPorTexto = false;
 
   private readonly aoReposicionar = () => {
     if (this.open) this.posicionarPainel();
@@ -173,10 +177,23 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   abrir(): void {
     if (this.disabled) return;
     this.open = true;
+    this.filtrarPorTexto = false;
+    if (!this.remoteSearch) {
+      this.filtered = [...this.options];
+      this.page = 1;
+    } else {
+      this.aplicarFiltroOpcoes();
+    }
     this.ligarReposicaoViewport();
     this.cd.detectChanges();
     this.posicionarPainel();
-    setTimeout(() => this.posicionarPainel());
+    setTimeout(() => {
+      this.posicionarPainel();
+      if (!this.allowClear) {
+        const input = this.display?.nativeElement?.querySelector('input') as HTMLInputElement | null;
+        input?.select();
+      }
+    });
   }
 
   fechar(): void {
@@ -187,6 +204,7 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   }
 
   onSearch(): void {
+    this.filtrarPorTexto = true;
     this.aplicarFiltroOpcoes();
     this.searchChange.emit(this.search);
     if (this.value != null && this.value !== '') {
@@ -279,6 +297,8 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
     if (this.minSearchLength > 0 && q.length < this.minSearchLength) {
       this.filtered = [];
     } else if (this.remoteSearch) {
+      this.filtered = [...this.options];
+    } else if (!this.filtrarPorTexto) {
       this.filtered = [...this.options];
     } else {
       this.filtered = !q

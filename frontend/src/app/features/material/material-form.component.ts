@@ -5,12 +5,12 @@ import { ListLoadingModalComponent } from '../../shared/list-loading-modal/list-
 import { FormInitialLoad } from '../../shared/form-initial-load';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CampoDataComponent } from '../../shared/campo-data/campo-data.component';
+import { CampoMoedaComponent } from '../../shared/campo-moeda/campo-moeda.component';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { MaterialService } from './material.service';
 import { Material } from './material.model';
 import { ComboboxCustomizadaComponent, ComboboxOption } from '../../shared/combobox-customizada/combobox-customizada.component';
-import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { TipoMaterialService } from '../tipomaterial/tipomaterial.service';
@@ -18,7 +18,16 @@ import { TipoMaterialService } from '../tipomaterial/tipomaterial.service';
 @Component({
   selector: 'app-material-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, CampoDataComponent, ComboboxCustomizadaComponent, DocumentoInputComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    Icone,
+    ListLoadingModalComponent,
+    FormsModule,
+    CampoDataComponent,
+    CampoMoedaComponent,
+    ComboboxCustomizadaComponent,
+  ],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -34,7 +43,7 @@ import { TipoMaterialService } from '../tipomaterial/tipomaterial.service';
           <p class="cad-subtitulo">Cadastre e mantenha as informações de material</p>
         </header>
 
-        <section class="cad-card form-page">
+        <section class="cad-card form-page cad-card--secao-unica">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
             <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
               <app-icone nome="layers" [tamanho]="16" />
@@ -42,72 +51,125 @@ import { TipoMaterialService } from '../tipomaterial/tipomaterial.service';
             </button>
           </div>
           <div class="cad-conteudo" role="tabpanel">
-            <div class="cad-secao">
-              <app-icone class="cad-secao__icone" nome="layers" [tamanho]="26" />
-              <div>
-                <h2 class="cad-secao__titulo">Dados de Material</h2>
-                <p class="cad-secao__texto">Informe as informações principais</p>
-              </div>
+            <div class="form-scroll cad-form-scroll">
+              <form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
+                <div class="cad-blocos material-dados">
+                  <div class="form-grid material-dados__linha material-dados__linha--1">
+                    <div class="form-group material-dados__tipo">
+                      <label>Tipo de Material *</label>
+                      <app-combobox-customizada
+                        [options]="fk_idTipoMaterial"
+                        [(value)]="model.idTipoMaterial"
+                        [disabled]="fieldDisabled('idTipoMaterial')"
+                        [required]="true"
+                        ariaLabel="Tipo de Material" />
+                    </div>
+                    <div class="form-group material-dados__patrimonio">
+                      <label for="mat-patrimonio">Patrimônio *</label>
+                      <input
+                        id="mat-patrimonio"
+                        type="text"
+                        [(ngModel)]="model.patrimonio"
+                        name="patrimonio"
+                        maxlength="30"
+                        [readonly]="fieldDisabled('patrimonio')"
+                        required />
+                    </div>
+                    <div class="form-group material-dados__vida">
+                      <label for="mat-vida-util">Vida Útil (em anos) *</label>
+                      <input
+                        id="mat-vida-util"
+                        type="number"
+                        [(ngModel)]="model.vidaUtil"
+                        name="vidaUtil"
+                        min="1"
+                        step="1"
+                        [readonly]="fieldDisabled('vidaUtil')"
+                        required />
+                    </div>
+                    <div class="form-group material-dados__data">
+                      <label for="mat-data-aquisicao">Data de Aquisição *</label>
+                      <app-campo-data
+                        [(ngModel)]="model.dataAquisicao"
+                        name="dataAquisicao"
+                        [disabled]="fieldDisabled('dataAquisicao')"
+                        [required]="true"
+                        [feedbackVisual]="true" />
+                    </div>
+                  </div>
+
+                  <div class="form-grid material-dados__linha material-dados__linha--2">
+                    <div class="form-group">
+                      <label for="mat-descricao">Descrição</label>
+                      <input
+                        id="mat-descricao"
+                        type="text"
+                        [(ngModel)]="model.descricao"
+                        name="descricao"
+                        maxlength="255"
+                        [readonly]="fieldDisabled('descricao')" />
+                    </div>
+                  </div>
+
+                  <div class="form-grid material-dados__linha material-dados__linha--3">
+                    <div class="form-group material-dados__moeda">
+                      <label>Valor de Aquisição *</label>
+                      <app-campo-moeda
+                        [(ngModel)]="model.valorAquisicao"
+                        name="valorAquisicao"
+                        modo="numero"
+                        [readonly]="fieldDisabled('valorAquisicao')"
+                        [disabled]="fieldDisabled('valorAquisicao')"
+                        [required]="true" />
+                    </div>
+                    <div class="form-group material-dados__moeda">
+                      <label>Valor Depreciável *</label>
+                      <app-campo-moeda
+                        [(ngModel)]="model.valorDepreciavel"
+                        name="valorDepreciavel"
+                        modo="numero"
+                        [readonly]="fieldDisabled('valorDepreciavel')"
+                        [disabled]="fieldDisabled('valorDepreciavel')"
+                        [required]="true" />
+                    </div>
+                    <div class="form-group material-dados__moeda">
+                      <label>Valor da Depreciação</label>
+                      <app-campo-moeda
+                        [(ngModel)]="model.valorDepreciacao"
+                        name="valorDepreciacao"
+                        modo="texto"
+                        [readonly]="fieldDisabled('valorDepreciacao')"
+                        [disabled]="fieldDisabled('valorDepreciacao')" />
+                    </div>
+                    <div class="form-group material-dados__moeda">
+                      <label>Valor da Quota de Depreciação</label>
+                      <app-campo-moeda
+                        [(ngModel)]="model.valorQuotaDepreciacao"
+                        name="valorQuotaDepreciacao"
+                        modo="texto"
+                        [readonly]="fieldDisabled('valorQuotaDepreciacao')"
+                        [disabled]="fieldDisabled('valorQuotaDepreciacao')" />
+                    </div>
+                    <div class="form-group material-dados__moeda">
+                      <label>Valor Contábil</label>
+                      <app-campo-moeda
+                        [(ngModel)]="model.valorContabil"
+                        name="valorContabil"
+                        modo="texto"
+                        [readonly]="fieldDisabled('valorContabil')"
+                        [disabled]="fieldDisabled('valorContabil')" />
+                    </div>
+                  </div>
+                </div>
+              </form>
             </div>
-            <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          
-          <div class="form-grid">
-            <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
-            </div>
-            <div style="grid-column: 3 / span 6; grid-row: 1" class="form-group fg-col-6">
-              <label>Id do Tipo de Material *</label>
-              <app-combobox-customizada
-                [options]="fk_idTipoMaterial"
-                [(value)]="model.idTipoMaterial"
-                [disabled]="fieldDisabled('idTipoMaterial')" [required]="true" />
-            </div>
-            <div style="grid-column: 9 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>Vida Útil (em anos) *</label>
-              <input type="number" [(ngModel)]="model.vidaUtil" name="vidaUtil" [readonly]="fieldDisabled('vidaUtil')" required />
-            </div>
-            <div style="grid-column: 11 / span 2; grid-row: 1" class="form-group fg-col-2">
-              <label>DataAquisicao *</label>
-              <app-campo-data [(ngModel)]="model.dataAquisicao" name="dataAquisicao" [disabled]="fieldDisabled('dataAquisicao')" [required]="true" [feedbackVisual]="true" />
-            </div>
-            <div style="grid-column: 1 / span 12; grid-row: 2" class="form-group fg-col-12">
-              <label>Descrição</label>
-              <input type="text" [(ngModel)]="model.descricao" name="descricao" maxlength="255" [readonly]="fieldDisabled('descricao')" />
-            </div>
-            <div style="grid-column: 1 / span 6; grid-row: 3" class="form-group fg-col-6">
-              <label>Valor da Depreciacao</label>
-              <input type="text" [(ngModel)]="model.valorDepreciacao" name="valorDepreciacao" [readonly]="fieldDisabled('valorDepreciacao')" />
-            </div>
-            <div style="grid-column: 7 / span 3; grid-row: 3" class="form-group fg-col-3">
-              <label>Patrimônio *</label>
-              <input type="text" [(ngModel)]="model.patrimonio" name="patrimonio" maxlength="30" [readonly]="fieldDisabled('patrimonio')" required />
-            </div>
-            <div style="grid-column: 1 / span 6; grid-row: 4" class="form-group fg-col-6">
-              <label>Valor da Quota de Depreciacao</label>
-              <input type="text" [(ngModel)]="model.valorQuotaDepreciacao" name="valorQuotaDepreciacao" [readonly]="fieldDisabled('valorQuotaDepreciacao')" />
-            </div>
-            <div style="grid-column: 7 / span 2; grid-row: 4" class="form-group fg-col-2">
-              <label>Valor de Aquisição *</label>
-              <input type="number" [(ngModel)]="model.valorAquisicao" name="valorAquisicao" step="0.001" [readonly]="fieldDisabled('valorAquisicao')" required />
-            </div>
-            <div style="grid-column: 1 / span 6; grid-row: 5" class="form-group fg-col-6">
-              <label>Valor Contábil</label>
-              <input type="text" [(ngModel)]="model.valorContabil" name="valorContabil" [readonly]="fieldDisabled('valorContabil')" />
-            </div>
-            <div style="grid-column: 7 / span 2; grid-row: 5" class="form-group fg-col-2">
-              <label>Valor Depreciavel *</label>
-              <input type="number" [(ngModel)]="model.valorDepreciavel" name="valorDepreciavel" step="0.001" [readonly]="fieldDisabled('valorDepreciavel')" required />
-            </div>
-          </div>
-        </form></div>
           </div>
           <div class="actions form-actions cad-acoes">
-        <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
-        <span class="cad-acoes__espaco"></span>
-        <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
-        <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
-      </div>
+            <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
+            <span class="cad-acoes__espaco"></span>
+            <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
+            <button type="button" class="btn-excluir" *ngIf="isEdit && canDelete" (click)="showDeleteConfirm=true">Excluir</button>
+          </div>
         </section>
       </div>
     </div>
@@ -122,6 +184,53 @@ import { TipoMaterialService } from '../tipomaterial/tipomaterial.service';
     </div>
     <app-list-loading-modal [visible]="pageLoad.loading" message="Aguarde, carregando..." [delayMs]="0" />
   `,
+  styles: [`
+    :host .cad-page {
+      max-width: min(1100px, calc(100vw - 40px));
+    }
+    .material-dados {
+      gap: 12px;
+    }
+    .material-dados__linha--1 {
+      grid-template-columns: minmax(0, 40fr) minmax(0, 20fr) minmax(0, 15fr) minmax(0, 25fr);
+      align-items: end;
+    }
+    .material-dados__linha--2,
+    .material-dados__linha--3 {
+      align-items: end;
+    }
+    .material-dados__linha--2 {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .material-dados__linha--3 {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .material-dados__tipo,
+    .material-dados__patrimonio,
+    .material-dados__vida,
+    .material-dados__data,
+    .material-dados__moeda {
+      min-width: 0;
+    }
+    .material-dados__moeda > label {
+      line-height: 1.25;
+    }
+    @media (max-width: 960px) {
+      .material-dados__linha--1 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .material-dados__linha--3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 720px) {
+      .material-dados__linha--1,
+      .material-dados__linha--2,
+      .material-dados__linha--3 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  `],
 })
 export class MaterialFormComponent implements OnInit {
   model: Material = {} as Material;
@@ -158,12 +267,9 @@ export class MaterialFormComponent implements OnInit {
     this.canDelete = this.permissions.can(this.permissionKey, 'Excluir');
   }
 
-  get pkDisplay(): string { return String(this.model.idMaterial); }
-
   ngOnInit(): void {
     if (!this.route.snapshot.url.some(s => s.path === 'novo')) this.pageLoad.beginEdit();
 
-    
     this.pageLoad.run(this.tipoMaterialService.getPaged(1, 200), r => {
       this.fk_idTipoMaterial = r.items.map((x: any) => ({
         value: x.idTipoMaterial,

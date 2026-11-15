@@ -4,6 +4,7 @@
  */
 @import './styles/sidebar-sge.css';
 @import './styles/sidebar-clean-premium.css';
+@import './styles/tenant-troca.css';
 
 :root {
   /* Tema principal claro (área útil SaaS tipo Stripe/Notion) */

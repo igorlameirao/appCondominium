@@ -17,8 +17,8 @@ export class DadosBancariosService {
     return this.http.get<PagedResult<DadosBancarios>>(this.base, { params });
   }
 
-  getById(conta: number | string, codigoBanco: number | string, agencia: number | string): Observable<DadosBancarios> {
-    return this.http.get<DadosBancarios>(`${this.base}/${conta}/${codigoBanco}/${agencia}`);
+  getById(conta: number | string, idBanco: number | string, agencia: number | string): Observable<DadosBancarios> {
+    return this.http.get<DadosBancarios>(`${this.base}/${conta}/${idBanco}/${agencia}`);
   }
 
   create(item: DadosBancarios): Observable<DadosBancarios> {
@@ -26,10 +26,10 @@ export class DadosBancariosService {
   }
 
   update(item: DadosBancarios): Observable<void> {
-    return this.http.put<void>(`${this.base}/${item.conta}/${item.codigoBanco}/${item.agencia}`, item);
+    return this.http.put<void>(`${this.base}/${item.conta}/${item.idBanco}/${item.agencia}`, item);
   }
 
-  delete(conta: number | string, codigoBanco: number | string, agencia: number | string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${conta}/${codigoBanco}/${agencia}`);
+  delete(conta: number | string, idBanco: number | string, agencia: number | string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${conta}/${idBanco}/${agencia}`);
   }
 }

@@ -140,7 +140,7 @@ def mysql_type(campo):
     if "MEDIUMINT" in t:
         return "MEDIUMINT UNSIGNED" + (" NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL")
     if "DECIMAL" in t:
-        m = re.search(r"DECIMAL\((\d+),(\d+)\)", t)
+        m = re.search(r"DECIMAL\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)", t, re.I)
         if m:
             return f"DECIMAL({m.group(1)},{m.group(2)}) UNSIGNED" + (
                 " NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL"
@@ -172,6 +172,8 @@ def mysql_type(campo):
         return "JSON NULL"
     if "TINYINT" in t:
         return "TINYINT UNSIGNED" + (" NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL")
+    if "SMALLINT" in t:
+        return "SMALLINT UNSIGNED" + (" NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL")
     if "INT" in t and "BIGINT" not in t and "MEDIUMINT" not in t and "TINYINT" not in t and "SMALLINT" not in t:
         return "INT UNSIGNED" + (" NOT NULL" if campo.get("Obrigatorio") == "Sim" else " NULL")
     return "VARCHAR(255) NULL"

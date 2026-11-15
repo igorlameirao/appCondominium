@@ -51,7 +51,7 @@ import { LookupService, BairroResumo } from '../../core/services/lookup.service'
           <div class="form-grid municipio-dados">
             <div *ngIf="isEdit" class="form-group municipio-dados__ibge fg-label-nowrap">
               <label>Código do IBGE</label>
-              <input type="text" [value]="model.codigoIBGEMunicipio" readonly class="readonly" />
+              <input type="text" [value]="pkDisplay" readonly class="readonly" />
             </div>
             <div class="form-group municipio-dados__ibge fg-label-nowrap" *ngIf="!isEdit">
               <label>Código do IBGE *</label>
@@ -138,6 +138,11 @@ export class MunicipioFormComponent implements OnInit {
     private lookup: LookupService
   ) {
     this.refreshPermissions();
+  }
+
+  get pkDisplay(): string {
+    const id = this.model.codigoIBGEMunicipio ?? this.route.snapshot.paramMap.get('codigoIBGEMunicipio');
+    return id != null && id !== '' ? String(id) : '';
   }
 
   get podeGravar(): boolean {

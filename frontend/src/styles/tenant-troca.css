@@ -1,0 +1,278 @@
+/* Troca de condomínio — botão no sidebar, modal e transição do conteúdo principal */
+
+/* Mesma linha do bloco de usuário: texto à esquerda, ícone à direita */
+.app-premium-sidebar__foot .tenant-switch {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 2px 0 6px;
+  box-sizing: border-box;
+}
+
+.app-premium-sidebar__foot .tenant-switch__texto {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+}
+
+.app-premium-sidebar__foot .tenant-switch__rotulo {
+  margin-top: 0;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  color: var(--app-text-muted, #64748b);
+}
+
+.app-premium-sidebar__foot .tenant-switch__nome {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #0f172a;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.app-premium-sidebar__foot .tenant-switch__trocar:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Modal */
+.tenant-troca-modal.confirm-modal.modal-sge-form {
+  width: min(520px, 94vw);
+  max-width: min(520px, 94vw);
+}
+
+.tenant-troca-modal__cabecalho {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tenant-troca-modal__cabecalho h2 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.tenant-troca-modal__subtitulo {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--cad-muted, #64748b);
+}
+
+.tenant-troca-modal__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  max-height: min(52vh, 420px);
+  overflow: hidden;
+}
+
+.tenant-troca-modal__busca {
+  flex-shrink: 0;
+}
+
+.tenant-troca-modal__busca input {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--cad-campo-altura, 38px);
+  padding: 0 12px 0 36px;
+  font-size: 13px;
+  color: #0f172a;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") no-repeat 12px center;
+  border: 1px solid var(--cad-campo-borda, #cbd5e1);
+  border-radius: var(--cad-campo-raio, 6px);
+}
+
+.tenant-troca-modal__busca input:focus {
+  outline: none;
+  border-color: var(--cad-primary, #0e7490);
+  box-shadow: var(--cad-focus-ring, 0 0 0 3px rgba(14, 116, 144, 0.15));
+}
+
+.tenant-troca-modal__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.tenant-troca-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  font-family: inherit;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+.tenant-troca-item:hover:not(:disabled) {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.tenant-troca-item:focus-visible {
+  outline: none;
+  border-color: var(--cad-primary, #0e7490);
+  box-shadow: var(--cad-focus-ring, 0 0 0 3px rgba(14, 116, 144, 0.15));
+}
+
+.tenant-troca-item--selecionado {
+  border-color: var(--cad-primary, #0e7490);
+  background: var(--app-sidebar-active-bg, #e8f6fc);
+  box-shadow: 0 0 0 1px rgba(14, 116, 144, 0.12);
+}
+
+.tenant-troca-item--atual {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  cursor: default;
+}
+
+.tenant-troca-item--atual.tenant-troca-item--selecionado {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+  box-shadow: none;
+}
+
+.tenant-troca-item:disabled {
+  cursor: default;
+}
+
+.tenant-troca-item__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.tenant-troca-item__nome {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.tenant-troca-item__badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #0e7490;
+  background: rgba(14, 116, 144, 0.12);
+  border-radius: 999px;
+}
+
+.tenant-troca-item__detalhe {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--app-text-muted, #64748b);
+  overflow-wrap: anywhere;
+}
+
+.tenant-troca-modal__vazio {
+  margin: 8px 0 0;
+  padding: 16px;
+  font-size: 13px;
+  text-align: center;
+  color: #64748b;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.tenant-troca-modal__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Transição do conteúdo principal */
+.app-premium-main {
+  transition: opacity 0.15s var(--app-transition, ease);
+}
+
+.app-premium-main--tenant-saindo {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-premium-main--tenant-entrando {
+  opacity: 0;
+}
+
+.app-premium-main--tenant-entrando.app-premium-main--tenant-entrando-visivel {
+  opacity: 1;
+  transition: opacity 0.3s var(--app-transition, ease);
+}
+
+.app-premium-main--tenant-bloqueado {
+  pointer-events: none;
+  user-select: none;
+}
+
+.tenant-troca-carregando {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(244, 247, 251, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.tenant-troca-carregando .loading-modal {
+  min-width: 260px;
+}
+
+.tenant-troca-carregando .loading-text strong {
+  display: block;
+  margin-top: 4px;
+  font-weight: 700;
+  color: #0e7490;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-premium-main,
+  .app-premium-main--tenant-entrando.app-premium-main--tenant-entrando-visivel {
+    transition: none;
+  }
+
+  .loading-spinner {
+    animation-duration: 1.2s;
+  }
+}

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';
 import { Paginacao } from '../../shared/paginacao';
-import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
+import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista, agendarPrimeiraCargaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
 import {
   iniciarCarregamentoLista,
   finalizarCarregamentoListaSucesso,
@@ -17,11 +17,12 @@ import { Fornecedor } from './fornecedor.model';
 import { PermissionService } from '../../core/services/permission.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/confirmar-exclusao.component';
+import { LstSituacaoCadastralComponent } from '../../shared/lst-situacao-cadastral/lst-situacao-cadastral.component';
 
 @Component({
   selector: 'app-fornecedor-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent],
+  imports: [CommonModule, FormsModule, RouterLink, Icone, ListaSgeViewport, Paginacao, ConfirmarExclusaoComponent, LstSituacaoCadastralComponent],
   template: `
     <div class="content-wrapper lst-wrapper" lstSgeViewport [tamanhoPagina]="pageSize" (tamanhoPaginaChange)="aplicarTamanhoPagina($event)" [totalItens]="totalCount" [itensNaPagina]="paged?.items?.length ?? 0" [filtrosRecolhidos]="filtrosRecolhidos">
       <div class="lst-page">
@@ -62,10 +63,11 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
           </div>
           <div class="lst-tabela__scroll" [class.is-loading]="loading">
             <table class="lst-grade" *ngIf="paged?.items?.length && !erroCarregamento; else lstEmpty">
-              <thead><tr><th scope="col">Pessoa</th><th scope="col" class="lst-col--conteudo">Ativo</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
+              <thead><tr><th scope="col">Pessoa</th><th scope="col" class="lst-col--situacao">Situação</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
-                  <td>{{ item.idPessoa }}</td><td class="lst-col--conteudo">{{ item.ativo }}</td>
+                  <td>{{ item.idPessoa }}</td>
+                  <td class="lst-col--situacao"><app-lst-situacao-cadastral [valor]="item.ativo" /></td>
                   <td class="lst-grade__acoes">
                     <div class="lst-acoes" role="group" aria-label="Ações">
                     <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
@@ -149,7 +151,7 @@ export class FornecedorListComponent implements OnInit {
   }
 
 
-  ngOnInit(): void { this.loadPage(1); }
+  ngOnInit(): void { agendarPrimeiraCargaLista(() => this.loadPage(1)); }
 
   applyFilter(): void { this.page = 1; this.loadPage(1); }
   clearFilter(): void {

@@ -1,11 +1,11 @@
 export interface DadosBancarios {
   conta?: number;
-  codigoBanco?: number;
+  idBanco?: number;
   agencia?: string;
   digitoAgencia?: string;
   digitoConta?: string;
   idCondominio?: number;
-  ativo?: string;
+  ativo?: number;
   dataCadastro?: string;
   codigoEmpresaCobranca?: number;
 }

@@ -112,6 +112,20 @@ public sealed class ApiExceptionMiddleware
             return;
         }
 
+        if (texto.Contains("doesn't exist", StringComparison.OrdinalIgnoreCase)
+            && (texto.Contains("AlocacaoMaterial", StringComparison.OrdinalIgnoreCase)
+                || texto.Contains("EntradaSaidaMaterialConsumo", StringComparison.OrdinalIgnoreCase)
+                || texto.Contains("GuardaEncomenda", StringComparison.OrdinalIgnoreCase)))
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                title = "Banco de dados",
+                message = "Tabelas de material desatualizadas ou ausentes. Execute: dotnet run --project WebApi/AppCondominium.Tools -- migrate-material-tables",
+            }, Json);
+            return;
+        }
+
         _logger.LogError(ex, "Erro não tratado em {Method} {Path}", context.Request.Method, context.Request.Path);
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
         await context.Response.WriteAsJsonAsync(new

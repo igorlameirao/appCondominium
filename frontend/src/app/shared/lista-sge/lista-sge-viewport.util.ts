@@ -5,11 +5,14 @@ const ALTURA_THEAD_FALLBACK = 34;
 
 /** Chrome fixo do shell + cabeçalho/filtros/rodapé da listagem (antes da medição DOM). */
 const CHROME_VIEWPORT_ESTIMADO_PX = 418;
+/** Painel de filtros expandido (`.lst-filtros__corpo` visível). */
+const FILTROS_EXPANDIDOS_ESTIMADO_PX = 132;
 
-export function estimarEspacoScrollViewport(): number {
+export function estimarEspacoScrollViewport(filtrosRecolhidos = true): number {
   if (typeof window === 'undefined') return 0;
   const vh = window.visualViewport?.height ?? window.innerHeight;
-  return Math.max(0, vh - CHROME_VIEWPORT_ESTIMADO_PX);
+  const extraFiltros = filtrosRecolhidos ? 0 : FILTROS_EXPANDIDOS_ESTIMADO_PX;
+  return Math.max(0, vh - CHROME_VIEWPORT_ESTIMADO_PX - extraFiltros);
 }
 
 export function estimarTamanhoPaginaInicial(): number {
@@ -17,9 +20,12 @@ export function estimarTamanhoPaginaInicial(): number {
   return calcularCapacidadeLinhas(espaco, ALTURA_THEAD_FALLBACK, ALTURA_LINHA_FALLBACK);
 }
 
-export function estimarAlturaScrollMaxInicial(linhas: number): number | null {
+export function estimarAlturaScrollMaxInicial(
+  linhas: number,
+  filtrosRecolhidos = true,
+): number | null {
   if (linhas <= 0) return null;
-  const espaco = estimarEspacoScrollViewport();
+  const espaco = estimarEspacoScrollViewport(filtrosRecolhidos);
   const capacidade = calcularCapacidadeLinhas(espaco, ALTURA_THEAD_FALLBACK, ALTURA_LINHA_FALLBACK);
   return calcularAlturaScrollMax(
     ALTURA_THEAD_FALLBACK,
@@ -133,6 +139,30 @@ function medirEspacoScrollCentralCobranca(wrapper: HTMLElement): number {
   });
 }
 
+/** Espaço útil do scroll na listagem padrão, ancorado na viewport (evita clientHeight inflado pelo conteúdo). */
+function medirEspacoScrollListaPadrao(
+  wrapper: HTMLElement,
+  painel: HTMLElement,
+): number {
+  const scroll = wrapper.querySelector('.lst-tabela__scroll') as HTMLElement | null;
+  if (!scroll) return 0;
+
+  const rodape = painel.querySelector('.lst-rodape') as HTMLElement | null;
+  const rodapeHeight = rodape?.getBoundingClientRect().height ?? 0;
+  const paddingBottom = parseFloat(getComputedStyle(painel).paddingBottom) || 0;
+
+  const scrollTop = scroll.getBoundingClientRect().top;
+  const viewportBottom =
+    typeof window !== 'undefined' && window.visualViewport
+      ? window.visualViewport.offsetTop + window.visualViewport.height
+      : typeof window !== 'undefined'
+        ? window.innerHeight
+        : 0;
+  const limiteInferior = Math.min(wrapper.getBoundingClientRect().bottom, viewportBottom);
+
+  return Math.max(0, limiteInferior - scrollTop - rodapeHeight - paddingBottom);
+}
+
 export function medirEspacoScrollTabela(wrapper: HTMLElement): number {
   if (wrapper.classList.contains('cc-wrapper')) {
     return medirEspacoScrollCentralCobranca(wrapper);
@@ -141,6 +171,9 @@ export function medirEspacoScrollTabela(wrapper: HTMLElement): number {
   const page = wrapper.querySelector('.lst-page') as HTMLElement | null;
   const painel = wrapper.querySelector('.lst-painel') as HTMLElement | null;
   if (!page || !painel) return 0;
+
+  const peloViewport = medirEspacoScrollListaPadrao(wrapper, painel);
+  if (peloViewport > 0) return peloViewport;
 
   let chrome = 0;
   const cabecalho = page.querySelector(':scope > .lst-cabecalho');
@@ -153,7 +186,12 @@ export function medirEspacoScrollTabela(wrapper: HTMLElement): number {
 
   chrome += somarChromePainelExcetoScroll(painel);
 
-  return Math.max(0, wrapper.clientHeight - chrome);
+  const peloWrapper = Math.max(0, wrapper.clientHeight - chrome);
+  const teto = estimarEspacoScrollViewport();
+  if (teto > 0 && peloWrapper > teto * 1.2) {
+    return teto;
+  }
+  return peloWrapper;
 }
 
 export function medirAlturaThead(scroll: HTMLElement): number {

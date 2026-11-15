@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';
 import { Paginacao } from '../../shared/paginacao';
-import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
+import { TAMANHO_PAGINA_LISTA_PADRAO, ajustarTamanhoPaginaLista, agendarPrimeiraCargaLista } from '../../shared/lista-sge/lista-sge-pagina.util';
 import {
   iniciarCarregamentoLista,
   finalizarCarregamentoListaSucesso,
@@ -14,6 +14,7 @@ import { Router, RouterLink } from '@angular/router';
 import { PagedResult } from '../../core/models/paged-result';
 import { BairroService } from './bairro.service';
 import { Bairro } from './bairro.model';
+import { MunicipioService } from '../municipio/municipio.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/confirmar-exclusao.component';
@@ -65,7 +66,7 @@ import { ConfirmarExclusaoComponent } from '../../shared/confirmar-exclusao/conf
               <thead><tr><th scope="col">Bairro</th><th scope="col" class="lst-col--conteudo">Município</th><th scope="col" class="lst-grade__acoes">Ações</th></tr></thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="goEdit(item)">
-                  <td>{{ item.nome }}</td><td class="lst-col--conteudo">{{ item.codigoIBGEMunicipio }}</td>
+                  <td>{{ item.nome }}</td><td class="lst-col--conteudo">{{ nomeMunicipio(item.codigoIBGEMunicipio) }}</td>
                   <td class="lst-grade__acoes">
                     <div class="lst-acoes" role="group" aria-label="Ações">
                     <button *ngIf="podeExcluir" type="button" class="lst-acao lst-acao--excluir" title="Excluir" aria-label="Excluir" (click)="solicitarExclusao(item)" (dblclick)="$event.stopPropagation()">
@@ -109,11 +110,19 @@ export class BairroListComponent implements OnInit {
   get totalCount(): number { return this.paged?.totalCount ?? 0; }
   get totalPages(): number { return this.paged?.totalPages ?? 0; }
 
-  constructor(private service: BairroService, private router: Router, private permissions: PermissionService, private toast: ToastService) {}
+  constructor(
+    private service: BairroService,
+    private router: Router,
+    private permissions: PermissionService,
+    private toast: ToastService,
+    private municipioService: MunicipioService,
+    private cdr: ChangeDetectorRef,
+  ) {}
   readonly permissionKey = 'BAIRRO';
   confirmarExclusao = false;
   excluindo = false;
   itemExcluir: Bairro | null = null;
+  private municipiosPorCodigo = new Map<number, string>();
 
   get podeExcluir(): boolean {
     return this.permissions.can(this.permissionKey, 'Excluir');
@@ -149,7 +158,26 @@ export class BairroListComponent implements OnInit {
   }
 
 
-  ngOnInit(): void { this.loadPage(1); }
+  ngOnInit(): void {
+    this.municipioService.getPaged(1, 5000).subscribe((r) => {
+      for (const m of r.items ?? []) {
+        const codigo = m.codigoIBGEMunicipio;
+        const nome = m.nome?.trim();
+        if (codigo != null && nome) {
+          this.municipiosPorCodigo.set(Number(codigo), nome);
+        }
+      }
+      this.cdr.markForCheck();
+    });
+    agendarPrimeiraCargaLista(() => this.loadPage(1));
+  }
+
+  nomeMunicipio(codigo?: number): string {
+    if (codigo == null) return '';
+    const nome = this.municipiosPorCodigo.get(Number(codigo));
+    if (nome) return nome;
+    return String(codigo);
+  }
 
   applyFilter(): void { this.page = 1; this.loadPage(1); }
   clearFilter(): void {

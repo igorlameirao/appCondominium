@@ -12,7 +12,7 @@ const form = fs.readFileSync(
 );
 
 const errors = [];
-const expectedParam = 'codigoBanco';
+const expectedParam = 'idBanco';
 
 if (!form.includes(`paramMap.get('${expectedParam}')`)) {
   errors.push(`banco-form deve ler paramMap.get('${expectedParam}')`);
