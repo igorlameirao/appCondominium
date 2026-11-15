@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AppCondominium.Infrastructure\AppCondominium.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\SCO\src\ControleOcorrencias.Infrastructure\ControleOcorrencias.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

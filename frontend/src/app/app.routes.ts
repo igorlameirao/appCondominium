@@ -44,6 +44,7 @@ const entityRoutes: Routes = [
   { path: 'pessoavinculo/novo', loadComponent: () => import('./features/pessoavinculo/pessoavinculo-form.component').then(m => m.PessoaVinculoFormComponent) },
   { path: 'pessoavinculo/:idVinculo', loadComponent: () => import('./features/pessoavinculo/pessoavinculo-form.component').then(m => m.PessoaVinculoFormComponent) },
   { path: 'autorizacaoacessotemporario', loadComponent: () => import('./features/autorizacaoacessotemporario/autorizacaoacessotemporario-list.component').then(m => m.AutorizacaoAcessoTemporarioListComponent) },
+  { path: 'convites', loadComponent: () => import('./features/convite/convite-list.component').then(m => m.ConviteListComponent) },
   { path: 'autorizacaoacessotemporario/novo', loadComponent: () => import('./features/autorizacaoacessotemporario/autorizacaoacessotemporario-form.component').then(m => m.AutorizacaoAcessoTemporarioFormComponent) },
   { path: 'autorizacaoacessotemporario/:idAutorizacao', loadComponent: () => import('./features/autorizacaoacessotemporario/autorizacaoacessotemporario-form.component').then(m => m.AutorizacaoAcessoTemporarioFormComponent) },
   { path: 'pessoafisica', redirectTo: 'pessoas', pathMatch: 'full' },
@@ -123,11 +124,16 @@ const entityRoutes: Routes = [
   { path: 'entradasaidamaterialconsumo', loadComponent: () => import('./features/entradasaidamaterialconsumo/entradasaidamaterialconsumo-list.component').then(m => m.EntradaSaidaMaterialConsumoListComponent) },
   { path: 'entradasaidamaterialconsumo/novo', loadComponent: () => import('./features/entradasaidamaterialconsumo/entradasaidamaterialconsumo-form.component').then(m => m.EntradaSaidaMaterialConsumoFormComponent) },
   { path: 'entradasaidamaterialconsumo/:idEntradaSaidaMaterialConsumo', loadComponent: () => import('./features/entradasaidamaterialconsumo/entradasaidamaterialconsumo-form.component').then(m => m.EntradaSaidaMaterialConsumoFormComponent) },
+  { path: 'fila-email', loadComponent: () => import('./features/fila-email/fila-email-list.component').then(m => m.FilaEmailListComponent) },
+  { path: 'configuracao-email', loadComponent: () => import('./features/configuracao-email/configuracao-email.component').then(m => m.ConfiguracaoEmailComponent) },
 ];
 
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/login.component').then(m => m.LoginComponent) },
   { path: 'entrar', loadComponent: () => import('./features/auth/login-condominio.component').then(m => m.LoginCondominioComponent) },
+  { path: 'recuperacao-senha/esqueci', loadComponent: () => import('./features/auth/esqueci-senha.component').then(m => m.EsqueciSenhaComponent) },
+  { path: 'recuperacao-senha/redefinir', loadComponent: () => import('./features/auth/redefinir-senha.component').then(m => m.RedefinirSenhaComponent) },
+  { path: 'convite/aceitar', loadComponent: () => import('./features/convite/convite-aceite.component').then(m => m.ConviteAceiteComponent) },
   {
     path: '',
     canActivate: [authGuard],

@@ -39,9 +39,12 @@ public static class TenantResolution
             || value.Equals("/api/auth/login", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/api/auth/vinculos", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/api/auth/condominios", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/api/auth/vinculos-ativos", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/api/lookup/condominio-por-dominio", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/api/lookup/condominio-resumo/", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/api/lookup/configuracao-por-condominio/", StringComparison.OrdinalIgnoreCase)
-            || value.StartsWith("/api/lookup/condominios/", StringComparison.OrdinalIgnoreCase);
+            || value.StartsWith("/api/lookup/condominios/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/api/convites/validar", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/api/convites/aceitar", StringComparison.OrdinalIgnoreCase);
     }
 }

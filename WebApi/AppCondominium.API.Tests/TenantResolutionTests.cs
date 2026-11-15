@@ -40,6 +40,7 @@ public class TenantResolutionTests
     {
         Assert.True(TenantResolution.PathSkipsTenant("/api/auth/login"));
         Assert.True(TenantResolution.PathSkipsTenant("/api/auth/vinculos"));
+        Assert.True(TenantResolution.PathSkipsTenant("/api/auth/vinculos-ativos"));
         Assert.True(TenantResolution.PathSkipsTenant("/api/auth/condominios"));
         Assert.True(TenantResolution.PathSkipsTenant("/api/lookup/condominio-por-dominio"));
         Assert.True(TenantResolution.PathSkipsTenant("/api/lookup/condominio-resumo/3"));

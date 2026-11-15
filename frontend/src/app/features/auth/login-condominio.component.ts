@@ -77,6 +77,9 @@ import { LoginTrilha } from './login-trilha';
                                 required
                                 autocomplete="current-password" />
                             </div>
+                            <p class="login-forgot-link">
+                              <a routerLink="/recuperacao-senha/esqueci">Esqueci minha senha</a>
+                            </p>
                             <div class="actions">
                               <button class="btn-entrar" type="submit" [disabled]="enviando || trilha.animando || !idCondominio">
                                 {{ enviando && trilha.atual === 'LOGIN' ? 'Entrando...' : 'Entrar' }}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:sagaz_condominium/common/custom_link_button.dart';
 import 'package:sagaz_condominium/common/custom_text_field.dart';
 import 'package:sagaz_condominium/common/nome_app_text.dart';
@@ -94,15 +95,17 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   height: 30,
                 ),
                 Expanded(
-                  child: PageView(
-                    controller: controllerPage,
-                    physics: const NeverScrollableScrollPhysics(),
-                    onPageChanged: (index) {
-                      setState(() {
-                        pageIndex = index;
-                      });
-                    },
-                    children: pages,
+                  child: AutofillGroup(
+                    child: PageView(
+                      controller: controllerPage,
+                      physics: const NeverScrollableScrollPhysics(),
+                      onPageChanged: (index) {
+                        setState(() {
+                          pageIndex = index;
+                        });
+                      },
+                      children: pages,
+                    ),
                   ),
                 ),
                 Container(
@@ -147,6 +150,10 @@ class _PaginaInicialState extends State<PaginaInicial> {
               "e-mail",
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
+              autofillHints: const [
+                AutofillHints.username,
+                AutofillHints.email,
+              ],
               suffixIcon: Icons.alternate_email,
               validator: (value, pretest) {
                 UsuarioLogado.email = '';
@@ -225,6 +232,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
               "Senha",
               controller: senhaController,
               keyboardType: TextInputType.visiblePassword,
+              autofillHints: const [AutofillHints.password],
               onChanged: (text) => setState(() {
                 isFormOk = _formSenhaKey.currentState!.validate();
               }),
@@ -294,8 +302,10 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
     if (!mounted) return;
     if (ok) {
+      TextInput.finishAutofillContext(shouldSave: true);
       Navigator.pushNamedAndRemoveUntil(context, PaginaPrincipal.routName, (_) => false);
     } else {
+      TextInput.finishAutofillContext(shouldSave: false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Falha no login. Verifique credenciais e condomínio.")),
       );

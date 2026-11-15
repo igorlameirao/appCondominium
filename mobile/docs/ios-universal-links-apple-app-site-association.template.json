@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "SUBSTITUIR_PELO_APPLE_TEAM_ID.br.com.appcondominium.mobile"
+        ],
+        "components": [
+          {
+            "/": "/convite/aceitar",
+            "?": { "token": "?*" }
+          },
+          {
+            "/": "/recuperacao-senha/redefinir",
+            "?": { "token": "?*" }
+          }
+        ]
+      }
+    ]
+  }
+}

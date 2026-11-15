@@ -1008,6 +1008,114 @@ app-endereco-widget .form-group input:not([required]):not([disabled]):not([type=
 
 
 /* Componentes auxiliares opt-in: configuração SMTP e detalhes da fila de e-mail. */
+.cad-segmento-situacao {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--cad-campo-altura, 38px);
+  padding: 2px;
+  gap: 2px;
+  box-sizing: border-box;
+  border: 1px solid var(--cad-campo-borda, #cbd5e1);
+  border-radius: var(--cad-campo-raio, 6px);
+  background: #f8fafc;
+}
+
+.cad-segmento-situacao__opcao {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0 8px;
+  border: none;
+  border-radius: calc(var(--cad-campo-raio, 6px) - 2px);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #64748b;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+.cad-segmento-situacao__opcao:hover:not(:disabled) {
+  color: #334155;
+  background: #fff;
+}
+
+.cad-segmento-situacao__opcao--ativa {
+  color: #fff;
+  background: var(--cad-primary, #2563eb);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.cad-segmento-situacao__opcao:focus-visible {
+  outline: none;
+  box-shadow: var(--cad-focus-ring);
+}
+
+.cad-segmento-situacao__opcao:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cad-wrapper .form-grid.smtp-dados {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: 16px 12px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+}
+
+.smtp-dados__provedor { grid-column: span 5; }
+.smtp-dados__servidor { grid-column: span 9; }
+.smtp-dados__porta { grid-column: span 3; }
+.smtp-dados__situacao { grid-column: span 3; }
+.smtp-dados__usuario { grid-column: span 10; }
+.smtp-dados__senha { grid-column: span 10; }
+.smtp-dados__nome-rem { grid-column: span 7; }
+.smtp-dados__email-rem { grid-column: span 13; }
+
+.smtp-seguranca {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border, #e2e8f0);
+}
+
+.smtp-seguranca__titulo {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  line-height: 1.25;
+}
+
+.smtp-seguranca__corpo {
+  padding: 12px 14px;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+}
+
+.smtp-seguranca__opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px 28px;
+}
+
+.smtp-seguranca__opcoes .cad-switch-linha {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 720px) {
+  .cad-wrapper .form-grid.smtp-dados,
+  .cad-wrapper .form-grid.smtp-dados > .form-group {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 .cad-grupo + .cad-grupo { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--color-border, #e2e8f0); }
 .cad-paineis { display: grid; gap: 16px; margin-top: 16px; }
 .cad-paineis:empty { display: none; }

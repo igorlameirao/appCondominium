@@ -705,7 +705,7 @@ def gen_angular_model(entity):
 
 SQL_EXTRA_TABLES = frozenset(
     {"PessoaEndereco", "FornecedorAtividade", "CobrancaDetalhe",
-     "PermissionKey", "PerfilPermissao", "PessoaPermissaoExcecao"}
+     "PermissionKey", "PerfilPermissao", "PessoaPermissaoExcecao", "ConviteAcesso"}
 )
 
 PAPEL_VINCULO_SEEDS = [

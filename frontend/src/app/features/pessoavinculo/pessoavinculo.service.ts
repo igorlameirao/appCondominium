@@ -22,14 +22,14 @@ export class PessoaVinculoService {
   }
 
   create(item: PessoaVinculo): Observable<PessoaVinculo> {
-    return this.http.post<PessoaVinculo>(`${this.base}/validado`, item);
+    return this.http.post<PessoaVinculo>(this.base, item);
   }
 
   update(item: PessoaVinculo): Observable<void> {
-    return this.http.put<void>(`${this.base}/validado/${item.idVinculo}`, item);
+    return this.http.put<void>(`${this.base}/${item.idVinculo}`, item);
   }
 
-  encerrar(idVinculo: number | string, dataFim?: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/validado/${idVinculo}/encerrar`, dataFim ? { dataFim } : {});
+  delete(idVinculo: number | string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${idVinculo}`);
   }
 }

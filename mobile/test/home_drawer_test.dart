@@ -1,4 +1,7 @@
 import 'package:appcondominium_mobile/app/theme/theme_mode_controller.dart';
+import 'package:appcondominium_mobile/core/security/secure_key_value_store.dart';
+import 'package:appcondominium_mobile/core/security/token_storage.dart';
+import 'package:appcondominium_mobile/features/auth/presentation/login_page.dart';
 import 'package:appcondominium_mobile/features/home/presentation/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,8 +15,13 @@ Future<void> _openDrawer(WidgetTester tester) async {
 }
 
 Widget _homeWithRouter(GoRouter router, {List<Override> overrides = const []}) {
+  final baseOverrides = [
+    tokenStorageProvider.overrideWithValue(
+      TokenStorage(InMemorySecureKeyValueStore()),
+    ),
+  ];
   return ProviderScope(
-    overrides: overrides,
+    overrides: [...baseOverrides, ...overrides],
     child: MaterialApp.router(
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
@@ -28,9 +36,7 @@ GoRouter _testRouter() {
     routes: [
       GoRoute(
         path: '/login',
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Tela Login')),
-        ),
+        builder: (context, state) => const LoginPage(),
       ),
       GoRoute(
         path: '/home',
@@ -51,7 +57,8 @@ void main() {
   });
 
   group('HomeDrawer', () {
-    testWidgets('exibe cabeçalho com dados demonstrativos', (tester) async {
+    testWidgets('exibe cabeçalho sem dados fictícios quando não autenticado',
+        (tester) async {
       final router = _testRouter();
       addTearDown(router.dispose);
 
@@ -66,28 +73,30 @@ void main() {
 
       final drawer = find.byType(Drawer);
 
+      expect(find.descendant(of: drawer, matching: find.text('Danilo')),
+          findsNothing);
       expect(
-        find.descendant(of: drawer, matching: find.text('Danilo')),
-        findsOneWidget,
+        find.descendant(of: drawer, matching: find.text('—')),
+        findsWidgets,
       );
-      expect(
-        find.descendant(of: drawer, matching: find.text('Morador')),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: drawer,
-          matching: find.text('Residencial Vista Nobre'),
+    });
+
+    testWidgets('exibe itens de troca de contexto', (tester) async {
+      final router = _testRouter();
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        _homeWithRouter(
+          router,
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
         ),
-        findsOneWidget,
       );
-      expect(
-        find.descendant(
-          of: drawer,
-          matching: find.text('Torre A — Apto 302'),
-        ),
-        findsOneWidget,
-      );
+      await tester.pumpAndSettle();
+      await _openDrawer(tester);
+
+      expect(find.text('Trocar condomínio'), findsOneWidget);
+      expect(find.text('Trocar perfil'), findsOneWidget);
+      expect(find.text('Trocar unidade'), findsOneWidget);
     });
 
     testWidgets('exibe grupos e itens do menu', (tester) async {
@@ -106,25 +115,28 @@ void main() {
       final drawer = find.byType(Drawer);
 
       expect(
-        find.descendant(of: drawer, matching: find.text('Meu Condomínio')),
+        find.descendant(of: drawer, matching: find.text('Minha conta')),
         findsOneWidget,
       );
-      expect(
-        find.descendant(of: drawer, matching: find.text('Serviços')),
-        findsOneWidget,
-      );
-      expect(find.text('Assembleias e Votações'), findsOneWidget);
 
       final listView = find.descendant(
         of: drawer,
         matching: find.byType(ListView),
       );
-      await tester.drag(listView, const Offset(0, -320));
-      await tester.pumpAndSettle();
+      await tester.dragUntilVisible(
+        find.text('Serviços'),
+        listView,
+        const Offset(0, -80),
+      );
 
-      expect(
-        find.descendant(of: drawer, matching: find.text('Financeiro')),
-        findsOneWidget,
+      expect(find.text('Meu Condomínio'), findsOneWidget);
+      expect(find.text('Serviços'), findsOneWidget);
+      expect(find.text('Assembleias e Votações'), findsOneWidget);
+
+      await tester.dragUntilVisible(
+        find.text('Taxas e Boletos'),
+        listView,
+        const Offset(0, -80),
       );
       expect(find.text('Taxas e Boletos'), findsOneWidget);
     });
@@ -200,7 +212,7 @@ void main() {
       await tester.tap(find.text('Sair da conta'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Tela Login'), findsOneWidget);
+      expect(find.byType(LoginPage), findsOneWidget);
       expect(find.text('Minhas Pendências'), findsNothing);
     });
 
@@ -221,7 +233,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(router.canPop(), isFalse);
-      expect(find.text('Tela Login'), findsOneWidget);
+      expect(find.byType(LoginPage), findsOneWidget);
       expect(find.text('Minhas Pendências'), findsNothing);
     });
 

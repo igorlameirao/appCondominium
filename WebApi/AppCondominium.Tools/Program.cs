@@ -8,6 +8,10 @@ using Microsoft.Extensions.Logging;
 var fixUnidadeSchema = args.Any(a => string.Equals(a, "fix-unidade-schema", StringComparison.OrdinalIgnoreCase));
 var inspectPessoaVinculo = args.Any(a => string.Equals(a, "inspect-pessoa-vinculo", StringComparison.OrdinalIgnoreCase));
 var migratePessoaVinculo = args.Any(a => string.Equals(a, "migrate-pessoa-vinculo", StringComparison.OrdinalIgnoreCase));
+var migrateConviteAcesso = args.Any(a => string.Equals(a, "migrate-convite-acesso", StringComparison.OrdinalIgnoreCase));
+var migrateEmailModule = args.Any(a => string.Equals(a, "migrate-email-module", StringComparison.OrdinalIgnoreCase));
+var migrateRecuperacaoSenha = args.Any(a => string.Equals(a, "migrate-recuperacao-senha", StringComparison.OrdinalIgnoreCase));
+var transferSmtpFromSco = args.Any(a => string.Equals(a, "transfer-smtp-from-sco", StringComparison.OrdinalIgnoreCase));
 var allowDropLegacy = args.Any(a => string.Equals(a, "--allow-drop-legacy", StringComparison.OrdinalIgnoreCase));
 var dropColumns = args.Any(a => string.Equals(a, "--drop-columns", StringComparison.OrdinalIgnoreCase));
 var apiDir = EncontrarApi();
@@ -39,6 +43,18 @@ try
     if (migratePessoaVinculo)
         return await PessoaVinculoAwsMigration.MigrateAsync(host.Services, logger, allowDropLegacy, CancellationToken.None);
 
+    if (migrateConviteAcesso)
+        return await ConviteAcessoAwsMigration.EnsureAsync(host.Services, logger, CancellationToken.None);
+
+    if (migrateEmailModule)
+        return await EmailModuleAwsMigration.EnsureAsync(host.Services, logger, CancellationToken.None);
+
+    if (migrateRecuperacaoSenha)
+        return await RecuperacaoSenhaAwsMigration.EnsureAsync(host.Services, logger, CancellationToken.None);
+
+    if (transferSmtpFromSco)
+        return await SmtpConfigScoTransfer.RunAsync(host.Services, logger, CancellationToken.None);
+
     using var scope = host.Services.CreateScope();
     var migrator = scope.ServiceProvider.GetRequiredService<BlobToS3Migrator>();
     await migrator.RunAsync(dropColumns, CancellationToken.None);
@@ -48,6 +64,10 @@ catch (Exception ex)
   var ctx = fixUnidadeSchema ? "Correção de schema Unidade"
     : inspectPessoaVinculo ? "Inspeção PessoaVinculo"
     : migratePessoaVinculo ? "Migração PessoaVinculo/RDS"
+    : migrateConviteAcesso ? "Migração ConviteAcesso/RDS"
+    : migrateEmailModule ? "Migração módulo e-mail/RDS"
+    : migrateRecuperacaoSenha ? "Migração RecuperacaoSenha/RDS"
+    : transferSmtpFromSco ? "Transferência SMTP SCO→AppCondominium"
     : "Migração de BLOBs para o S3";
   logger.LogError(ex, "{Ctx} interrompida.", ctx);
   return 1;

@@ -38,6 +38,14 @@
     },
     {
       "perfil": "Síndico",
+      "permissionKey": "CONVITEACESSO",
+      "visualizar": true,
+      "incluir": true,
+      "alterar": true,
+      "excluir": false
+    },
+    {
+      "perfil": "Síndico",
       "permissionKey": "FORNECEDOR",
       "visualizar": true,
       "incluir": true,
@@ -66,6 +74,14 @@
       "visualizar": true,
       "incluir": false,
       "alterar": false,
+      "excluir": false
+    },
+    {
+      "perfil": "Funcionário Administração",
+      "permissionKey": "CONVITEACESSO",
+      "visualizar": true,
+      "incluir": true,
+      "alterar": true,
       "excluir": false
     },
     {

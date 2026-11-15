@@ -17,6 +17,7 @@ class CustomTextField extends StatefulWidget {
   final Function(String)? onChanged;
   final EdgeInsetsGeometry? margin;
   final EdgeInsetsGeometry? padding;
+  final Iterable<String>? autofillHints;
   CustomTextField(this.context, this.labelText,
       {this.controller,
       this.margin,
@@ -27,6 +28,7 @@ class CustomTextField extends StatefulWidget {
       this.keyboardType,
       this.prefixIcon,
       this.suffixIcon,
+      this.autofillHints,
       this.onChanged,
       this.onFieldSubmitted,
       this.validator,
@@ -51,6 +53,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         padding: widget.padding,
         child: TextFormField(
             controller: widget.controller,
+            autofillHints: widget.autofillHints,
             maxLength: widget.maxLength,
             maxLines: widget.maxLines,
             obscureText: widget.keyboardType == TextInputType.visiblePassword &&

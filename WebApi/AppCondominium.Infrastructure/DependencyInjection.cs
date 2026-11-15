@@ -1,10 +1,15 @@
 using Amazon;
 using Amazon.S3;
+using AppCondominium.Application.Convites;
+using AppCondominium.Application.RecuperacaoSenha;
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Application.Storage;
+using AppCondominium.Infrastructure.Background;
 using AppCondominium.Infrastructure.Persistence;
 using AppCondominium.Infrastructure.Services;
+using AppCondominium.Infrastructure.Services.Email;
 using AppCondominium.Infrastructure.Storage;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +25,7 @@ public static partial class DependencyInjection
     {
         services.AddScoped<ICondominioContext, CondominioContext>();
         services.AddScoped<ITenantAccessService, TenantAccessService>();
+        services.AddScoped<IUsuarioIdentificacaoService, UsuarioIdentificacaoService>();
         services.AddScoped<IPermissionResolver, PermissionResolver>();
         services.AddScoped<IPessoaCadastroService, PessoaCadastroService>();
         services.AddScoped<IPessoaVinculoService, PessoaVinculoService>();
@@ -27,6 +33,22 @@ public static partial class DependencyInjection
         services.AddScoped<IPessoaConsultaService, PessoaConsultaService>();
         services.AddScoped<IFornecedorConsultaService, FornecedorConsultaService>();
         services.AddScoped<IPessoaEnderecoService, PessoaEnderecoService>();
+        services.AddScoped<IConviteAcessoService, ConviteAcessoService>();
+        services.AddScoped<IPasswordRecoveryService, PasswordRecoveryService>();
+        services.Configure<ConviteOptions>(config.GetSection(ConviteOptions.SectionName));
+        services.Configure<PasswordRecoveryOptions>(config.GetSection(PasswordRecoveryOptions.SectionName));
+        services.Configure<SmtpOptions>(config.GetSection(SmtpOptions.SectionName));
+        services.AddDataProtection();
+        services.AddSingleton<ISmtpSecretProtector, SmtpSecretProtector>();
+        services.AddSingleton<IEmailQueuePump, EmailQueuePump>();
+        services.AddSingleton<SmtpEmailProvider>();
+        services.AddSingleton<IEmailProviderFactory, EmailProviderFactory>();
+        services.AddScoped<IConfiguracaoEmailService, ConfiguracaoEmailService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IEmailQueueConsultaService, EmailQueueConsultaService>();
+        services.AddScoped<IEmailSender, QueuedEmailSenderAdapter>();
+        services.AddHostedService<EmailQueueWorker>();
+        services.AddHostedService<ConviteEmailDispatcherHostedService>();
         services.AddSingleton<IPasswordHasher, PasswordHasherService>();
         services.AddSingleton<PessoafisicaSenhaInterceptor>();
         services.AddScoped<ArquivoCleanupInterceptor>();
