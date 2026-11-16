@@ -14,6 +14,8 @@ var migrateRecuperacaoSenha = args.Any(a => string.Equals(a, "migrate-recuperaca
 var migrateMaterialTables = args.Any(a => string.Equals(a, "migrate-material-tables", StringComparison.OrdinalIgnoreCase));
 var inspectMaterialTables = args.Any(a => string.Equals(a, "inspect-material-tables", StringComparison.OrdinalIgnoreCase));
 var transferSmtpFromSco = args.Any(a => string.Equals(a, "transfer-smtp-from-sco", StringComparison.OrdinalIgnoreCase));
+var diagnoseSmtp = args.Any(a => string.Equals(a, "diagnose-smtp", StringComparison.OrdinalIgnoreCase));
+var diagnoseLogin = args.Any(a => string.Equals(a, "diagnose-login", StringComparison.OrdinalIgnoreCase));
 var allowDropLegacy = args.Any(a => string.Equals(a, "--allow-drop-legacy", StringComparison.OrdinalIgnoreCase));
 var dropColumns = args.Any(a => string.Equals(a, "--drop-columns", StringComparison.OrdinalIgnoreCase));
 var apiDir = EncontrarApi();
@@ -62,6 +64,12 @@ try
 
     if (transferSmtpFromSco)
         return await SmtpConfigScoTransfer.RunAsync(host.Services, logger, CancellationToken.None);
+
+    if (diagnoseSmtp)
+        return await SmtpPasswordDiagnose.RunAsync(host.Services, CancellationToken.None);
+
+    if (diagnoseLogin)
+        return await LoginDiagnose.RunAsync(host.Services, CancellationToken.None);
 
     using var scope = host.Services.CreateScope();
     var migrator = scope.ServiceProvider.GetRequiredService<BlobToS3Migrator>();

@@ -437,3 +437,293 @@
     padding: 16px;
   }
 }
+
+/* Redefinir senha — card compacto; mobile sem arte lateral */
+.login-screen--redefinir {
+  overflow-x: hidden;
+}
+
+.login-screen--redefinir .login-container {
+  max-width: 440px;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+
+.login-screen--redefinir .login-card {
+  max-width: 420px;
+  min-height: 0;
+  width: 100%;
+}
+
+.login-screen--redefinir .login-card-form {
+  padding: 28px 32px 32px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.login-screen--redefinir .login-card-form .actions a.btn-entrar {
+  text-decoration: none;
+}
+
+.login-screen--redefinir .login-title {
+  font-size: 22px;
+  text-align: center;
+}
+
+.login-screen--redefinir .login-subtitle {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-screen--redefinir .login-mobile-brand {
+  display: none;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top, 0px)) 16px 8px;
+  box-sizing: border-box;
+}
+
+.login-screen--redefinir .login-mobile-brand img {
+  display: block;
+  width: min(200px, 56vw);
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.login-recovery-state {
+  animation: login-recovery-fade-in 0.28s ease;
+}
+
+@keyframes login-recovery-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.login-recovery-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.login-recovery-status__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  margin-bottom: 4px;
+}
+
+.login-recovery-status__icon--erro {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.login-recovery-status__icon--ok {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.login-recovery-status__icon--destaque {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+}
+
+.login-recovery-dica {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 14px;
+  border: 1px solid #e0f2fe;
+  border-radius: 8px;
+  background: #f0f9ff;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.login-recovery-dica__icone {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.login-recovery-dica__texto {
+  margin: 0;
+  padding-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.login-card-form .login-link-action {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #64748b;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.login-card-form .login-link-action:hover {
+  color: #0891b2;
+  text-decoration: underline;
+}
+
+.login-card-form .login-link-action:focus-visible {
+  outline: 2px solid #0891b2;
+  outline-offset: 2px;
+}
+
+.login-btn-spinner {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: login-btn-spin 0.7s linear infinite;
+}
+
+@keyframes login-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.login-recovery-status__texto {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.login-screen--redefinir .login-senha-wrap {
+  position: relative;
+}
+
+.login-screen--redefinir .login-senha-wrap input {
+  padding-right: 40px !important;
+}
+
+.login-screen--redefinir .login-senha-toggle {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.login-screen--redefinir .login-senha-toggle:hover {
+  color: #0891b2;
+}
+
+.login-screen--redefinir .login-senha-toggle:focus-visible {
+  outline: 2px solid #0891b2;
+  outline-offset: 2px;
+}
+
+.login-screen--redefinir .login-recovery-loading {
+  margin: 16px 0;
+  text-align: center;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.login-screen--redefinir .login-footer-link--secundario {
+  margin-top: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-recovery-state {
+    animation: none;
+  }
+
+  .login-btn-spinner {
+    animation: none;
+    border-top-color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+@media (max-width: 768px) {
+  .login-screen--redefinir {
+    padding: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .login-screen--redefinir .login-mobile-brand {
+    display: flex;
+  }
+
+  .login-screen--redefinir .login-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: auto;
+  }
+
+  .login-screen--redefinir .login-layout::after {
+    display: none;
+  }
+
+  .login-screen--redefinir .login-art {
+    display: none;
+  }
+
+  .login-screen--redefinir .login-main {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+    align-items: flex-start;
+    padding: 0 16px max(24px, env(safe-area-inset-bottom, 0px));
+    background-color: #e6f2fa;
+  }
+
+  .login-screen--redefinir .login-main::before {
+    display: none;
+  }
+
+  .login-screen--redefinir .login-container {
+    padding: 8px 0 0;
+    max-width: 100%;
+  }
+
+  .login-screen--redefinir .login-card-form {
+    padding: 24px 20px 28px;
+  }
+
+  .login-screen--redefinir .login-brand-logo {
+    width: min(88px, 22vw);
+    max-height: min(60px, 8vh);
+  }
+}

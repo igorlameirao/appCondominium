@@ -15,6 +15,7 @@ public static class AdminBootstrapSeeder
     private const string DefaultEmail = "admin@condominium.local";
     private const string DefaultPassword = "Admin@123456";
     private const string DefaultCondominioNome = "Condomínio Sistema";
+    public const string AdminCpfPlaceholder = "00000000191";
 
     public static async Task SeedAsync(
         AppDbContext db,
@@ -64,31 +65,65 @@ public static class AdminBootstrapSeeder
         uint idPessoa;
         if (pf?.IdPessoa == null)
         {
-            var pessoa = new Pessoa
-            {
-                CPFCNPJ = "00000000191",
-                Nome = "Administrador do Sistema",
-                Telefone = null
-            };
-            db.Pessoa.Add(pessoa);
-            await db.SaveChangesAsync(ct);
+            var pessoaExistente = await db.Pessoa.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.CPFCNPJ == AdminCpfPlaceholder, ct);
 
-            idPessoa = pessoa.IdPessoa!.Value;
-            pf = new Pessoafisica
+            if (pessoaExistente?.IdPessoa == null)
             {
-                IdPessoa = idPessoa,
-                Email = email,
-                Senha = hash,
-                DataNascimento = new DateOnly(1990, 1, 1)
-            };
-            db.Pessoafisica.Add(pf);
-            await db.SaveChangesAsync(ct);
-            logger.LogInformation("Usuário admin criado: {Email}, IdPessoa={IdPessoa}", email, idPessoa);
+                var pessoa = new Pessoa
+                {
+                    CPFCNPJ = AdminCpfPlaceholder,
+                    Nome = "Administrador do Sistema",
+                    Telefone = null
+                };
+                db.Pessoa.Add(pessoa);
+                await db.SaveChangesAsync(ct);
+                idPessoa = pessoa.IdPessoa!.Value;
+                logger.LogInformation("Pessoa admin criada: IdPessoa={IdPessoa}", idPessoa);
+            }
+            else
+            {
+                idPessoa = pessoaExistente.IdPessoa.Value;
+                logger.LogInformation(
+                    "Pessoa com CPF bootstrap já existe; reutilizando IdPessoa={IdPessoa}.",
+                    idPessoa);
+            }
+
+            pf = await db.Pessoafisica.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.IdPessoa == idPessoa, ct);
+            if (pf == null)
+            {
+                pf = new Pessoafisica
+                {
+                    IdPessoa = idPessoa,
+                    Email = email,
+                    Senha = hash,
+                    DataNascimento = new DateOnly(1990, 1, 1)
+                };
+                db.Pessoafisica.Add(pf);
+                await db.SaveChangesAsync(ct);
+                logger.LogInformation("Usuário admin criado: {Email}, IdPessoa={IdPessoa}", email, idPessoa);
+            }
+            else if (!string.Equals(pf.Email?.Trim(), email, StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogWarning(
+                    "Bootstrap: pessoa IdPessoa={IdPessoa} com CPF reservado já possui login ({EmailExistente}); " +
+                    "não alteramos e-mail/senha. Use esse usuário ou defina Bootstrap:AdminEmail igual ao cadastro.",
+                    idPessoa, pf.Email);
+            }
+            else if (!hasher.Verify(password, pf.Senha ?? ""))
+            {
+                pf.Senha = hash;
+                db.Pessoafisica.Update(pf);
+                await db.SaveChangesAsync(ct);
+                logger.LogInformation("Senha do admin bootstrap atualizada: {Email}", email);
+            }
         }
         else
         {
             idPessoa = pf.IdPessoa.Value;
-            if (!hasher.Verify(password, pf.Senha ?? ""))
+            var atualizarSenha = config.GetValue("Bootstrap:AtualizarSenhaSeDiferente", isDevelopment);
+            if (atualizarSenha && !hasher.Verify(password, pf.Senha ?? ""))
             {
                 pf.Senha = hash;
                 db.Pessoafisica.Update(pf);
