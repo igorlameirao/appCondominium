@@ -79,7 +79,7 @@
     </nav>
     <div class="app-premium-sidebar__foot">
       <app-sidebar-usuario />
-      <div class="tenant-switch" *ngIf="condominiosAutorizados.length > 1">
+      <div class="tenant-switch" *ngIf="exibirTrocaCondominio">
         <div class="tenant-switch__texto">
           <div class="tenant-switch__rotulo">Condomínio</div>
           <div class="tenant-switch__nome" [title]="nomeCondominioAtivo">{{ nomeCondominioAtivo }}</div>

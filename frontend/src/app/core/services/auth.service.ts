@@ -24,6 +24,7 @@ export interface CondominioVinculo {
   nome: string;
   perfis: PerfilVinculo[];
   dominio?: string | null;
+  enderecoResumo?: string | null;
 }
 
 export interface LoginResponse {

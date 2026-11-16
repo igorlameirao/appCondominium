@@ -35,6 +35,10 @@ interface MenuGroup {
 export class AppComponent implements OnInit {
   private static readonly SIDEBAR_KEY = 'appcondominium-sidebar-collapsed';
   private static readonly TENANT_SWITCH_TOAST_KEY = 'appcondominium-tenant-switch-ok';
+  private static readonly TENANT_LIST_CACHE_KEY = 'appcondominium-tenant-list-cache';
+  /** Animações fixas de UX na troca (~50ms + ~120ms; meta total percebida ~2s com API/reload). */
+  private static readonly TENANT_FADE_OUT_MS = 50;
+  private static readonly TENANT_FADE_IN_MS = 120;
 
   readonly versao = VERSAO_SISTEMA;
 
@@ -94,6 +98,8 @@ export class AppComponent implements OnInit {
   tenantTransicao: 'idle' | 'saindo' | 'carregando' | 'entrando' = 'idle';
   mainEntrandoVisivel = false;
   nomeCondominioCarregando = '';
+  /** Atualiza o rodapé imediatamente ao confirmar troca (antes do reload). */
+  private nomeCondominioPainelOverride: string | null = null;
 
   constructor(
     public auth: AuthService,
@@ -110,6 +116,7 @@ export class AppComponent implements OnInit {
       this.sidebarCollapsed = sessionStorage.getItem(AppComponent.SIDEBAR_KEY) === '1';
     } catch { /* sessionStorage indisponível */ }
 
+    this.restaurarListaCondominiosCache();
     this.carregarSeNecessario();
     this.abrirGrupoDaRota();
     this.finalizarTransicaoPosTroca();
@@ -129,10 +136,42 @@ export class AppComponent implements OnInit {
     if (!this.condominiosAutorizados.length || faltaAtivo) this.carregarCondominios();
   }
 
+  get exibirTrocaCondominio(): boolean {
+    return this.condominiosAutorizados.length > 1;
+  }
+
   get nomeCondominioAtivo(): string {
+    const override = this.nomeCondominioPainelOverride?.trim();
+    if (override) return override;
     const id = this.condominioCtx.idCondominio;
     const daLista = this.condominiosAutorizados.find(c => Number(c.idCondominio) === Number(id))?.nome;
     return daLista || this.tenantHost.nomeCondominio || '';
+  }
+
+  private restaurarListaCondominiosCache(): void {
+    try {
+      const raw = sessionStorage.getItem(AppComponent.TENANT_LIST_CACHE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as CondominioTrocaItem[];
+      if (Array.isArray(parsed) && parsed.length) {
+        this.condominiosAutorizados = parsed;
+      }
+    } catch {
+      /* cache inválido */
+    }
+  }
+
+  private persistirListaCondominiosCache(): void {
+    try {
+      if (this.condominiosAutorizados.length) {
+        sessionStorage.setItem(
+          AppComponent.TENANT_LIST_CACHE_KEY,
+          JSON.stringify(this.condominiosAutorizados)
+        );
+      }
+    } catch {
+      /* sessionStorage indisponível */
+    }
   }
 
   abrirModalTrocar(): void {
@@ -148,14 +187,15 @@ export class AppComponent implements OnInit {
     this.selecaoCondominioModal = null;
   }
 
-  onSelecionarCondominioModal(id: number): void {
-    this.selecaoCondominioModal = id;
+  onSelecionarCondominioModal(id: number | null): void {
+    this.selecaoCondominioModal = id != null ? Number(id) : null;
   }
 
   confirmarTrocaModal(id: number): void {
     if (this.trocandoTenant || !id || id === this.condominioCtx.idCondominio) return;
     const nome =
       this.condominiosAutorizados.find(c => Number(c.idCondominio) === Number(id))?.nome ?? '';
+    this.nomeCondominioPainelOverride = nome || null;
     this.nomeCondominioCarregando = nome;
     this.modalTrocarAberto = false;
     this.selecaoCondominioModal = null;
@@ -165,33 +205,45 @@ export class AppComponent implements OnInit {
 
   carregarCondominios(): void {
     this.auth.listarVinculosAtivos().subscribe({
-      next: items =>
-        (this.condominiosAutorizados = (items ?? []).map(c => ({
+      next: items => {
+        this.condominiosAutorizados = (items ?? []).map(c => ({
           idCondominio: c.idCondominio,
           nome: c.nome,
           dominio: c.dominio ?? null,
-        }))),
+          enderecoResumo: c.enderecoResumo ?? null,
+        }));
+        this.persistirListaCondominiosCache();
+        this.sincronizarNomePainelAposCarga();
+      },
       error: () => {
         this.auth.listCondominios().subscribe({
-          next: items =>
-            (this.condominiosAutorizados = (items ?? []).map(c => ({
+          next: items => {
+            this.condominiosAutorizados = (items ?? []).map(c => ({
               idCondominio: c.idCondominio,
               nome: c.nome,
-            }))),
+            }));
+            this.persistirListaCondominiosCache();
+            this.sincronizarNomePainelAposCarga();
+          },
           error: () => (this.condominiosAutorizados = []),
         });
       },
     });
   }
 
+  private sincronizarNomePainelAposCarga(): void {
+    const id = this.condominioCtx.idCondominio;
+    if (id == null) return;
+    const nome = this.condominiosAutorizados.find(c => Number(c.idCondominio) === Number(id))?.nome;
+    if (nome) this.nomeCondominioPainelOverride = null;
+  }
+
   private iniciarTransicaoTenant(id: number): void {
     const reducedMotion =
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const fadeOutMs = reducedMotion ? 0 : 150;
-    this.tenantTransicao = 'saindo';
-    window.setTimeout(() => {
-      this.tenantTransicao = 'carregando';
+    const fadeOutMs = reducedMotion ? 0 : AppComponent.TENANT_FADE_OUT_MS;
+    const chamarTroca = () => {
       this.auth.trocarCondominio(id).subscribe({
         next: () => {
           try {
@@ -205,11 +257,20 @@ export class AppComponent implements OnInit {
           this.trocandoTenant = false;
           this.tenantTransicao = 'idle';
           this.nomeCondominioCarregando = '';
+          this.nomeCondominioPainelOverride = null;
           this.toast.showError('Não foi possível alterar o condomínio. Tente novamente.');
           this.carregarCondominios();
         },
       });
-    }, fadeOutMs);
+    };
+
+    this.tenantTransicao = reducedMotion ? 'carregando' : 'saindo';
+    chamarTroca();
+    if (fadeOutMs > 0) {
+      window.setTimeout(() => {
+        if (this.trocandoTenant) this.tenantTransicao = 'carregando';
+      }, fadeOutMs);
+    }
   }
 
   private finalizarTransicaoPosTroca(): void {
@@ -244,20 +305,23 @@ export class AppComponent implements OnInit {
         this.tenantTransicao = 'idle';
         this.mainEntrandoVisivel = false;
         this.toast.showSuccess('Condomínio alterado com sucesso');
-      }, 300);
+      }, AppComponent.TENANT_FADE_IN_MS);
     });
   }
 
   private async redirecionarAposTrocaTenant(idCondominio: number): Promise<void> {
     if (this.tenantHost.isTenantHost) {
-      const slug = await this.tenantHost.slugForCondominio(idCondominio);
+      const daLista = this.condominiosAutorizados
+        .find(c => Number(c.idCondominio) === Number(idCondominio))
+        ?.dominio?.trim()
+        .toLowerCase();
+      const slug = daLista || (await this.tenantHost.slugForCondominio(idCondominio));
       if (slug) {
         window.location.assign(`/${encodeURIComponent(slug)}/inicio`);
         return;
       }
     }
-    await this.router.navigate(['/inicio']);
-    window.location.reload();
+    window.location.assign('/inicio');
   }
 
   shouldShowMenu(): boolean {
