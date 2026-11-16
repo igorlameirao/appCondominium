@@ -20,7 +20,7 @@ export interface RedefinirSenhaResponse {
 
 @Injectable({ providedIn: 'root' })
 export class PasswordRecoveryService {
-  private readonly base = `${environment.apiUrl}/api/auth/recuperacao-senha`;
+  private readonly base = `${environment.apiUrl}/auth/recuperacao-senha`;
 
   constructor(private readonly http: HttpClient) {}
 

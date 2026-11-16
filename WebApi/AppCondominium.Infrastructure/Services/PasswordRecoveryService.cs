@@ -131,54 +131,50 @@ public class PasswordRecoveryService : IPasswordRecoveryService
             return new RedefinirSenhaRecuperacaoResponse(false, "A nova senha deve ter pelo menos 8 caracteres.");
 
         var hash = ConviteTokenUtil.HashToken(request.Token.Trim());
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+        var strategy = _db.Database.CreateExecutionStrategy();
 
-        var registro = await _db.RecuperacaoSenhaToken
-            .FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
-
-        var avaliacao = AvaliarRegistro(registro);
-        if (!avaliacao.Valido || registro is null)
+        return await strategy.ExecuteAsync(async () =>
         {
-            await tx.RollbackAsync(ct);
-            return new RedefinirSenhaRecuperacaoResponse(false, avaliacao.Mensagem);
-        }
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
-        if (!await PossuiVinculoAtivoAsync(registro.IdPessoa, ct))
-        {
-            registro.Estado = RecuperacaoSenhaEstado.Invalidado;
-            registro.DataConsumo = DateTime.UtcNow;
+            var registro = await _db.RecuperacaoSenhaToken
+                .FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
+
+            var avaliacao = AvaliarRegistro(registro);
+            if (!avaliacao.Valido || registro is null)
+                return new RedefinirSenhaRecuperacaoResponse(false, avaliacao.Mensagem);
+
+            if (!await PossuiVinculoAtivoAsync(registro.IdPessoa, ct))
+            {
+                registro.Estado = RecuperacaoSenhaEstado.Invalidado;
+                registro.DataConsumo = DateTime.UtcNow;
+                await _db.SaveChangesAsync(ct);
+                await tx.CommitAsync(ct);
+                return new RedefinirSenhaRecuperacaoResponse(false, "Link inválido ou expirado.");
+            }
+
+            var pf = await _db.Pessoafisica.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.IdPessoa == registro.IdPessoa, ct);
+            if (pf is null)
+                return new RedefinirSenhaRecuperacaoResponse(false, "Link inválido ou expirado.");
+
+            var atual = await _db.RecuperacaoSenhaToken
+                .FirstOrDefaultAsync(t => t.IdRecuperacaoSenha == registro.IdRecuperacaoSenha
+                    && t.Estado == RecuperacaoSenhaEstado.Pendente
+                    && t.DataExpiracao > DateTime.UtcNow, ct);
+            if (atual is null)
+                return new RedefinirSenhaRecuperacaoResponse(false, "Este link já foi utilizado ou expirou.");
+
+            atual.Estado = RecuperacaoSenhaEstado.Consumido;
+            atual.DataConsumo = DateTime.UtcNow;
+            pf.Senha = _passwordHasher.Hash(request.SenhaNova.Trim());
             await _db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
-            return new RedefinirSenhaRecuperacaoResponse(false, "Link inválido ou expirado.");
-        }
 
-        var pf = await _db.Pessoafisica.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(p => p.IdPessoa == registro.IdPessoa, ct);
-        if (pf is null)
-        {
-            await tx.RollbackAsync(ct);
-            return new RedefinirSenhaRecuperacaoResponse(false, "Link inválido ou expirado.");
-        }
-
-        var atual = await _db.RecuperacaoSenhaToken
-            .FirstOrDefaultAsync(t => t.IdRecuperacaoSenha == registro.IdRecuperacaoSenha
-                && t.Estado == RecuperacaoSenhaEstado.Pendente
-                && t.DataExpiracao > DateTime.UtcNow, ct);
-        if (atual is null)
-        {
-            await tx.RollbackAsync(ct);
-            return new RedefinirSenhaRecuperacaoResponse(false, "Este link já foi utilizado ou expirou.");
-        }
-
-        atual.Estado = RecuperacaoSenhaEstado.Consumido;
-        atual.DataConsumo = DateTime.UtcNow;
-        pf.Senha = _passwordHasher.Hash(request.SenhaNova.Trim());
-        await _db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
-
-        return new RedefinirSenhaRecuperacaoResponse(
-            true,
-            "Senha redefinida com sucesso. Faça login com sua nova senha.");
+            return new RedefinirSenhaRecuperacaoResponse(
+                true,
+                "Senha redefinida com sucesso. Faça login com sua nova senha.");
+        });
     }
 
     private static ValidarRecuperacaoSenhaResponse AvaliarRegistro(RecuperacaoSenhaToken? registro)

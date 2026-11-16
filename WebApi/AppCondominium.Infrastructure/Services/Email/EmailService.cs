@@ -82,7 +82,7 @@ public sealed class EmailService : IEmailService
         if (cfg != null && cfg.Ativo)
         {
             if (string.IsNullOrEmpty(senha))
-                senha = _configuration["Smtp:Password"];
+                senha = _configuration["Smtp:Senha"] ?? _configuration["Smtp:Password"];
             if (!string.IsNullOrEmpty(senha) && !string.IsNullOrWhiteSpace(cfg.ServidorSmtp))
                 return await EnviarItensAsync(itens, cfg, senha, ct);
 
