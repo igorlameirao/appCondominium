@@ -4,7 +4,12 @@ namespace AppCondominium.Application.Interfaces;
 
 public record PerfilVinculo(uint IdPerfil, string Nome);
 
-public record CondominioVinculo(uint IdCondominio, string Nome, IReadOnlyList<PerfilVinculo> Perfis, string? Dominio = null);
+public record CondominioVinculo(
+    uint IdCondominio,
+    string Nome,
+    IReadOnlyList<PerfilVinculo> Perfis,
+    string? Dominio = null,
+    string? EnderecoResumo = null);
 
 public interface ITenantAccessService
 {

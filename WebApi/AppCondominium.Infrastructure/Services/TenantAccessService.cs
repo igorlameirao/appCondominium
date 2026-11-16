@@ -66,6 +66,13 @@ public class TenantAccessService : ITenantAccessService
             .OrderBy(c => c.Nome)
             .ToListAsync(ct);
 
+        var idsEndereco = condominios
+            .Where(c => c.IdEndereco != null)
+            .Select(c => c.IdEndereco!.Value)
+            .Distinct()
+            .ToList();
+        var detalhesEndereco = await CarregarDetalhesEnderecoAsync(idsEndereco, ct);
+
         var perfis = await _db.PerfilAcesso.AsNoTracking().ToListAsync(ct);
         var porId = perfis.ToDictionary(p => p.IdPerfil);
         var morador = perfis.FirstOrDefault(p =>
@@ -104,10 +111,84 @@ public class TenantAccessService : ITenantAccessService
 
             var nome = string.IsNullOrWhiteSpace(condo.Nome) ? $"Condomínio {idCondominio}" : condo.Nome.Trim();
             var dominio = string.IsNullOrWhiteSpace(condo.Dominio) ? null : condo.Dominio.Trim();
-            resultado.Add(new CondominioVinculo(idCondominio, nome, lista, dominio));
+            EnderecoListagemDetalhe? endereco = null;
+            if (condo.IdEndereco != null)
+                detalhesEndereco.TryGetValue(condo.IdEndereco.Value, out endereco);
+            var enderecoResumo = FormatarEnderecoResumo(condo, endereco);
+            resultado.Add(new CondominioVinculo(idCondominio, nome, lista, dominio, enderecoResumo));
         }
 
         return resultado;
+    }
+
+    private async Task<Dictionary<uint, EnderecoListagemDetalhe>> CarregarDetalhesEnderecoAsync(
+        IReadOnlyList<uint> idsEndereco,
+        CancellationToken ct)
+    {
+        if (idsEndereco.Count == 0)
+            return new Dictionary<uint, EnderecoListagemDetalhe>();
+
+        var rows = await (
+            from en in _db.Endereco.AsNoTracking()
+            where en.IdEndereco != null && idsEndereco.Contains(en.IdEndereco.Value)
+            join b in _db.Bairro.AsNoTracking() on en.IdBairro equals b.IdBairro into bairroG
+            from b in bairroG.DefaultIfEmpty()
+            join m in _db.Municipio.AsNoTracking() on b.CodigoIBGEMunicipio equals m.CodigoIBGEMunicipio into munG
+            from m in munG.DefaultIfEmpty()
+            select new EnderecoListagemDetalhe
+            {
+                IdEndereco = en.IdEndereco!.Value,
+                Logradouro = en.Logradouro,
+                NomeBairro = b != null ? b.Nome : null,
+                NomeMunicipio = m != null ? m.Nome : null,
+                SiglaUf = m != null ? m.SiglaUF : null,
+            }).ToListAsync(ct);
+
+        return rows.ToDictionary(r => r.IdEndereco);
+    }
+
+    private static string? FormatarEnderecoResumo(Condominio condo, EnderecoListagemDetalhe? detalhe)
+    {
+        var logradouro = detalhe?.Logradouro?.Trim();
+        var numero = condo.NumeroEndereco?.ToString();
+        var complemento = condo.ComplementoEndereco?.Trim();
+
+        string? linha = null;
+        if (!string.IsNullOrWhiteSpace(logradouro))
+            linha = !string.IsNullOrWhiteSpace(numero) ? $"{logradouro}, {numero}" : logradouro;
+        else if (condo.IdEndereco != null)
+            linha = !string.IsNullOrWhiteSpace(numero) ? $"Logradouro não informado, {numero}" : null;
+
+        if (!string.IsNullOrWhiteSpace(complemento))
+            linha = string.IsNullOrWhiteSpace(linha) ? complemento : $"{linha} - {complemento}";
+
+        var municipio = detalhe?.NomeMunicipio?.Trim();
+        var uf = detalhe?.SiglaUf?.Trim();
+        string? local = null;
+        if (!string.IsNullOrWhiteSpace(municipio) && !string.IsNullOrWhiteSpace(uf))
+            local = $"{municipio}/{uf}";
+        else if (!string.IsNullOrWhiteSpace(municipio))
+            local = municipio;
+        else if (!string.IsNullOrWhiteSpace(uf))
+            local = uf;
+
+        if (!string.IsNullOrWhiteSpace(linha) && !string.IsNullOrWhiteSpace(local))
+            return $"{linha} – {local}";
+        if (!string.IsNullOrWhiteSpace(linha))
+            return linha;
+        if (!string.IsNullOrWhiteSpace(local))
+            return local;
+
+        return condo.IdEndereco != null ? "Endereço não cadastrado" : null;
+    }
+
+    private sealed class EnderecoListagemDetalhe
+    {
+        public uint IdEndereco { get; set; }
+        public string? Logradouro { get; set; }
+        public string? NomeBairro { get; set; }
+        public string? NomeMunicipio { get; set; }
+        public string? SiglaUf { get; set; }
     }
 
     public async Task<bool> UsuarioTemPerfilAsync(uint idPessoa, uint idCondominio, uint idPerfil, CancellationToken ct = default)
