@@ -21,10 +21,12 @@ class ForgotPasswordPage extends ConsumerStatefulWidget {
 }
 
 class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
+  static const _mensagemGenerica =
+      'Se o e-mail estiver cadastrado, você receberá um link para redefinir sua senha.';
+
   final _emailController = TextEditingController();
   var _loading = false;
   var _concluido = false;
-  String? _mensagem;
   String? _erro;
 
   @override
@@ -33,33 +35,41 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     super.dispose();
   }
 
+  void _solicitarNovamente() {
+    setState(() {
+      _concluido = false;
+      _erro = null;
+    });
+  }
+
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
+    final destino = _emailController.text.trim();
+    if (destino.isEmpty || _loading) return;
+
     setState(() {
       _loading = true;
       _erro = null;
-      _mensagem = null;
     });
     try {
-      final msg = await ref
-          .read(passwordRecoveryRepositoryProvider)
-          .solicitar(_emailController.text);
+      await ref.read(passwordRecoveryRepositoryProvider).solicitar(destino);
       if (!mounted) return;
       setState(() {
-        _mensagem = msg;
         _concluido = true;
         _loading = false;
       });
     } on DioException {
       if (!mounted) return;
       setState(() {
-        _erro = 'Não foi possível processar a solicitação. Tente novamente.';
+        _erro =
+            'Não foi possível processar a solicitação. Tente novamente em instantes.';
         _loading = false;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _erro = 'Não foi possível processar a solicitação. Tente novamente.';
+        _erro =
+            'Não foi possível processar a solicitação. Tente novamente em instantes.';
         _loading = false;
       });
     }
@@ -68,6 +78,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: AuthBackground(
@@ -85,64 +96,81 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                     children: [
                       AuthHeader(isDark: isDark),
                       const SizedBox(height: AppSpacing.xxs + 1),
-                      Text(
-                        'Esqueci minha senha',
-                        style: AppTypography.welcomeTitle(context, isDark: isDark),
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        'Informe o e-mail da sua conta',
-                        style: AppTypography.welcomeSubtitle(context, isDark: isDark),
-                      ),
-                      const SizedBox(height: AppSpacing.sm + 2),
-                      AuthTextField(
-                        hint: 'E-mail',
-                        isDark: isDark,
-                        controller: _emailController,
-                        textInputAction: TextInputAction.done,
-                      ),
-                      if (_mensagem != null) ...[
-                        const SizedBox(height: AppSpacing.xs),
+                      if (_concluido) ...[
+                        _RecoverySuccessState(
+                          isDark: isDark,
+                          onVoltarLogin: () => context.go('/login'),
+                          onSolicitarNovamente: _solicitarNovamente,
+                        ),
+                      ] else ...[
                         Text(
-                          _mensagem!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark
-                                ? AppColors.textMutedDark
-                                : AppColors.textMutedLight,
+                          'Esqueci minha senha',
+                          style:
+                              AppTypography.welcomeTitle(context, isDark: isDark),
+                        ),
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          'Informe o e-mail da sua conta',
+                          style: AppTypography.welcomeSubtitle(
+                            context,
+                            isDark: isDark,
                           ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm + 2),
+                        AbsorbPointer(
+                          absorbing: _loading,
+                          child: Opacity(
+                            opacity: _loading ? 0.85 : 1,
+                            child: AuthTextField(
+                              hint: 'E-mail',
+                              isDark: isDark,
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.done,
+                              autofillHints: const [AutofillHints.email],
+                              onSubmitted: (_) => _submit(),
+                            ),
+                          ),
+                        ),
+                        if (_erro != null) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            _erro!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.statusDanger,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: AppSpacing.sm),
+                        if (_loading) ...[
+                          const Center(
+                            child: SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                        ],
+                        AbsorbPointer(
+                          absorbing: _loading,
+                          child: Opacity(
+                            opacity: _loading ? 0.72 : 1,
+                            child: AuthGradientButton(
+                              label: _loading
+                                  ? 'Enviando...'
+                                  : 'Enviar instruções',
+                              onPressed: _submit,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _loading ? null : () => context.go('/login'),
+                          child: const Text('Voltar ao login'),
                         ),
                       ],
-                      if (_erro != null) ...[
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          _erro!,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.statusDanger,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: AppSpacing.sm),
-                      AbsorbPointer(
-                        absorbing: _loading || _concluido,
-                        child: Opacity(
-                          opacity: _loading || _concluido ? 0.72 : 1,
-                          child: AuthGradientButton(
-                            label: _loading
-                                ? 'Enviando...'
-                                : _concluido
-                                    ? 'Enviado'
-                                    : 'Enviar instruções',
-                            onPressed: _submit,
-                          ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => context.go('/login'),
-                        child: const Text('Voltar ao login'),
-                      ),
                     ],
                   ),
                 ),
@@ -151,6 +179,109 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _RecoverySuccessState extends StatelessWidget {
+  const _RecoverySuccessState({
+    required this.isDark,
+    required this.onVoltarLogin,
+    required this.onSolicitarNovamente,
+  });
+
+  final bool isDark;
+  final VoidCallback onVoltarLogin;
+  final VoidCallback onSolicitarNovamente;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final tipBg = isDark
+        ? AppColors.fieldFillDark
+        : AppColors.neutral50.withValues(alpha: 0.95);
+    final tipBorder = isDark
+        ? Colors.white.withValues(alpha: 0.1)
+        : AppColors.neutral100;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: AppColors.statusSuccessSurface.withValues(
+                alpha: isDark ? 0.35 : 1,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Padding(
+              padding: EdgeInsets.all(AppSpacing.sm),
+              child: Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.statusSuccess,
+                size: 34,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'Solicitação recebida!',
+          textAlign: TextAlign.center,
+          style: AppTypography.welcomeTitle(context, isDark: isDark),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          _ForgotPasswordPageState._mensagemGenerica,
+          textAlign: TextAlign.center,
+          style: AppTypography.welcomeSubtitle(context, isDark: isDark),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.xs + 2,
+          ),
+          decoration: BoxDecoration(
+            color: tipBg,
+            borderRadius: BorderRadius.circular(AppSpacing.fieldRadius),
+            border: Border.all(color: tipBorder),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.mail_outline_rounded,
+                size: 18,
+                color: isDark ? AppColors.cyanSoft : AppColors.bluePrimary,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  'Verifique sua caixa de entrada e também a pasta de spam.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: muted,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AuthGradientButton(
+          label: 'Voltar ao login',
+          onPressed: onVoltarLogin,
+        ),
+        TextButton(
+          onPressed: onSolicitarNovamente,
+          child: const Text('Não recebeu? Solicitar novamente'),
+        ),
+      ],
     );
   }
 }

@@ -18,4 +18,5 @@ abstract final class ApiPaths {
   static const recuperacaoSenhaValidar = '/api/auth/recuperacao-senha/validar';
   static const recuperacaoSenhaRedefinir =
       '/api/auth/recuperacao-senha/redefinir';
+  static const contaSenha = '/api/conta/senha';
 }

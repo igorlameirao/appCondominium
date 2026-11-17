@@ -45,6 +45,10 @@ class HomeDrawer extends ConsumerWidget {
         Navigator.of(context).pop();
         showTrocarUnidadeSheet(context, ref);
         return;
+      case 'alterar-senha':
+        Navigator.of(context).pop();
+        context.push(AppRoute.contaAlterarSenha.path);
+        return;
       default:
         Navigator.of(context).pop();
         showComingSoonMessage(context);

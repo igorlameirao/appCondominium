@@ -2,9 +2,12 @@ using System.Security.Claims;
 using AppCondominium.API.Storage;
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Application.Storage;
+using AppCondominium.Domain.RecuperacaoSenha;
 using AppCondominium.Infrastructure.Persistence;
+using AppCondominium.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace AppCondominium.API.Controllers;
@@ -21,6 +24,8 @@ public class ContaController : ControllerBase
     private readonly ArquivoAplicacao _arquivos;
     private readonly StorageObjectKeyBuilder _chaves;
     private readonly IFaceEmbeddingSync _embedding;
+    private readonly IEmailSender _emailSender;
+    private readonly ILogger<ContaController> _logger;
 
     public ContaController(
         AppDbContext db,
@@ -29,7 +34,9 @@ public class ContaController : ControllerBase
         IPasswordHasher passwordHasher,
         ArquivoAplicacao arquivos,
         StorageObjectKeyBuilder chaves,
-        IFaceEmbeddingSync embedding)
+        IFaceEmbeddingSync embedding,
+        IEmailSender emailSender,
+        ILogger<ContaController> logger)
     {
         _db = db;
         _tenant = tenant;
@@ -38,6 +45,8 @@ public class ContaController : ControllerBase
         _arquivos = arquivos;
         _chaves = chaves;
         _embedding = embedding;
+        _emailSender = emailSender;
+        _logger = logger;
     }
 
     public record PerfilContaDto(string Nome, string Perfil, bool TemFoto, string? Email);
@@ -102,22 +111,73 @@ public class ContaController : ControllerBase
     }
 
     [HttpPut("senha")]
+    [EnableRateLimiting("conta-alterar-senha")]
     public async Task<IActionResult> AlterarSenha([FromBody] AlterarSenhaRequest req, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(req.SenhaAtual) || string.IsNullOrWhiteSpace(req.SenhaNova))
             return BadRequest("Informe a senha atual e a nova senha.");
-        if (req.SenhaNova.Trim().Length < 8)
+
+        var senhaNova = req.SenhaNova.Trim();
+        if (senhaNova.Length < 8)
             return BadRequest("A nova senha deve ter pelo menos 8 caracteres.");
+
+        var idPessoa = IdPessoaAtual();
+        if (idPessoa is not uint id)
+            return Unauthorized();
 
         var pf = await CarregarPessoaFisicaMutavel(ct);
         if (pf == null || string.IsNullOrEmpty(pf.Senha))
             return NotFound();
         if (!_passwordHasher.Verify(req.SenhaAtual, pf.Senha))
             return BadRequest("Senha atual incorreta.");
+        if (_passwordHasher.Verify(senhaNova, pf.Senha))
+            return BadRequest("A nova senha deve ser diferente da senha atual.");
 
-        pf.Senha = _passwordHasher.Hash(req.SenhaNova.Trim());
+        var agora = DateTime.UtcNow;
+        var pendentes = await _db.RecuperacaoSenhaToken
+            .Where(t => t.IdPessoa == id && t.Estado == RecuperacaoSenhaEstado.Pendente)
+            .ToListAsync(ct);
+        foreach (var antigo in pendentes)
+        {
+            antigo.Estado = RecuperacaoSenhaEstado.Invalidado;
+            antigo.DataConsumo = agora;
+        }
+
+        pf.Senha = _passwordHasher.Hash(senhaNova);
         await _db.SaveChangesAsync(ct);
+
+        await NotificarAlteracaoSenhaAsync(id, agora, ct);
         return NoContent();
+    }
+
+    private async Task NotificarAlteracaoSenhaAsync(uint idPessoa, DateTime alteradoUtc, CancellationToken ct)
+    {
+        var email = await _db.Pessoafisica.IgnoreQueryFilters().AsNoTracking()
+            .Where(p => p.IdPessoa == idPessoa)
+            .Select(p => p.Email)
+            .FirstOrDefaultAsync(ct);
+        if (string.IsNullOrWhiteSpace(email))
+            return;
+
+        var nome = await _db.Pessoa.IgnoreQueryFilters().AsNoTracking()
+            .Where(p => p.IdPessoa == idPessoa)
+            .Select(p => p.Nome)
+            .FirstOrDefaultAsync(ct) ?? "Usuário";
+
+        try
+        {
+            var html = PasswordChangeEmailTemplate.MontarHtml(nome.Trim(), alteradoUtc);
+            var texto = PasswordChangeEmailTemplate.MontarTexto(nome.Trim(), alteradoUtc);
+            await _emailSender.EnviarAsync(new EmailMessage(
+                email.Trim(),
+                "Senha alterada — AppCondominium",
+                html,
+                texto), ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Falha ao enfileirar e-mail de alteração de senha para IdPessoa {IdPessoa}", idPessoa);
+        }
     }
 
     private uint? IdPessoaAtual()
