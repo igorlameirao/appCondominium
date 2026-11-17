@@ -33,6 +33,9 @@ public sealed class StorageObjectKeyBuilder
     public string PlantaBaixa(uint idCondominio, uint idTipoUnidade) =>
         $"{Condominio(idCondominio)}/funcionalidades/tipos-unidade/{idTipoUnidade}/planta-baixa";
 
+    public string CtpsColaborador(uint idCondominio, uint idPessoa) =>
+        $"{Condominio(idCondominio)}/funcionalidades/colaboradores/{idPessoa}/ctps";
+
     private string Root() => $"{Segmento(_options.Sistema)}/{Segmento(_options.EnvironmentPrefix)}";
 
     private string Plataforma() => $"{Root()}/plataforma";

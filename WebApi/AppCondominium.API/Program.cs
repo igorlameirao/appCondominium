@@ -49,6 +49,7 @@ builder.Services.Configure<RouteOptions>(options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<AppCondominium.API.Storage.ArquivoAplicacao>();
 builder.Services.AddHostedService<PermissionCatalogSync>();
+builder.Services.AddHostedService<PessoaContextoCatalogoBootstrap>();
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 10 * 1024 * 1024);
 
 builder.Services.AddControllers(options =>

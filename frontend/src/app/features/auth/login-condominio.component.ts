@@ -154,7 +154,7 @@ export class LoginCondominioComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.auth.isLoggedIn) {
-      void this.router.navigate(['/']);
+      void this.router.navigate(['/inicio']);
       return;
     }
     const q = this.route.snapshot.queryParamMap.get('idCondominio');

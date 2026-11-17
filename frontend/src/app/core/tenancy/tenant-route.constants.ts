@@ -46,7 +46,27 @@ export const RESERVED_TENANT_SLUGS = new Set([
   'material',
   'alocacaomaterial',
   'estoquematerialconsumo',
-  'entradasaidamaterialconsumo'
+  'entradasaidamaterialconsumo',
+  'fila-email',
+  'configuracao-email',
+  'convites',
+  'funcaocolaborador',
+  'moradores',
+  'proprietarios',
+  'locatarios',
+  'prestadores-unidade',
+  'visitantes',
+  'representantes-legais',
+  'colaboradores',
+  'funcionarios',
+  'terceirizados',
+  'prestadores',
+  'fornecedores',
+  'sindicos',
+  'subsindicos',
+  'conselheiros',
+  'administradoras',
+  'entregadores'
 ]);
 
 export function isReservedTenantSlug(slug: string): boolean {

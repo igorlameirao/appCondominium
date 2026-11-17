@@ -1,6 +1,7 @@
 using AppCondominium.Application.Common;
 using AppCondominium.Application.DTOs;
 using AppCondominium.Application.Interfaces;
+using AppCondominium.Domain.Entities;
 using AppCondominium.Domain.Validators;
 using AppCondominium.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -19,19 +20,34 @@ public class PessoaConsultaService : IPessoaConsultaService
     }
 
     public async Task<PagedResult<PessoaListagemItemDto>> ListarAsync(
-        int page, int pageSize, string? filter, string? tipo, string? situacao, CancellationToken ct = default)
+        int page, int pageSize, string? filter, string? tipo, string? situacao,
+        string? escopoPapel, IReadOnlyCollection<uint>? codigosPapel, bool? vigente,
+        CancellationToken ct = default)
     {
         var tenantId = _condominio.RequireTenantId();
         var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
+        var contextual = (codigosPapel is { Count: > 0 }) || !string.IsNullOrWhiteSpace(escopoPapel);
 
-        var idsVinculo = _db.PessoaVinculo.AsNoTracking()
-            .Where(v => v.IdCondominio == tenantId)
-            .Select(v => v.IdPessoa);
-        var idsFornecedor = _db.Fornecedor.AsNoTracking()
-            .Where(f => f.IdCondominio == tenantId)
-            .Select(f => f.IdPessoa);
+        var vinculoBase = _db.PessoaVinculo.AsNoTracking().Where(v => v.IdCondominio == tenantId);
+        if (codigosPapel is { Count: > 0 })
+            vinculoBase = vinculoBase.Where(v => v.CodigoPapelVinculo != null && codigosPapel.Contains(v.CodigoPapelVinculo.Value));
+        vinculoBase = AplicarEscopo(vinculoBase, escopoPapel);
+        if (vigente == true)
+            vinculoBase = vinculoBase.Where(v => v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje));
 
-        var idsPessoa = await idsVinculo.Union(idsFornecedor).Distinct().ToListAsync(ct);
+        var idsVinculo = vinculoBase.Select(v => v.IdPessoa);
+        List<uint?> idsPessoa;
+        if (contextual)
+        {
+            idsPessoa = await idsVinculo.Distinct().ToListAsync(ct);
+        }
+        else
+        {
+            var idsFornecedor = _db.Fornecedor.AsNoTracking()
+                .Where(f => f.IdCondominio == tenantId)
+                .Select(f => f.IdPessoa);
+            idsPessoa = await idsVinculo.Union(idsFornecedor).Distinct().ToListAsync(ct);
+        }
         if (idsPessoa.Count == 0)
         {
             return new PagedResult<PessoaListagemItemDto>
@@ -64,10 +80,6 @@ public class PessoaConsultaService : IPessoaConsultaService
         var pessoas = await query.OrderBy(p => p.Nome).ToListAsync(ct);
         var ids = pessoas.Select(p => p.IdPessoa!.Value).ToList();
 
-        var pfIds = await _db.Pessoafisica.AsNoTracking()
-            .Where(p => ids.Contains(p.IdPessoa!.Value))
-            .Select(p => p.IdPessoa!.Value)
-            .ToListAsync(ct);
         var pjRows = await _db.PessoaJuridica.AsNoTracking()
             .Where(p => ids.Contains(p.IdPessoa!.Value))
             .ToDictionaryAsync(p => p.IdPessoa!.Value, ct);
@@ -75,9 +87,24 @@ public class PessoaConsultaService : IPessoaConsultaService
             .Where(p => ids.Contains(p.IdPessoa!.Value))
             .ToDictionaryAsync(p => p.IdPessoa!.Value, ct);
 
-        var vinculos = await _db.PessoaVinculo.AsNoTracking()
-            .Where(v => v.IdCondominio == tenantId && ids.Contains(v.IdPessoa!.Value))
-            .ToListAsync(ct);
+        var vinculosQuery = _db.PessoaVinculo.AsNoTracking()
+            .Where(v => v.IdCondominio == tenantId && ids.Contains(v.IdPessoa!.Value));
+        if (contextual)
+        {
+            if (codigosPapel is { Count: > 0 })
+                vinculosQuery = vinculosQuery.Where(v => v.CodigoPapelVinculo != null && codigosPapel.Contains(v.CodigoPapelVinculo.Value));
+            vinculosQuery = AplicarEscopo(vinculosQuery, escopoPapel);
+        }
+        var vinculos = await vinculosQuery.ToListAsync(ct);
+        var papeis = await _db.PapelVinculo.AsNoTracking()
+            .Where(p => p.CodigoPapelVinculo != null)
+            .ToDictionaryAsync(p => p.CodigoPapelVinculo!.Value, p => p.Descricao ?? p.CodigoPapelVinculo.ToString()!, ct);
+        var unidadeIds = vinculos.Where(v => v.IdUnidade != null).Select(v => v.IdUnidade!.Value).Distinct().ToList();
+        var unidades = unidadeIds.Count == 0
+            ? new Dictionary<uint, string>()
+            : await _db.Unidade.AsNoTracking()
+                .Where(u => u.IdUnidade != null && unidadeIds.Contains(u.IdUnidade.Value))
+                .ToDictionaryAsync(u => u.IdUnidade!.Value, u => u.Numero != null ? $"Unidade {u.Numero}" : $"Unidade {u.IdUnidade}", ct);
 
         var itens = new List<PessoaListagemItemDto>();
         foreach (var p in pessoas)
@@ -117,13 +144,29 @@ public class PessoaConsultaService : IPessoaConsultaService
                 ? pjRows[id].NomeFantasia
                 : pfRows.GetValueOrDefault(id)?.Email;
 
+            var principais = vinculos.Where(v => v.IdPessoa == id).ToList();
+            var principal = principais.FirstOrDefault(v =>
+                    v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje))
+                ?? principais.FirstOrDefault();
+            string? papelResumo = null;
+            string? unidadeResumo = null;
+            uint? idVinculo = principal?.IdVinculo;
+            if (principal?.CodigoPapelVinculo is uint codPapel)
+                papelResumo = papeis.GetValueOrDefault(codPapel) ?? codPapel.ToString();
+            if (principal?.IdUnidade is uint idUnidade)
+                unidadeResumo = unidades.GetValueOrDefault(idUnidade);
+
             itens.Add(new PessoaListagemItemDto(
                 id,
                 tipoPessoa,
                 p.Nome ?? $"Pessoa {id}",
                 p.CPFCNPJ,
                 complemento,
-                situacaoLabel));
+                situacaoLabel,
+                papelResumo,
+                unidadeResumo,
+                idVinculo,
+                principal?.CodigoPapelVinculo));
         }
 
         var total = itens.Count;
@@ -166,5 +209,17 @@ public class PessoaConsultaService : IPessoaConsultaService
         return new PessoaPorDocumentoDto(
             id, false, pessoa.Nome, pessoa.CPFCNPJ, pessoa.Telefone,
             pf.Email, null, pf.DataNascimento?.ToString("yyyy-MM-dd"), null, null);
+    }
+
+    private static IQueryable<PessoaVinculo> AplicarEscopo(IQueryable<PessoaVinculo> query, string? escopoPapel)
+    {
+        var escopo = escopoPapel?.Trim().ToLowerInvariant();
+        return escopo switch
+        {
+            "unidade" => query.Where(v => v.IdUnidade != null),
+            "condominio" => query.Where(v => v.IdUnidade == null && v.IdPessoaRelacionada == null),
+            "pessoa" => query.Where(v => v.IdPessoaRelacionada != null),
+            _ => query
+        };
     }
 }

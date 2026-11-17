@@ -1,22 +1,23 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
 import { CampoDataComponent } from '../../shared/campo-data/campo-data.component';
 import { PessoaFisicaIntegradaRequest } from '../../core/services/pessoa-cadastro-integrado.service';
+import { Icone } from '../../shared/icone';
 
 /** Campos integrados de PF — layout Hug (`pessoa-pf-dados` em cadastro.css). */
 @Component({
   selector: 'app-pessoa-pf-campos',
   standalone: true,
-  imports: [CommonModule, FormsModule, DocumentoInputComponent, CampoDataComponent],
+  imports: [CommonModule, FormsModule, DocumentoInputComponent, CampoDataComponent, Icone],
   template: `
     <ng-container [ngSwitch]="secao">
       <div *ngSwitchCase="'dados'" class="form-grid pessoa-pf-dados">
         <div class="form-group pessoa-pf-dados__doc">
           <label>CPF *</label>
           <app-documento-input [(ngModel)]="model.cpfcnpj" name="cpfcnpjPf" tipo="cpf"
-            [disabled]="documentoBloqueado" [required]="true" />
+            [disabled]="documentoBloqueado" [required]="true" (blurCommit)="documentoInformado.emit($event)" />
         </div>
         <div class="form-group pessoa-pf-dados__nome">
           <label>Nome *</label>
@@ -69,9 +70,39 @@ import { PessoaFisicaIntegradaRequest } from '../../core/services/pessoa-cadastr
           <input type="email" [(ngModel)]="model.email" name="emailPfNovo" maxlength="255"
             [readonly]="desabilitado" />
         </div>
-        <div class="form-group pessoa-pf-dados__senha" *ngIf="exibirSenha">
-          <label>Senha (acesso ao sistema)</label>
-          <input type="password" [(ngModel)]="model.senha" name="senhaPf" autocomplete="new-password" />
+        <div class="pessoa-pf-dados__senhas" *ngIf="exibirSenha">
+          <div class="form-group pessoa-pf-dados__senha">
+            <label for="senhaPf">Senha</label>
+            <div class="cad-senha-wrap">
+              <input id="senhaPf" name="senhaPf" autocomplete="new-password"
+                [type]="mostrarSenha ? 'text' : 'password'"
+                [(ngModel)]="model.senha" [readonly]="desabilitado" />
+              <button type="button" class="cad-senha-toggle"
+                (click)="mostrarSenha = !mostrarSenha"
+                [attr.aria-label]="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'"
+                [attr.aria-pressed]="mostrarSenha"
+                [disabled]="desabilitado">
+                <app-icone [nome]="mostrarSenha ? 'eye-off' : 'eye'" [tamanho]="18" />
+              </button>
+            </div>
+          </div>
+          <div class="form-group pessoa-pf-dados__senha-conf">
+            <label for="senhaConfirmPf">Confirmar senha</label>
+            <div class="cad-senha-wrap">
+              <input id="senhaConfirmPf" name="senhaConfirmPf" autocomplete="new-password"
+                [type]="mostrarSenhaConfirmacao ? 'text' : 'password'"
+                [(ngModel)]="confirmacaoSenha"
+                [required]="senhaInformada"
+                [readonly]="desabilitado" />
+              <button type="button" class="cad-senha-toggle"
+                (click)="mostrarSenhaConfirmacao = !mostrarSenhaConfirmacao"
+                [attr.aria-label]="mostrarSenhaConfirmacao ? 'Ocultar confirmação' : 'Mostrar confirmação'"
+                [attr.aria-pressed]="mostrarSenhaConfirmacao"
+                [disabled]="desabilitado">
+                <app-icone [nome]="mostrarSenhaConfirmacao ? 'eye-off' : 'eye'" [tamanho]="18" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </ng-container>
@@ -83,4 +114,21 @@ export class PessoaPfCamposComponent {
   @Input() documentoBloqueado = false;
   @Input() desabilitado = false;
   @Input() exibirSenha = false;
+  @Output() documentoInformado = new EventEmitter<string>();
+
+  confirmacaoSenha = '';
+  mostrarSenha = false;
+  mostrarSenhaConfirmacao = false;
+
+  get senhaInformada(): boolean {
+    return !!(this.model.senha ?? '').trim();
+  }
+
+  /** Senha vazia (permitido) ou confirmação igual à senha. */
+  senhasConferem(): boolean {
+    const s = (this.model.senha ?? '').trim();
+    const c = this.confirmacaoSenha.trim();
+    if (!s) return !c;
+    return s === c;
+  }
 }

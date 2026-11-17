@@ -23,6 +23,11 @@ public class PessoaVinculoService : IPessoaVinculoService
             throw new InvalidOperationException("IdPessoa é obrigatório.");
         if (entity.CodigoPapelVinculo is null or 0)
             throw new InvalidOperationException("Papel de vínculo é obrigatório.");
+        if (PapelVinculoCodigos.EstaExcluido(entity.CodigoPapelVinculo.Value))
+        {
+            if (inclusao || entity.DataFim is null)
+                throw new InvalidOperationException("Este papel de vínculo foi descontinuado e não pode ser incluído nem mantido em aberto.");
+        }
         if (entity.DataInicio is null)
             throw new InvalidOperationException("Data de início é obrigatória.");
 
@@ -70,9 +75,8 @@ public class PessoaVinculoService : IPessoaVinculoService
 
         var pj = await _db.PessoaJuridica.IgnoreQueryFilters()
             .AnyAsync(p => p.IdPessoa == entity.IdPessoa, ct);
-        if (pj && escopo == EscopoPapelVinculo.Unidade
-            && entity.CodigoPapelVinculo is not (PapelVinculoCodigos.Proprietario or PapelVinculoCodigos.Locatario or PapelVinculoCodigos.Corretor))
-            throw new InvalidOperationException("Pessoa jurídica só pode ter papéis Proprietário, Locatário ou Corretor na unidade.");
+        if (pj && !PapelVinculoCodigos.PermitePessoaJuridica(entity.CodigoPapelVinculo.Value))
+            throw new InvalidOperationException("Pessoa jurídica só pode ter os papéis Proprietário, Locatário ou Fornecedor.");
 
         await ValidarSobreposicaoAsync(entity, inclusao, ct);
     }

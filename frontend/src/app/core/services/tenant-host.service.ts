@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, of, timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { isReservedTenantSlug } from '../tenancy/tenant-route.constants';
 import { firstPathSegment } from '../tenancy/tenant-url.util';
@@ -50,7 +50,9 @@ export class TenantHostService {
     this.resolved = true;
     const segment = firstPathSegment(window.location.pathname);
     if (!segment || isReservedTenantSlug(segment)) return;
-    await this.resolveBySlug(segment);
+    const normalizado = segment.trim().toLowerCase();
+    this._urlSlug = normalizado;
+    await this.resolveBySlug(normalizado);
   }
 
   async resolveBySlug(slug: string): Promise<boolean> {
@@ -59,9 +61,14 @@ export class TenantHostService {
 
     try {
       const r = await firstValueFrom(
-        this.http.get<CondominioPorIdentificador>(`${environment.apiUrl}/lookup/condominio-por-dominio`, {
-          params: { slug: normalizado }
-        })
+        this.http
+          .get<CondominioPorIdentificador>(`${environment.apiUrl}/lookup/condominio-por-dominio`, {
+            params: { slug: normalizado }
+          })
+          .pipe(
+            timeout(8_000),
+            catchError(() => of(null))
+          )
       );
       if (r?.idCondominio) {
         this._urlSlug = normalizado;
@@ -72,6 +79,8 @@ export class TenantHostService {
     } catch {
       /* identificador não cadastrado */
     }
+    this._idCondominio = null;
+    this._nomeCondominio = '';
     return false;
   }
 

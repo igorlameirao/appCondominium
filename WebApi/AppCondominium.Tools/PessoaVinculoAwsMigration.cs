@@ -105,10 +105,12 @@ public static class PessoaVinculoAwsMigration
         var seeds = new (int Id, string Desc, int Escopo)[]
         {
             (1, "Proprietário", 2), (2, "Morador", 2), (3, "Locatário", 2), (4, "Dependente", 2),
-            (5, "Familiar", 2), (6, "Hóspede", 2), (7, "Corretor", 2),
+            (5, "Familiar", 2), (6, "Hóspede", 2), (7, "Corretor", 2), (8, "Visitante", 2),
             (10, "Síndico", 1), (11, "Subsíndico", 1), (12, "Conselheiro", 1), (13, "Administradora", 1),
             (14, "Funcionário", 1), (15, "Prestador", 1), (16, "Terceirizado", 1), (17, "Fornecedor", 1),
-            (20, "Representante Legal", 3), (21, "Familiar (pessoa)", 3), (22, "Dependente (pessoa)", 3)
+            (18, "Entregador", 1),
+            (20, "Representante Legal", 3), (21, "Familiar (pessoa)", 3), (22, "Dependente (pessoa)", 3),
+            (23, "Prestador (unidade)", 2)
         };
         foreach (var (id, desc, escopo) in seeds)
         {

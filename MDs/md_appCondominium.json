@@ -87,7 +87,7 @@
       {
         "Regra": "RN-Gerais 17",
         "Tipo": "Regra de Negócio",
-        "Descricao": "Para o usuário se logar no sistema ele deverá possuir ao menos um PessoaVinculo ativo (DataInicio <= hoje e DataFim nula ou >= hoje) no IdCondominio escolhido, com pessoafisica.email correspondente à credencial. O perfil RBAC no login é a Descricao de PerfilAcesso indicada em PessoaVinculo.IdPerfil quando preenchido no condomínio. Se IdPerfil estiver vazio e o vínculo ativo for somente de escopo Unidade com papel Proprietário, Corretor ou Locatário, a resolução padrão é o perfil Proprietário. Se IdPerfil estiver vazio e houver apenas vínculos de escopo Unidade com demais papéis (Morador, Dependente, Familiar, Hóspede), a resolução padrão é Morador. CodigoPapelVinculo e demais papéis operacionais não concedem permissões de tela. Vínculo de Fornecedor não substitui IdPerfil para RBAC. AutorizacaoAcessoTemporario não habilita login."
+        "Descricao": "Para o usuário se logar no sistema ele deverá possuir ao menos um PessoaVinculo ativo (DataInicio <= hoje e DataFim nula ou >= hoje) no IdCondominio escolhido, com pessoafisica.email correspondente à credencial. O perfil RBAC no login é a Descricao de PerfilAcesso indicada em PessoaVinculo.IdPerfil quando preenchido no condomínio. Se IdPerfil estiver vazio e o vínculo ativo for somente de escopo Unidade com papel Proprietário ou Locatário, a resolução padrão é o perfil Proprietário. Se IdPerfil estiver vazio e houver apenas vínculos de escopo Unidade com papel Morador, a resolução padrão é Morador. Papéis Dependente, Familiar, Corretor, Familiar (pessoa) e Dependente (pessoa) estão descontinuados e não entram na resolução padrão. CodigoPapelVinculo e demais papéis operacionais não concedem permissões de tela. Vínculo de Fornecedor não substitui IdPerfil para RBAC. AutorizacaoAcessoTemporario não habilita login."
       },
       {
         "Regra": "RN-Gerais 16",
@@ -1459,7 +1459,7 @@
           {
             "Regra": "RN - PapelVinculo 02",
             "Tipo": "Regra de Negócio",
-            "Descricao": "Semente inicial (Codigo, Descrição, Escopo): 1 Proprietário Unidade; 2 Morador Unidade; 3 Locatário Unidade; 4 Dependente Unidade; 5 Familiar Unidade; 6 Hóspede Unidade; 7 Corretor Unidade; 10 Síndico Condominio; 11 Subsíndico Condominio; 12 Conselheiro Condominio; 13 Administradora Condominio; 14 Funcionário Condominio; 15 Prestador Condominio; 16 Terceirizado Condominio; 17 Fornecedor Condominio; 20 Representante Legal Pessoa; 21 Familiar Pessoa; 22 Dependente Pessoa. Visitante e acessos eventuais usam AutorizacaoAcessoTemporario."
+            "Descricao": "Semente (Codigo, Descrição, Escopo): 1 Proprietário Unidade; 2 Morador Unidade; 3 Locatário Unidade; 6 Hóspede Unidade; 8 Visitante Unidade; 10 Síndico Condominio; 11 Subsíndico Condominio; 12 Conselheiro Condominio; 13 Administradora Condominio; 14 Funcionário Condominio; 15 Prestador Condominio; 16 Terceirizado Condominio; 17 Fornecedor Condominio; 18 Entregador Condominio; 20 Representante Legal Pessoa; 23 Prestador (unidade) Unidade. Descontinuados (sem novo vínculo; vigência encerrada): 4 Dependente Unidade; 5 Familiar Unidade; 7 Corretor Unidade; 21 Familiar Pessoa; 22 Dependente Pessoa. Acessos pontuais continuam em AutorizacaoAcessoTemporario além do vínculo Visitante/Entregador."
           },
           {
             "Regra": "RN - PapelVinculo 03",
@@ -3611,6 +3611,121 @@
             "Regra": "RN - PessoaPermissaoExcecao 01",
             "Tipo": "Regra de Negócio",
             "Descricao": "Sobrescreve um permissionKey para a pessoa naquele IdCondominio. A exceção do condomínio 1 não vale no condomínio 2. A linha só existe quando as ações diferem de PerfilPermissao do perfil resolvido em PessoaVinculo.IdPerfil (ou padrão RN-Gerais 17). A entidade tem filtro de tenant por IdCondominio; a resolução informa o condomínio de forma explícita. A pessoa precisa ter PessoaVinculo ativo no condomínio para receber exceção."
+          }
+        ]
+      },
+      {
+        "Entidade": "FuncaoColaborador",
+        "RotuloEntidade": "Função de Colaborador",
+        "Gerar CRUD": "Sim",
+        "EscopoTenant": "Global",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "Campos": [
+          {
+            "Campo": "IdFuncaoColaborador",
+            "RotuloCampo": "IdFuncaoColaborador",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "Descricao",
+            "RotuloCampo": "Descrição",
+            "TipoDado": "varchar(80)",
+            "Obrigatorio": "Sim",
+            "Indice": "Unique Key"
+          }
+        ]
+      },
+      {
+        "Entidade": "Colaborador",
+        "RotuloEntidade": "Colaborador",
+        "Gerar CRUD": "Sim",
+        "PerfisAcesso": [
+          "Administrador"
+        ],
+        "EscopoTenant": "Condominio",
+        "Campos": [
+          {
+            "Campo": "IdColaborador",
+            "RotuloCampo": "Id Colaborador",
+            "TipoDado": "INT - Unsigned - Auto incremental",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+           },
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "Pessoa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "pessoaFisica"
+          },
+          {
+            "Campo": "IdCondominio",
+            "RotuloCampo": "Condominio",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "Condominio"
+          },
+          {
+            "Campo": "DataAdmissao",
+            "RotuloCampo": "Data de Admissão",
+            "TipoDado": "Date",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "DataDesligamento",
+            "RotuloCampo": "Data de Desligamento",
+            "TipoDado": "Date",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "CTPS",
+            "RotuloCampo": "CTPS",
+            "TipoDado": "Varchar(20)",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "TipoColaborador",
+            "RotuloCampo": "Tipo Colaborador",
+            "TipoDado": "TinyInt(1)",
+            "Obrigatorio": "Sim",
+            "Enum": [
+              "Funcionário",
+              "Terceirizado"
+            ],            
+            "Indice": ""
+          },
+          {
+            "Campo": "IdFuncaoColaborador",
+            "RotuloCampo": "Função Colaborador",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Foreign Key",
+            "EntidadeForeignKey": "FuncaoColaborador"
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - Colaborador 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Ao cadastrar uma pessoa física como colaborador o sistema deverá verificar se já existe um cadastro com data de desligamento nula, caso haja o sistema deverá emitir a mensagem: 'Colaborador(a) já cadastrado(a)', caso contrário, se já existir um cadastro com data de desligamento preenchida ou se não existir um cadastro o sistema deverá cadastrar o colaborado e emitir a mensagem: 'Colaborador(a) cadastrado(a) com sucesso.'."
+          },{
+            "Regra": "RN - Colaborador 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O Colaborador é a especialização de uma pessoa física."
+          },
+          {
+            "Regra": "RN - Colaborador 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O sistema deverá prover o campo para upload do arquivo da CTPS para o S3. O envio deste é obrigatório."
           }
         ]
       }

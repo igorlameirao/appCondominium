@@ -1,6 +1,38 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { entityPermissionGuard } from './core/guards/permission.guard';
+import { contextosDeMenu } from './features/pessoas/pessoa-contexto.config';
+
+const colaboradorRotasLegado: Routes = [
+  { path: 'funcionarios', pathMatch: 'full', redirectTo: 'colaboradores' },
+  { path: 'funcionarios/novo', pathMatch: 'full', redirectTo: 'colaboradores/novo' },
+  { path: 'funcionarios/:idPessoa', redirectTo: 'colaboradores/:idPessoa' },
+  { path: 'terceirizados', pathMatch: 'full', redirectTo: 'colaboradores' },
+  { path: 'terceirizados/novo', pathMatch: 'full', redirectTo: 'colaboradores/novo' },
+  { path: 'terceirizados/:idPessoa', redirectTo: 'colaboradores/:idPessoa' },
+];
+
+const pessoaContextoRoutes: Routes = contextosDeMenu().flatMap(ctx => {
+  const lista = ctx.routeLista.replace(/^\//, '');
+  const novo = ctx.routeNovo.replace(/^\//, '');
+  return [
+    {
+      path: lista,
+      loadComponent: () => import('./features/pessoas/pessoas-list.component').then(m => m.PessoasListComponent),
+      data: { pessoaContexto: ctx.id }
+    },
+    {
+      path: novo,
+      loadComponent: () => import('./features/pessoas/pessoa-detail.component').then(m => m.PessoaDetailComponent),
+      data: { pessoaContexto: ctx.id, modo: 'novo' }
+    },
+    {
+      path: `${lista}/:idPessoa`,
+      loadComponent: () => import('./features/pessoas/pessoa-detail.component').then(m => m.PessoaDetailComponent),
+      data: { pessoaContexto: ctx.id, modo: 'detalhe' }
+    }
+  ];
+});
 
 const entityRoutes: Routes = [
   { path: 'uf', loadComponent: () => import('./features/uf/uf-list.component').then(m => m.UFListComponent) },
@@ -38,8 +70,13 @@ const entityRoutes: Routes = [
   { path: 'consumoagua', loadComponent: () => import('./features/consumoagua/consumoagua-list.component').then(m => m.ConsumoAguaListComponent) },
   { path: 'consumoagua/novo', loadComponent: () => import('./features/consumoagua/consumoagua-form.component').then(m => m.ConsumoAguaFormComponent) },
   { path: 'consumoagua/:idConsumoAgua', loadComponent: () => import('./features/consumoagua/consumoagua-form.component').then(m => m.ConsumoAguaFormComponent) },
-  { path: 'pessoas', loadComponent: () => import('./features/pessoas/pessoas-list.component').then(m => m.PessoasListComponent) },
-  { path: 'pessoas/:idPessoa', loadComponent: () => import('./features/pessoas/pessoa-detail.component').then(m => m.PessoaDetailComponent) },
+  { path: 'pessoas', loadComponent: () => import('./features/pessoas/pessoas-list.component').then(m => m.PessoasListComponent), data: { pessoaContexto: 'pessoas' } },
+  { path: 'pessoas/:idPessoa', loadComponent: () => import('./features/pessoas/pessoa-detail.component').then(m => m.PessoaDetailComponent), data: { pessoaContexto: 'pessoas', modo: 'detalhe' } },
+  ...colaboradorRotasLegado,
+  ...pessoaContextoRoutes,
+  { path: 'funcaocolaborador', loadComponent: () => import('./features/funcaocolaborador/funcaocolaborador-list.component').then(m => m.FuncaoColaboradorListComponent) },
+  { path: 'funcaocolaborador/novo', loadComponent: () => import('./features/funcaocolaborador/funcaocolaborador-form.component').then(m => m.FuncaoColaboradorFormComponent) },
+  { path: 'funcaocolaborador/:idFuncaoColaborador', loadComponent: () => import('./features/funcaocolaborador/funcaocolaborador-form.component').then(m => m.FuncaoColaboradorFormComponent) },
   { path: 'pessoavinculo', loadComponent: () => import('./features/pessoavinculo/pessoavinculo-list.component').then(m => m.PessoaVinculoListComponent) },
   { path: 'pessoavinculo/novo', loadComponent: () => import('./features/pessoavinculo/pessoavinculo-form.component').then(m => m.PessoaVinculoFormComponent) },
   { path: 'pessoavinculo/:idVinculo', loadComponent: () => import('./features/pessoavinculo/pessoavinculo-form.component').then(m => m.PessoaVinculoFormComponent) },
@@ -48,14 +85,14 @@ const entityRoutes: Routes = [
   { path: 'autorizacaoacessotemporario/novo', loadComponent: () => import('./features/autorizacaoacessotemporario/autorizacaoacessotemporario-form.component').then(m => m.AutorizacaoAcessoTemporarioFormComponent) },
   { path: 'autorizacaoacessotemporario/:idAutorizacao', loadComponent: () => import('./features/autorizacaoacessotemporario/autorizacaoacessotemporario-form.component').then(m => m.AutorizacaoAcessoTemporarioFormComponent) },
   { path: 'pessoafisica', redirectTo: 'pessoas', pathMatch: 'full' },
-  { path: 'pessoafisica/novo', loadComponent: () => import('./features/pessoafisica/pessoafisica-form.component').then(m => m.PessoafisicaFormComponent) },
+  { path: 'pessoafisica/novo', redirectTo: 'pessoas', pathMatch: 'full' },
   {
     path: 'pessoafisica/:idPessoa',
     loadComponent: () => import('./features/pessoas/pessoa-edit-redirect.component').then(m => m.PessoaEditRedirectComponent),
     data: { tipoPessoa: 'PF' }
   },
   { path: 'pessoajuridica', redirectTo: 'pessoas', pathMatch: 'full' },
-  { path: 'pessoajuridica/novo', loadComponent: () => import('./features/pessoajuridica/pessoajuridica-form.component').then(m => m.PessoaJuridicaFormComponent) },
+  { path: 'pessoajuridica/novo', redirectTo: 'pessoas', pathMatch: 'full' },
   {
     path: 'pessoajuridica/:idPessoa',
     loadComponent: () => import('./features/pessoas/pessoa-edit-redirect.component').then(m => m.PessoaEditRedirectComponent),

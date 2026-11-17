@@ -283,7 +283,10 @@ app-endereco-form .cad-form-scroll .form-grid {
   margin-top: 0;
 }
 
-app-endereco-form .cad-form-scroll app-endereco-widget {
+app-endereco-form .cad-form-scroll app-endereco-widget,
+app-endereco-form .cad-form-scroll app-endereco-form-corpo,
+app-endereco-form-corpo app-endereco-widget,
+.cad-wrapper app-endereco-form-corpo app-endereco-widget {
   display: block;
   width: 100%;
   min-width: 0;
@@ -1211,15 +1214,61 @@ app-endereco-widget .form-group input:not([required]):not([disabled]):not([type=
 }
 
 .cad-wrapper .form-grid.pessoa-pf-dados {
-  grid-template-columns: minmax(11rem, 13.5rem) minmax(0, 1fr) minmax(11rem, 14rem);
+  grid-template-columns: minmax(11rem, 13.5rem) minmax(6.5rem, 8.5rem) minmax(0, 1fr);
 }
 
 .cad-wrapper .pessoa-pf-dados__doc { grid-column: 1; }
 .cad-wrapper .pessoa-pf-dados__nome { grid-column: 2 / -1; }
 .cad-wrapper .pessoa-pf-dados__tel { grid-column: 1; }
-.cad-wrapper .pessoa-pf-dados__nasc { grid-column: 2; }
+.cad-wrapper .pessoa-pf-dados__nasc { grid-column: 2; max-width: 8.5rem; }
 .cad-wrapper .pessoa-pf-dados__email { grid-column: 3; }
-.cad-wrapper .pessoa-pf-dados__senha { grid-column: 1 / -1; max-width: 28rem; }
+.cad-wrapper .pessoa-pf-dados__senhas {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(11rem, 13.5rem) minmax(11rem, 13.5rem);
+  column-gap: 20px;
+  align-items: start;
+  max-width: calc(27rem + 20px);
+}
+
+.cad-wrapper .cad-senha-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.cad-wrapper .cad-senha-wrap input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding-right: 40px;
+}
+
+.cad-wrapper .cad-senha-toggle {
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.cad-wrapper .cad-senha-toggle:hover { color: var(--cad-primary, #0891b2); }
+.cad-wrapper .cad-senha-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--cad-focus-ring);
+}
 
 .cad-wrapper .form-grid.pessoa-contatos-dados {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
@@ -1276,8 +1325,13 @@ app-endereco-widget .form-group input:not([required]):not([disabled]):not([type=
   }
 
   .cad-wrapper .form-grid.pessoa-contatos-dados,
-  .cad-wrapper .pessoa-pf-dados__senha {
+  .cad-wrapper .pessoa-pf-dados__senhas,
+  .cad-wrapper .pessoa-pf-dados__nasc {
     max-width: none;
+  }
+
+  .cad-wrapper .pessoa-pf-dados__senhas {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

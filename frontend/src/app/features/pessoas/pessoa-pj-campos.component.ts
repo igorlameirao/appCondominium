@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DocumentoInputComponent } from '../../shared/documento-input/documento-input.component';
@@ -16,7 +16,7 @@ import { PessoaJuridicaIntegradaRequest } from '../../core/services/pessoa-cadas
         <div class="form-group pessoa-pj-dados__doc">
           <label>CNPJ *</label>
           <app-documento-input [(ngModel)]="model.cpfcnpj" name="cpfcnpjPj" tipo="cnpj"
-            [disabled]="documentoBloqueado" [required]="true" />
+            [disabled]="documentoBloqueado" [required]="true" (blurCommit)="documentoInformado.emit($event)" />
         </div>
         <div class="form-group pessoa-pj-dados__razao">
           <label>Razão social *</label>
@@ -109,4 +109,5 @@ export class PessoaPjCamposComponent {
   @Input() documentoBloqueado = false;
   @Input() desabilitado = false;
   @Input() responsaveis: ComboboxOption[] = [];
+  @Output() documentoInformado = new EventEmitter<string>();
 }

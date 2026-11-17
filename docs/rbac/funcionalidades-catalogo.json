@@ -116,18 +116,18 @@
     },
     {
       "permissionKey": "PESSOAFISICA",
-      "displayName": "pessoafisica",
-      "module": "Outros",
-      "tipo": "Tela — CRUD",
-      "route": "/pessoafisica",
+      "displayName": "Pessoa física (cadastro no contexto)",
+      "module": "Pessoas",
+      "tipo": "Permissão de dados — sem menu de inclusão",
+      "route": "/pessoas",
       "status": "ativo"
     },
     {
       "permissionKey": "PESSOAJURIDICA",
-      "displayName": "Pessoa Jurídica",
+      "displayName": "Pessoa jurídica (cadastro no contexto)",
       "module": "Pessoas",
-      "tipo": "Tela — CRUD",
-      "route": "/pessoajuridica",
+      "tipo": "Permissão de dados — sem menu de inclusão",
+      "route": "/pessoas",
       "status": "ativo"
     },
     {
@@ -337,6 +337,23 @@
       "tipo": "Tela — CRUD",
       "route": "/entradasaidamaterialconsumo",
       "status": "ativo"
-    }
+    },
+    { "permissionKey": "MORADORES", "displayName": "Moradores", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/moradores", "status": "ativo" },
+    { "permissionKey": "PROPRIETARIOS", "displayName": "Proprietários", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/proprietarios", "status": "ativo" },
+    { "permissionKey": "LOCATARIOS", "displayName": "Locatários", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/locatarios", "status": "ativo" },
+    { "permissionKey": "PRESTADORESUNIDADE", "displayName": "Prestadores da unidade", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/prestadores-unidade", "status": "ativo" },
+    { "permissionKey": "PRESTADORES", "displayName": "Prestadores do condomínio", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/prestadores", "status": "ativo" },
+    { "permissionKey": "VISITANTES", "displayName": "Visitantes", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/visitantes", "status": "ativo" },
+    { "permissionKey": "REPRESENTANTESLEGAIS", "displayName": "Representantes legais", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/representantes-legais", "status": "ativo" },
+    { "permissionKey": "COLABORADORES", "displayName": "Colaborador", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/colaboradores", "status": "ativo" },
+    { "permissionKey": "FUNCIONARIOS", "displayName": "Funcionários (legado)", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/colaboradores", "status": "legado" },
+    { "permissionKey": "TERCEIRIZADOS", "displayName": "Terceirizados (legado)", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/colaboradores", "status": "legado" },
+    { "permissionKey": "FORNECEDORES", "displayName": "Fornecedores", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/fornecedores", "status": "ativo" },
+    { "permissionKey": "SINDICOS", "displayName": "Síndicos", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/sindicos", "status": "ativo" },
+    { "permissionKey": "SUBSINDICOS", "displayName": "Subsíndicos", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/subsindicos", "status": "ativo" },
+    { "permissionKey": "CONSELHEIROS", "displayName": "Conselheiros", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/conselheiros", "status": "ativo" },
+    { "permissionKey": "ADMINISTRADORAS", "displayName": "Administradoras", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/administradoras", "status": "ativo" },
+    { "permissionKey": "ENTREGADORES", "displayName": "Entregadores", "module": "Pessoas", "tipo": "Tela — contexto", "route": "/entregadores", "status": "ativo" },
+    { "permissionKey": "FUNCAOCOLABORADOR", "displayName": "Função de Colaborador", "module": "Pessoas", "tipo": "Tela — CRUD", "route": "/funcaocolaborador", "status": "ativo" }
   ]
 }
