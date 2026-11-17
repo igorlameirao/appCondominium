@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Icone } from '../../shared/icone';
 import { ListaSgeViewport } from '../../shared/lista-sge/lista-sge-viewport.directive';
 import { Paginacao } from '../../shared/paginacao';
@@ -14,6 +14,13 @@ import {
 import { PermissionService } from '../../core/services/permission.service';
 import { PessoaConsultaService, PessoaListagemItem } from '../../core/services/pessoa-consulta.service';
 import { PagedResult } from '../../core/models/paged-result';
+import {
+  CHAVES_PERMISSAO_COLABORADOR,
+  PessoaContextoConfig,
+  ehContextoColaborador,
+  pessoaContextoPorId,
+  rotuloTipoColaborador,
+} from './pessoa-contexto.config';
 
 @Component({
   selector: 'app-pessoas-list',
@@ -26,16 +33,15 @@ import { PagedResult } from '../../core/models/paged-result';
           <nav class="cad-breadcrumb" aria-label="Navegação estrutural">
             <a routerLink="/inicio"><app-icone nome="home" [tamanho]="14" /> Início</a>
             <app-icone class="cad-breadcrumb__sep" nome="chevron-right" [tamanho]="14" />
-            <span aria-current="page">Pessoas</span>
+            <span aria-current="page">{{ contexto.tituloLista }}</span>
           </nav>
           <div class="lst-cabecalho__linha">
             <div>
-              <h1 class="lst-titulo">Pessoas</h1>
-              <p class="lst-subtitulo">Hub de pessoas físicas e jurídicas com vínculos no condomínio</p>
+              <h1 class="lst-titulo">{{ contexto.tituloLista }}</h1>
+              <p class="lst-subtitulo">{{ contexto.subtituloLista }}</p>
             </div>
-            <div class="lst-cabecalho__acoes" *ngIf="canPf || canPj">
-              <button type="button" class="btn-novo" *ngIf="canPf" (click)="novaPf()">Nova PF</button>
-              <button type="button" class="btn-novo" *ngIf="canPj" (click)="novaPj()">Nova PJ</button>
+            <div class="lst-cabecalho__acoes" *ngIf="podeIncluir">
+              <button type="button" class="btn-novo" (click)="novo()">Novo</button>
             </div>
           </div>
         </header>
@@ -52,7 +58,7 @@ import { PagedResult } from '../../core/models/paged-result';
                   <label for="pessoas-filtro-texto">Nome, CPF ou CNPJ</label>
                   <input id="pessoas-filtro-texto" type="search" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" placeholder="Mín. 3 caracteres" />
                 </div>
-                <div class="form-group">
+                <div class="form-group" *ngIf="mostraFiltroTipo">
                   <label for="pessoas-filtro-tipo">Tipo</label>
                   <select id="pessoas-filtro-tipo" [(ngModel)]="filtroTipo" (change)="applyFilter()">
                     <option value="">Todos</option>
@@ -78,20 +84,28 @@ import { PagedResult } from '../../core/models/paged-result';
             <table class="lst-grade" *ngIf="paged?.items?.length && !erroCarregamento; else lstEmpty">
               <thead>
                 <tr>
-                  <th scope="col">Tipo</th>
+                  <th scope="col" *ngIf="mostraFiltroTipo">Tipo</th>
                   <th scope="col" class="lst-col--conteudo">Nome</th>
                   <th scope="col">CPF/CNPJ</th>
-                  <th scope="col">Complemento</th>
+                  <th scope="col" *ngIf="contextoEspecializado && !mostraColunaTipoColaborador">Papel</th>
+                  <th scope="col" *ngIf="mostraColunaTipoColaborador">Tipo</th>
+                  <th scope="col" *ngIf="contexto.escopoPapel === 'unidade'">Unidade</th>
+                  <th scope="col" *ngIf="!contextoEspecializado">Complemento</th>
                   <th scope="col">Situação</th>
                   <th scope="col" class="lst-grade__acoes">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let item of paged?.items" class="row-click" (dblclick)="abrir(item)">
-                  <td><span class="lst-badge lst-badge--neutro">{{ item.tipo }}</span></td>
+                  <td *ngIf="mostraFiltroTipo"><span class="lst-badge lst-badge--neutro">{{ item.tipo }}</span></td>
                   <td class="lst-col--conteudo">{{ item.nome }}</td>
                   <td>{{ item.cpfcnpj ?? '—' }}</td>
-                  <td class="lst-col--resumo" [title]="item.complemento || ''">{{ item.complemento ?? '—' }}</td>
+                  <td *ngIf="contextoEspecializado && !mostraColunaTipoColaborador">{{ item.papelResumo ?? '—' }}</td>
+                  <td *ngIf="mostraColunaTipoColaborador">
+                    <span class="lst-badge lst-badge--neutro">{{ rotuloTipoColaborador(item.codigoPapelVinculo, item.papelResumo) }}</span>
+                  </td>
+                  <td *ngIf="contexto.escopoPapel === 'unidade'">{{ item.unidadeResumo ?? '—' }}</td>
+                  <td *ngIf="!contextoEspecializado" class="lst-col--resumo" [title]="item.complemento || ''">{{ item.complemento ?? '—' }}</td>
                   <td>
                     <span class="lst-status" [ngClass]="classeSituacaoVinculo(item.situacaoVinculo)">{{ item.situacaoVinculo }}</span>
                   </td>
@@ -129,6 +143,7 @@ import { PagedResult } from '../../core/models/paged-result';
   `,
 })
 export class PessoasListComponent implements OnInit {
+  contexto: PessoaContextoConfig = pessoaContextoPorId('pessoas');
   paged: PagedResult<PessoaListagemItem> | null = null;
   loading = false;
   erroCarregamento: string | null = null;
@@ -142,18 +157,32 @@ export class PessoasListComponent implements OnInit {
   constructor(
     private consulta: PessoaConsultaService,
     private router: Router,
+    private route: ActivatedRoute,
     private permissions: PermissionService
   ) {}
 
-  get canPf(): boolean { return this.permissions.can('PESSOAFISICA', 'Incluir'); }
-  get canPj(): boolean { return this.permissions.can('PESSOAJURIDICA', 'Incluir'); }
+  get contextoEspecializado(): boolean { return this.contexto.id !== 'pessoas'; }
+  get mostraFiltroTipo(): boolean { return this.contexto.tipoPessoa !== 'PF'; }
+  get mostraColunaTipoColaborador(): boolean { return ehContextoColaborador(this.contexto.id); }
+  readonly rotuloTipoColaborador = rotuloTipoColaborador;
+  get podeIncluir(): boolean {
+    if (!this.contexto.inclusao) return false;
+    if (ehContextoColaborador(this.contexto.id)) {
+      return this.permissions.canAny([...CHAVES_PERMISSAO_COLABORADOR], 'Incluir');
+    }
+    return this.permissions.can(this.contexto.permissionKey, 'Incluir');
+  }
   get totalCount(): number { return this.paged?.totalCount ?? 0; }
 
   get consultaComFiltro(): boolean {
     return !!(this.filterText.trim() || this.filtroTipo || this.filtroSituacao);
   }
 
-  ngOnInit(): void { agendarPrimeiraCargaLista(() => this.loadPage(1)); }
+  ngOnInit(): void {
+    this.contexto = pessoaContextoPorId(this.route.snapshot.data['pessoaContexto'] as string | undefined);
+    if (this.contexto.tipoPessoa === 'PF') this.filtroTipo = 'PF';
+    agendarPrimeiraCargaLista(() => this.loadPage(1));
+  }
 
   classeSituacaoVinculo(situacao: string): string {
     return situacao === 'Ativo' ? 'ativo' : 'inativo';
@@ -176,7 +205,7 @@ export class PessoasListComponent implements OnInit {
 
   clearFilter(): void {
     this.filterText = '';
-    this.filtroTipo = '';
+    this.filtroTipo = this.contexto.tipoPessoa === 'PF' ? 'PF' : '';
     this.filtroSituacao = '';
     this.page = 1;
     this.loadPage(1);
@@ -186,7 +215,8 @@ export class PessoasListComponent implements OnInit {
     this.page = p;
     iniciarCarregamentoLista(this);
     const f = this.filterText.trim().length >= 3 ? this.filterText.trim() : undefined;
-    this.consulta.listar(this.page, this.pageSize, f, this.filtroTipo, this.filtroSituacao).subscribe({
+    const tipo = this.contexto.tipoPessoa === 'PF' ? 'PF' : this.filtroTipo;
+    this.consulta.listar(this.page, this.pageSize, f, tipo, this.filtroSituacao, this.contextoEspecializado ? this.contexto.id : undefined).subscribe({
       next: r => { this.paged = r; finalizarCarregamentoListaSucesso(this); },
       error: (e) => finalizarCarregamentoListaErro(this, e)
     });
@@ -194,9 +224,12 @@ export class PessoasListComponent implements OnInit {
 
   abrir(item: PessoaListagemItem): void {
     const tipo = item.tipo === 'PJ' ? 'PJ' : 'PF';
-    void this.router.navigate(['/pessoas', item.idPessoa], { queryParams: { tipo } });
+    const base = this.contexto.routeLista;
+    void this.router.navigate([base, item.idPessoa], { queryParams: { tipo } });
   }
 
-  novaPf(): void { void this.router.navigate(['/pessoafisica', 'novo'], { queryParams: { retorno: '/pessoas' } }); }
-  novaPj(): void { void this.router.navigate(['/pessoajuridica', 'novo'], { queryParams: { retorno: '/pessoas' } }); }
+  novo(): void {
+    if (!this.contexto.routeNovo) return;
+    void this.router.navigateByUrl(this.contexto.routeNovo);
+  }
 }

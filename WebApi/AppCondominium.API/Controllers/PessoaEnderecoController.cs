@@ -92,9 +92,11 @@ public class PessoaEnderecoController : ControllerBase
     private async Task<bool> PodeAlterar(CancellationToken ct)
     {
         if (PermissionResourceAttribute.PermissaoNoToken(User, "PESSOAFISICA", "Alterar")) return true;
+        if (PermissionResourceAttribute.PermissaoNoToken(User, "PESSOAFISICA", "Incluir")) return true;
         if (PermissionResourceAttribute.PermissaoNoToken(User, "PESSOAJURIDICA", "Alterar")) return true;
+        if (PermissionResourceAttribute.PermissaoNoToken(User, "PESSOAJURIDICA", "Incluir")) return true;
         if (PermissionResourceAttribute.PermissaoNoToken(User, "FORNECEDOR", "Alterar")) return true;
-        return await TemPermissaoAsync("Alterar", ct);
+        return await TemPermissaoAsync("Alterar", ct) || await TemPermissaoAsync("Incluir", ct);
     }
 
     private async Task<bool> TemPermissaoAsync(string acao, CancellationToken ct)

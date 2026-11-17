@@ -6,7 +6,11 @@ public record PessoaListagemItemDto(
     string Nome,
     string? Cpfcnpj,
     string? Complemento,
-    string SituacaoVinculo);
+    string SituacaoVinculo,
+    string? PapelResumo = null,
+    string? UnidadeResumo = null,
+    uint? IdVinculoPrincipal = null,
+    uint? CodigoPapelVinculo = null);
 
 public record PessoaPorDocumentoDto(
     uint IdPessoa,

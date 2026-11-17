@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 @Component({
   selector: 'app-pessoa-edit-redirect',
   standalone: true,
-  template: '',
+  template: '<p class="lst-vazio" role="status">Carregando cadastro…</p>',
 })
 export class PessoaEditRedirectComponent implements OnInit {
   constructor(private route: ActivatedRoute, private router: Router) {}

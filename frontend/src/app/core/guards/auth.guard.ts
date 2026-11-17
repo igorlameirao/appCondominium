@@ -21,7 +21,7 @@ export const authGuard: CanActivateFn = () => {
     Number(tenantHost.idCondominio) !== Number(condominioCtx.idCondominio)
   ) {
     auth.logout();
-    return false;
+    return router.createUrlTree([tenantHost.loginPath]);
   }
 
   return true;

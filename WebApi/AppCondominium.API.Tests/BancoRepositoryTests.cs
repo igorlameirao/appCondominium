@@ -15,6 +15,7 @@ public class BancoRepositoryTests
         await using var db = await CriarDbAsync();
         db.Banco.Add(new Banco
         {
+            IdBanco = 1,
             CodigoBanco = "001",
             DigitoVerificador = "0",
             Nome = "Banco Teste Zeros"
@@ -22,7 +23,7 @@ public class BancoRepositoryTests
         await db.SaveChangesAsync();
 
         var repo = new BancoRepository(db, new TenantMutavel(1));
-        var found = await repo.GetByIdAsync("001");
+        var found = await repo.GetByIdAsync(1);
 
         Assert.NotNull(found);
         Assert.Equal("001", found.CodigoBanco);
@@ -37,7 +38,7 @@ public class BancoRepositoryTests
         await db.SaveChangesAsync();
 
         var repo = new BancoRepository(db, new TenantMutavel(1));
-        var found = await repo.GetByIdAsync("1");
+        var found = await repo.GetByIdAsync(99);
 
         Assert.Null(found);
     }

@@ -21,9 +21,8 @@ public class PessoaEnderecoService : IPessoaEnderecoService
         await GarantirPessoaNoTenantAsync(idPessoa, ct);
 
         return await (
-            from pe in _db.PessoaEndereco.AsNoTracking()
+            from pe in VinculosEndereco(idPessoa).AsNoTracking()
             join e in _db.Set<Endereco>().AsNoTracking() on pe.IdEndereco equals e.IdEndereco
-            where pe.IdPessoa == idPessoa
             orderby pe.TipoEndereco, e.Logradouro
             select new PessoaEnderecoItemDto(
                 pe.IdPessoa, pe.IdEndereco, pe.NumeroEndereco, pe.ComplementoEndereco, pe.TipoEndereco,
@@ -40,7 +39,7 @@ public class PessoaEnderecoService : IPessoaEnderecoService
             throw new InvalidOperationException("Tipo de endereço inválido.");
 
         var vinculo = request.IdEndereco is uint idEnd
-            ? await _db.PessoaEndereco.FirstOrDefaultAsync(pe => pe.IdPessoa == idPessoa && pe.IdEndereco == idEnd, ct)
+            ? await VinculosEndereco(idPessoa).FirstOrDefaultAsync(pe => pe.IdEndereco == idEnd, ct)
             : null;
 
         uint idEndereco;
@@ -99,13 +98,13 @@ public class PessoaEnderecoService : IPessoaEnderecoService
     public async Task RemoverAsync(uint idPessoa, uint idEndereco, CancellationToken ct = default)
     {
         await GarantirPessoaNoTenantAsync(idPessoa, ct);
-        var pe = await _db.PessoaEndereco.FirstOrDefaultAsync(x => x.IdPessoa == idPessoa && x.IdEndereco == idEndereco, ct)
+        var pe = await VinculosEndereco(idPessoa).FirstOrDefaultAsync(x => x.IdEndereco == idEndereco, ct)
             ?? throw new InvalidOperationException("Vínculo de endereço não encontrado.");
 
         if (pe.TipoEndereco == Principal)
         {
-            var outros = await _db.PessoaEndereco.AnyAsync(
-                x => x.IdPessoa == idPessoa && x.IdEndereco != idEndereco && x.TipoEndereco != Inativo, ct);
+            var outros = await VinculosEndereco(idPessoa).AnyAsync(
+                x => x.IdEndereco != idEndereco && x.TipoEndereco != Inativo, ct);
             if (!outros)
                 throw new InvalidOperationException("Cadastre outro endereço principal antes de Inativar ou tornar esse endereço Secundário.");
         }
@@ -128,7 +127,7 @@ public class PessoaEnderecoService : IPessoaEnderecoService
     private async Task AplicarRegrasTipoAsync(
         uint idPessoa, uint idEndereco, byte novoTipo, byte? tipoAnterior, CancellationToken ct)
     {
-        var todos = await _db.PessoaEndereco.Where(x => x.IdPessoa == idPessoa).ToListAsync(ct);
+        var todos = await VinculosEndereco(idPessoa).ToListAsync(ct);
         var alvo = todos.FirstOrDefault(x => x.IdEndereco == idEndereco)
             ?? throw new InvalidOperationException("Vínculo de endereço não encontrado.");
 
@@ -148,9 +147,30 @@ public class PessoaEnderecoService : IPessoaEnderecoService
         }
     }
 
+    private IQueryable<PessoaEndereco> VinculosEndereco(uint idPessoa) =>
+        _db.PessoaEndereco.IgnoreQueryFilters().Where(pe => pe.IdPessoa == idPessoa);
+
     private async Task GarantirPessoaNoTenantAsync(uint idPessoa, CancellationToken ct)
     {
-        if (!await _db.Pessoa.AsNoTracking().AnyAsync(p => p.IdPessoa == idPessoa, ct))
-            throw new InvalidOperationException("Pessoa não encontrada no condomínio ativo.");
+        var existe = await _db.Pessoa.IgnoreQueryFilters().AsNoTracking()
+            .AnyAsync(p => p.IdPessoa == idPessoa, ct);
+        if (!existe)
+            throw new InvalidOperationException("Pessoa não encontrada.");
+
+        if (await _db.Pessoa.AsNoTracking().AnyAsync(p => p.IdPessoa == idPessoa, ct))
+            return;
+
+        var idCondominio = _db.CurrentTenantId;
+        if (idCondominio == 0)
+            return;
+
+        var temVinculoOuFornecedor = await _db.PessoaVinculo.AsNoTracking()
+                .AnyAsync(v => v.IdPessoa == idPessoa && v.IdCondominio == idCondominio, ct)
+            || await _db.Fornecedor.AsNoTracking()
+                .AnyAsync(f => f.IdPessoa == idPessoa && f.IdCondominio == idCondominio, ct);
+        if (!temVinculoOuFornecedor)
+            return;
+
+        throw new InvalidOperationException("Pessoa não encontrada no condomínio ativo.");
     }
 }

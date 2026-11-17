@@ -166,9 +166,14 @@ public class PessoaCadastroService : IPessoaCadastroService
 
     public async Task<PessoaFisicaIntegradaResponse?> ObterPessoaFisicaIntegradaAsync(uint idPessoa, CancellationToken ct = default)
     {
-        var pf = await _db.Pessoafisica.AsNoTracking().FirstOrDefaultAsync(p => p.IdPessoa == idPessoa, ct);
+        if (!await PessoaAcessivelParaCadastroAsync(idPessoa, ct))
+            return null;
+
+        var pf = await _db.Pessoafisica.IgnoreQueryFilters().AsNoTracking()
+            .FirstOrDefaultAsync(p => p.IdPessoa == idPessoa, ct);
         if (pf is null) return null;
-        var pessoa = await _db.Pessoa.AsNoTracking().FirstOrDefaultAsync(p => p.IdPessoa == idPessoa, ct);
+        var pessoa = await _db.Pessoa.IgnoreQueryFilters().AsNoTracking()
+            .FirstOrDefaultAsync(p => p.IdPessoa == idPessoa, ct);
         if (pessoa is null) return null;
         return new PessoaFisicaIntegradaResponse
         {
@@ -186,9 +191,14 @@ public class PessoaCadastroService : IPessoaCadastroService
 
     public async Task<PessoaJuridicaIntegradaResponse?> ObterPessoaJuridicaIntegradaAsync(uint idPessoa, CancellationToken ct = default)
     {
-        var pj = await _db.PessoaJuridica.AsNoTracking().FirstOrDefaultAsync(p => p.IdPessoa == idPessoa, ct);
+        if (!await PessoaAcessivelParaCadastroAsync(idPessoa, ct))
+            return null;
+
+        var pj = await _db.PessoaJuridica.IgnoreQueryFilters().AsNoTracking()
+            .FirstOrDefaultAsync(p => p.IdPessoa == idPessoa, ct);
         if (pj is null) return null;
-        var pessoa = await _db.Pessoa.AsNoTracking().FirstOrDefaultAsync(p => p.IdPessoa == idPessoa, ct);
+        var pessoa = await _db.Pessoa.IgnoreQueryFilters().AsNoTracking()
+            .FirstOrDefaultAsync(p => p.IdPessoa == idPessoa, ct);
         if (pessoa is null) return null;
         return new PessoaJuridicaIntegradaResponse
         {
@@ -205,6 +215,33 @@ public class PessoaCadastroService : IPessoaCadastroService
                 IdResponsavel = pj.IdResponsavel
             }
         };
+    }
+
+    /// <summary>
+    /// Permite leitura global de PF/PJ recém-cadastradas (sem vínculo no condomínio) e de pessoas já visíveis pelo filtro de tenant.
+    /// </summary>
+    private async Task<bool> PessoaAcessivelParaCadastroAsync(uint idPessoa, CancellationToken ct)
+    {
+        var existe = await _db.Pessoa.IgnoreQueryFilters().AsNoTracking()
+            .AnyAsync(p => p.IdPessoa == idPessoa, ct);
+        if (!existe)
+            return false;
+
+        if (await _db.Pessoa.AsNoTracking().AnyAsync(p => p.IdPessoa == idPessoa, ct))
+            return true;
+
+        var idCondominio = _db.CurrentTenantId;
+        if (idCondominio == 0)
+            return true;
+
+        var temVinculoOuFornecedor = await _db.PessoaVinculo.AsNoTracking()
+                .AnyAsync(v => v.IdPessoa == idPessoa && v.IdCondominio == idCondominio, ct)
+            || await _db.Fornecedor.AsNoTracking()
+                .AnyAsync(f => f.IdPessoa == idPessoa && f.IdCondominio == idCondominio, ct);
+        if (!temVinculoOuFornecedor)
+            return true;
+
+        return false;
     }
 
     private static void ValidarPfSomenteLeitura(PessoaFisicaIntegradaRequest request, Pessoa pessoa, Pessoafisica? pf = null)

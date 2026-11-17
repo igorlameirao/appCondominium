@@ -139,6 +139,30 @@
       "incluir": true,
       "alterar": true,
       "excluir": true
-    }
+    },
+    { "perfil": "Síndico", "permissionKey": "MORADORES", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "PROPRIETARIOS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "LOCATARIOS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "PRESTADORESUNIDADE", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "PRESTADORES", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "VISITANTES", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "REPRESENTANTESLEGAIS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "COLABORADORES", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "FUNCIONARIOS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "TERCEIRIZADOS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "FORNECEDORES", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "SINDICOS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "SUBSINDICOS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "CONSELHEIROS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "ADMINISTRADORAS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "ENTREGADORES", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Síndico", "permissionKey": "FUNCAOCOLABORADOR", "visualizar": true, "incluir": false, "alterar": false, "excluir": false },
+    { "perfil": "Funcionário Administração", "permissionKey": "MORADORES", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Funcionário Administração", "permissionKey": "PROPRIETARIOS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Funcionário Administração", "permissionKey": "LOCATARIOS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Funcionário Administração", "permissionKey": "COLABORADORES", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Funcionário Administração", "permissionKey": "FUNCIONARIOS", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Funcionário Administração", "permissionKey": "FORNECEDORES", "visualizar": true, "incluir": true, "alterar": true, "excluir": false },
+    { "perfil": "Funcionário Administração", "permissionKey": "FUNCAOCOLABORADOR", "visualizar": true, "incluir": false, "alterar": false, "excluir": false }
   ]
 }

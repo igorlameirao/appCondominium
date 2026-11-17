@@ -31,6 +31,9 @@ public static partial class DependencyInjection
         services.AddScoped<IPessoaVinculoService, PessoaVinculoService>();
         services.AddScoped<IFornecedorCadastroService, FornecedorCadastroService>();
         services.AddScoped<IPessoaConsultaService, PessoaConsultaService>();
+        services.AddScoped<IColaboradorService, ColaboradorService>();
+        services.AddScoped<IPessoaContextoInclusaoService, PessoaContextoInclusaoService>();
+        services.AddScoped<Repositories.FuncaoColaboradorRepository>();
         services.AddScoped<IFornecedorConsultaService, FornecedorConsultaService>();
         services.AddHttpClient();
         services.AddScoped<CnpjService>();

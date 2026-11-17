@@ -553,6 +553,91 @@
       }
     },
     {
+      "permissionKey": "MORADORES",
+      "displayName": "Moradores",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "PROPRIETARIOS",
+      "displayName": "Proprietários",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "LOCATARIOS",
+      "displayName": "Locatários",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "PRESTADORESUNIDADE",
+      "displayName": "Prestadores da unidade",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "PRESTADORES",
+      "displayName": "Prestadores do condomínio",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "VISITANTES",
+      "displayName": "Visitantes",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "REPRESENTANTESLEGAIS",
+      "displayName": "Representantes legais",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "COLABORADORES",
+      "displayName": "Colaborador",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "FUNCIONARIOS",
+      "displayName": "Funcionários (legado)",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "TERCEIRIZADOS",
+      "displayName": "Terceirizados (legado)",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "FORNECEDORES",
+      "displayName": "Fornecedores",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "SINDICOS",
+      "displayName": "Síndicos",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "SUBSINDICOS",
+      "displayName": "Subsíndicos",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "CONSELHEIROS",
+      "displayName": "Conselheiros",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "ADMINISTRADORAS",
+      "displayName": "Administradoras",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "ENTREGADORES",
+      "displayName": "Entregadores",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
+      "permissionKey": "FUNCAOCOLABORADOR",
+      "displayName": "Função de Colaborador",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Sim", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
       "permissionKey": "ENTRADASAIDAMATERIALCONSUMO",
       "displayName": "Entrada e Saída de Material de Consumo",
       "permissions": {

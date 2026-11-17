@@ -40,6 +40,26 @@ public class PessoaEnderecoTests
     }
 
     [Fact]
+    public async Task Grava_endereco_para_pessoa_sem_vinculo_no_condominio()
+    {
+        await using var db = await CriarDbPessoaSemVinculo();
+        var svc = new PessoaEnderecoService(db);
+
+        var item = await svc.GravarAsync(10, new PessoaEnderecoUpsertRequest
+        {
+            Logradouro = "Rua Nova",
+            CEP = "01310100",
+            IdBairro = 1,
+            TipoEndereco = 0,
+            NumeroEndereco = 10
+        });
+
+        Assert.Equal("Rua Nova", item.Logradouro);
+        var lista = await svc.ListarPorPessoaAsync(10);
+        Assert.Single(lista);
+    }
+
+    [Fact]
     public async Task Nao_permite_inativar_unico_principal()
     {
         await using var db = await CriarDbComPessoaVinculo();
@@ -56,6 +76,20 @@ public class PessoaEnderecoTests
             IdEndereco = item.IdEndereco,
             TipoEndereco = 2
         }));
+    }
+
+    private static async Task<AppDbContext> CriarDbPessoaSemVinculo()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        var tenant = new TenantMutavel(1);
+        var db = new AppDbContext(options, tenant);
+        db.Condominio.Add(new Condominio { IdCondominio = 1, Nome = "A" });
+        db.Pessoa.Add(new Pessoa { IdPessoa = 10, Nome = "Nova", CPFCNPJ = "39053344705" });
+        db.Set<Bairro>().Add(new Bairro { IdBairro = 1, Nome = "Centro", CodigoIBGEMunicipio = 3550308 });
+        await db.SaveChangesAsync();
+        return db;
     }
 
     private static async Task<AppDbContext> CriarDbComPessoaVinculo()
