@@ -153,6 +153,11 @@ abstract final class HomeDemoData {
           label: 'Trocar unidade',
           icon: Icons.door_front_door_outlined,
         ),
+        HomeDrawerNavItem(
+          id: 'alterar-senha',
+          label: 'Alterar senha',
+          icon: Icons.lock_outline_rounded,
+        ),
       ],
     ),
     HomeDrawerNavGroup(
