@@ -10,13 +10,13 @@ import { EnderecoService } from './endereco.service';
 import { Endereco } from './endereco.model';
 import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
-import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-widget.component';
+import { EnderecoFormCorpoComponent } from './endereco-form-corpo.component';
 import { somenteDigitos } from '../../core/utils/documento-validator';
 
 @Component({
   selector: 'app-endereco-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, EnderecoWidgetComponent],
+  imports: [CommonModule, RouterLink, Icone, ListLoadingModalComponent, FormsModule, EnderecoFormCorpoComponent],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -48,21 +48,16 @@ import { somenteDigitos } from '../../core/utils/documento-validator';
               </div>
             </div>
             <div class="form-scroll cad-form-scroll"><form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-          <div class="form-grid">
-            <div class="form-group fg-col-2">
-              <label>Id</label>
-              <input type="text" [value]="isEdit ? pkDisplay : ''" readonly class="readonly" />
-            </div>
-          </div>
-          <app-endereco-widget
-            modo="cadastro"
-            [cep]="model.cEP"
-            [logradouroVinculo]="model.logradouro"
+          <app-endereco-form-corpo
+            [exibirId]="isEdit"
+            [idDisplay]="pkDisplay"
+            [cep]="model.cEP ?? ''"
+            [logradouro]="model.logradouro ?? ''"
             [idBairro]="model.idBairro"
             (cepChange)="model.cEP = $event"
             (logradouroChange)="model.logradouro = $event"
             (idBairroChange)="model.idBairro = $event ?? undefined"
-            [readonly]="isEdit && !canEdit" />
+            [readonlyEndereco]="isEdit && !canEdit" />
         </form></div>
           </div>
           <div class="actions form-actions cad-acoes">

@@ -38,6 +38,37 @@ public class PessoaConsultaTenantTests
         Assert.Equal(99u, r!.IdPessoa);
     }
 
+    [Fact]
+    public async Task Lista_contextual_retorna_somente_papel_e_escopo()
+    {
+        await using var db = await CriarDb();
+        var tenant = new TenantMutavel(1);
+        var svc = new PessoaConsultaService(db, tenant);
+        db.Pessoa.Add(new Pessoa { IdPessoa = 1, Nome = "Morador Um", CPFCNPJ = "39053344705" });
+        db.Pessoa.Add(new Pessoa { IdPessoa = 2, Nome = "Sindico", CPFCNPJ = "15350946056" });
+        db.Pessoafisica.Add(new Pessoafisica { IdPessoa = 1, DataNascimento = new DateOnly(1990, 1, 1) });
+        db.Pessoafisica.Add(new Pessoafisica { IdPessoa = 2, DataNascimento = new DateOnly(1980, 1, 1) });
+        db.Unidade.Add(new Unidade { IdUnidade = 10, IdCondominio = 1, Numero = 101 });
+        db.PapelVinculo.Add(new PapelVinculo { CodigoPapelVinculo = 2, Descricao = "Morador", EscopoPapel = 2 });
+        db.PessoaVinculo.Add(new PessoaVinculo
+        {
+            IdPessoa = 1, IdCondominio = 1, CodigoPapelVinculo = 2, IdUnidade = 10,
+            DataInicio = new DateOnly(2024, 1, 1), Responsavel = 0
+        });
+        db.PessoaVinculo.Add(new PessoaVinculo
+        {
+            IdPessoa = 2, IdCondominio = 1, CodigoPapelVinculo = 10,
+            DataInicio = new DateOnly(2024, 1, 1), Responsavel = 0
+        });
+        await db.SaveChangesAsync();
+
+        var lista = await svc.ListarAsync(1, 20, null, "PF", null, "unidade", new uint[] { 2 }, true);
+        var item = Assert.Single(lista.Items);
+        Assert.Equal(1u, item.IdPessoa);
+        Assert.Equal("Morador", item.PapelResumo);
+        Assert.Equal("Unidade 101", item.UnidadeResumo);
+    }
+
     private static async Task<AppDbContext> CriarDb()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()

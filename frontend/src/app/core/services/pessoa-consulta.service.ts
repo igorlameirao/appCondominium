@@ -11,6 +11,10 @@ export interface PessoaListagemItem {
   cpfcnpj?: string;
   complemento?: string;
   situacaoVinculo: string;
+  papelResumo?: string;
+  unidadeResumo?: string;
+  idVinculoPrincipal?: number;
+  codigoPapelVinculo?: number;
 }
 
 export interface PessoaPorDocumento {
@@ -37,12 +41,14 @@ export class PessoaConsultaService {
     pageSize: number,
     filter?: string,
     tipo?: 'PF' | 'PJ' | '',
-    situacao?: 'ativo' | 'encerrado' | ''
+    situacao?: 'ativo' | 'encerrado' | '',
+    contexto?: string
   ): Observable<PagedResult<PessoaListagemItem>> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (filter) params = params.set('filter', filter);
     if (tipo) params = params.set('tipo', tipo);
     if (situacao) params = params.set('situacao', situacao);
+    if (contexto) params = params.set('contexto', contexto);
     return this.http.get<PagedResult<PessoaListagemItem>>(this.base, { params });
   }
 

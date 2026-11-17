@@ -26,6 +26,8 @@ public partial class AppDbContext
     public DbSet<ConfiguracaoEmail> ConfiguracoesEmail { get; set; } = null!;
     public DbSet<EmailQueue> EmailQueues { get; set; } = null!;
     public DbSet<RecuperacaoSenhaToken> RecuperacaoSenhaToken { get; set; } = null!;
+    public DbSet<FuncaoColaborador> FuncaoColaborador { get; set; } = null!;
+    public DbSet<Colaborador> Colaborador { get; set; } = null!;
 
     partial void ConfigureEntityKeys(ModelBuilder modelBuilder);
     partial void ConfigureTenantQueryFilters(ModelBuilder modelBuilder);
@@ -101,6 +103,24 @@ public partial class AppDbContext
         modelBuilder.Entity<Condominio>()
             .Property(c => c.IdCondominio)
             .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<FuncaoColaborador>(e =>
+        {
+            e.ToTable("FuncaoColaborador");
+            e.HasKey(x => x.IdFuncaoColaborador);
+            e.Property(x => x.IdFuncaoColaborador).ValueGeneratedOnAdd();
+            e.Property(x => x.Descricao).HasMaxLength(80).IsRequired();
+            e.HasIndex(x => x.Descricao).IsUnique();
+        });
+
+        modelBuilder.Entity<Colaborador>(e =>
+        {
+            e.ToTable("Colaborador");
+            e.HasKey(x => x.IdColaborador);
+            e.Property(x => x.IdColaborador).ValueGeneratedOnAdd();
+            e.Property(x => x.CTPS).HasMaxLength(20).IsRequired();
+            e.HasQueryFilter(x => x.IdCondominio == CurrentTenantId);
+        });
 
         modelBuilder.Entity<Banco>(b =>
         {

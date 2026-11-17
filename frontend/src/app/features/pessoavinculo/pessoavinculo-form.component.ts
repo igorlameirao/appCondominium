@@ -11,6 +11,7 @@ import { PermissionService } from '../../core/services/permission.service';
 import { CondominioContextService } from '../../core/services/condominio-context.service';
 import { CampoDataComponent } from '../../shared/campo-data/campo-data.component';
 import { PessoafisicaService } from '../pessoafisica/pessoafisica.service';
+import { papelExcluido } from '../pessoas/pessoa-contexto-codigos';
 import { PapelVinculoService } from '../papelvinculo/papelvinculo.service';
 import { UnidadeService } from '../unidade/unidade.service';
 import { PerfilAcessoLookupService } from '../../core/services/perfil-acesso-lookup.service';
@@ -185,10 +186,12 @@ export class PessoaVinculoFormComponent implements OnInit {
     });
 
     this.papelVinculoService.getPaged(1, 200).subscribe(r => {
-      this.fk_codigoPapelVinculo = r.items.map((x: any) => ({
-        value: x.codigoPapelVinculo,
-        label: this.fkLabel_codigoPapelVinculo(x)
-      }));
+      this.fk_codigoPapelVinculo = r.items
+        .filter((x: any) => this.isEdit || !papelExcluido(x.codigoPapelVinculo))
+        .map((x: any) => ({
+          value: x.codigoPapelVinculo,
+          label: this.fkLabel_codigoPapelVinculo(x)
+        }));
     });
 
     this.unidadeService.getPaged(1, 200).subscribe(r => {

@@ -1,13 +1,17 @@
 import { inject } from '@angular/core';
 import { CanActivateChildFn, Router } from '@angular/router';
 import { PermissionService } from '../services/permission.service';
+import { CHAVES_PERMISSAO_COLABORADOR, contextosDeMenu, ehContextoColaborador } from '../../features/pessoas/pessoa-contexto.config';
 
 export const entityPermissionGuard: CanActivateChildFn = (child) => {
   const path = child.routeConfig?.path ?? '';
   const segment = path.split('/')[0];
   if (!segment) return true;
 
-  const key = segment === 'inicio'
+  const contexto = contextosDeMenu().find(c => c.routeLista.replace(/^\//, '').split('/')[0] === segment);
+  const key = contexto
+    ? contexto.permissionKey
+    : segment === 'inicio'
     ? 'HOME'
     : segment === 'gerenciamento-permissoes'
       ? 'PERMISSOES_GERENCIAR'
@@ -24,6 +28,10 @@ export const entityPermissionGuard: CanActivateChildFn = (child) => {
     return inject(Router).createUrlTree(['/inicio']);
   }
   if ((key === 'FILAEMAIL' || key === 'CONFIGURACAOEMAIL') && permissions.acessoTotal) return true;
+  if (contexto && ehContextoColaborador(contexto.id)) {
+    if (permissions.canAny([...CHAVES_PERMISSAO_COLABORADOR], 'Visualizar')) return true;
+    return inject(Router).createUrlTree(['/inicio']);
+  }
   if (permissions.can(key, 'Visualizar')) return true;
   return inject(Router).createUrlTree(['/inicio']);
 };

@@ -1,17 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Icone } from '../../shared/icone';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { concatMap, from, last, map, of } from 'rxjs';
 import { PermissionService } from '../../core/services/permission.service';
 import { PessoaCadastroIntegradoService, PessoaFisicaIntegradaRequest } from '../../core/services/pessoa-cadastro-integrado.service';
 import { ToastService } from '../../core/services/toast.service';
 import { PessoaPfCamposComponent } from '../pessoas/pessoa-pf-campos.component';
+import { PessoaEnderecosPanelComponent } from '../pessoas/pessoa-enderecos-panel.component';
+import { PessoaEnderecoService, PessoaEnderecoUpsert } from '../../core/services/pessoa-endereco.service';
+import { somenteDigitos, validarCpf } from '../../core/utils/documento-validator';
 
 @Component({
   selector: 'app-pessoafisica-form',
   standalone: true,
-  imports: [CommonModule, RouterLink, Icone, FormsModule, PessoaPfCamposComponent],
+  imports: [CommonModule, RouterLink, Icone, FormsModule, PessoaPfCamposComponent, PessoaEnderecosPanelComponent],
   template: `
     <div class="content-wrapper cad-wrapper">
       <div class="cad-page">
@@ -28,12 +32,19 @@ import { PessoaPfCamposComponent } from '../pessoas/pessoa-pf-campos.component';
         </header>
         <section class="cad-card form-page">
           <div class="cad-abas" role="tablist" aria-label="Seções do cadastro">
-            <button type="button" role="tab" class="cad-aba cad-aba--ativa" aria-selected="true">
+            <button type="button" role="tab" class="cad-aba" [class.cad-aba--ativa]="abaCad === 'dados'"
+              (click)="abaCad = 'dados'" [attr.aria-selected]="abaCad === 'dados'">
               <app-icone nome="user" [tamanho]="16" />
               <span>Dados da pessoa física</span>
             </button>
+            <button type="button" role="tab" class="cad-aba"
+              [class.cad-aba--ativa]="abaCad === 'enderecos'" (click)="abaCad = 'enderecos'"
+              [attr.aria-selected]="abaCad === 'enderecos'">
+              <app-icone nome="map-pin" [tamanho]="16" />
+              <span>Endereços</span>
+            </button>
           </div>
-          <div class="cad-conteudo" role="tabpanel">
+          <div class="cad-conteudo" role="tabpanel" [hidden]="abaCad !== 'dados'">
             <div class="cad-secao">
               <app-icone class="cad-secao__icone" nome="user" [tamanho]="26" />
               <div>
@@ -42,14 +53,31 @@ import { PessoaPfCamposComponent } from '../pessoas/pessoa-pf-campos.component';
               </div>
             </div>
             <div class="form-scroll cad-form-scroll">
-              <form id="entityForm" novalidate (ngSubmit)="submit(f)" #f="ngForm">
-                <app-pessoa-pf-campos [model]="model" secao="completo"
+              <form id="entityForm" novalidate (ngSubmit)="gravarTudo()" #f="ngForm">
+                <app-pessoa-pf-campos #pfCampos [model]="model" secao="completo"
                   [documentoBloqueado]="false" [desabilitado]="!podeGravar" [exibirSenha]="true" />
               </form>
             </div>
           </div>
+          <div class="cad-conteudo" role="tabpanel" [hidden]="abaCad !== 'enderecos'">
+            <div class="cad-secao">
+              <app-icone class="cad-secao__icone" nome="map-pin" [tamanho]="26" />
+              <div>
+                <h2 class="cad-secao__titulo">Endereços da pessoa</h2>
+                <p class="cad-secao__texto">Inclua um ou mais endereços; serão gravados junto com a pessoa ao clicar em Salvar</p>
+              </div>
+            </div>
+            <app-pessoa-enderecos-panel
+              [idPessoa]="null"
+              [modoPendente]="true"
+              [podeEditar]="podeGravar"
+              (pendentesChange)="enderecosPendentes = $event" />
+          </div>
           <div class="actions form-actions cad-acoes">
-            <button type="submit" class="btn-gravar" form="entityForm" [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
+            <button type="submit" class="btn-gravar" form="entityForm" *ngIf="abaCad === 'dados'"
+              [class.is-loading]="saving" [disabled]="saving || !podeGravar">Salvar</button>
+            <button type="button" class="btn-gravar" *ngIf="abaCad === 'enderecos'"
+              [class.is-loading]="saving" [disabled]="saving || !podeGravar" (click)="gravarTudo()">Salvar</button>
             <span class="cad-acoes__espaco"></span>
             <button type="button" class="btn-cancelar" (click)="cancel()">Voltar</button>
           </div>
@@ -60,14 +88,20 @@ import { PessoaPfCamposComponent } from '../pessoas/pessoa-pf-campos.component';
   `
 })
 export class PessoafisicaFormComponent implements OnInit {
+  @ViewChild('f') pfForm?: NgForm;
+  @ViewChild('pfCampos') pfCampos?: PessoaPfCamposComponent;
+
   model: PessoaFisicaIntegradaRequest = {};
   saving = false;
   formError = '';
+  abaCad: 'dados' | 'enderecos' = 'dados';
+  enderecosPendentes: PessoaEnderecoUpsert[] = [];
   readonly permissionKey = 'PESSOAFISICA';
   private retorno = '/pessoas';
 
   constructor(
     private cadastro: PessoaCadastroIntegradoService,
+    private enderecoSvc: PessoaEnderecoService,
     private route: ActivatedRoute,
     private router: Router,
     private permissions: PermissionService,
@@ -94,21 +128,58 @@ export class PessoafisicaFormComponent implements OnInit {
     return body?.title ?? 'Erro ao gravar';
   }
 
-  submit(f: NgForm): void {
-    if (!f.valid) { this.formError = 'Preencha os campos obrigatórios.'; return; }
+  gravarTudo(): void {
+    const f = this.pfForm;
+    if (!f) return;
+    f.control.markAllAsTouched();
+    const cpf = somenteDigitos(this.model.cpfcnpj ?? '');
+    if (!f.valid || !validarCpf(cpf)) {
+      this.formError = 'Informe um CPF válido e preencha os campos obrigatórios.';
+      if (this.abaCad === 'enderecos') this.abaCad = 'dados';
+      return;
+    }
+    if (this.pfCampos && !this.pfCampos.senhasConferem()) {
+      this.formError = 'A confirmação de senha deve ser igual à senha informada.';
+      if (this.abaCad === 'enderecos') this.abaCad = 'dados';
+      return;
+    }
     this.saving = true;
     this.formError = '';
-    this.cadastro.criarPf(this.model).subscribe({
+    const pendentes = [...this.enderecosPendentes];
+    this.cadastro.criarPf(this.model).pipe(
+      concatMap(r => {
+        if (!pendentes.length) return of(r);
+        return from(pendentes).pipe(
+          concatMap(p => this.enderecoSvc.gravar(r.idPessoa, p)),
+          last(),
+          map(() => r)
+        );
+      })
+    ).subscribe({
       next: r => {
-        this.toast.showSuccess('Pessoa física gravada com sucesso.');
-        void this.router.navigate([this.retorno === '/pessoas' ? `/pessoas/${r.idPessoa}` : this.retorno], {
-          queryParams: { tipo: 'PF' }
+        const qtdEnd = pendentes.length;
+        const msg = qtdEnd
+          ? `Pessoa física e ${qtdEnd} endereço(s) gravados com sucesso.`
+          : 'Pessoa física gravada com sucesso.';
+        this.toast.showSuccess(msg);
+        const destino = this.retorno === '/pessoas'
+          ? ['/pessoas', r.idPessoa]
+          : [this.retorno];
+        void this.router.navigate(destino, {
+          queryParams: { tipo: 'PF' },
+          state: { pessoaIntegrada: r }
         });
+        this.saving = false;
       },
-      error: e => { this.formError = this.extrairErro(e); this.saving = false; },
-      complete: () => this.saving = false
+      error: e => {
+        this.formError = this.extrairErro(e);
+        this.toast.showError(this.formError);
+        this.saving = false;
+      }
     });
   }
 
-  cancel(): void { void this.router.navigateByUrl(this.retorno); }
+  cancel(): void {
+    void this.router.navigateByUrl(this.retorno);
+  }
 }
