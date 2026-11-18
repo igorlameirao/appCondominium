@@ -5319,9 +5319,76 @@ app-endereco-widget .form-group input:not([required]):not([disabled]):not([type=
   box-sizing: border-box;
 }
 
+.config-condominio-retencao {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+}
+
+.cad-wrapper .form-grid.config-condominio-retencao__campos {
+  display: grid;
+  gap: 16px 20px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.cad-wrapper .form-grid.config-condominio-retencao__campos > .config-condominio-retencao__campo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  align-self: start;
+}
+
+@media (max-width: 720px) {
+  .cad-wrapper .form-grid.config-condominio-retencao__campos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.config-condominio-retencao__ajuda {
+  margin: 8px 0 0;
+  font-size: 0.8125rem;
+  color: var(--cad-text-muted, #64748b);
+  line-height: 1.4;
+}
+
 .config-condominio-form__cor {
   width: 100%;
   max-width: 320px;
+}
+
+.config-condominio-form__imagem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.config-condominio-form__img-erro {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #b91c1c;
+}
+
+.config-condominio-form__img-retry {
+  margin-left: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0e7490;
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.config-condominio-form__img-retry:hover {
+  color: #155e75;
 }
 
 .config-condominio-form__imagens,

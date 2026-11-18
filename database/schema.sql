@@ -80,6 +80,8 @@ CREATE TABLE IF NOT EXISTS `ConfiguracaoCondominio` (
   `IdConfiguracao` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `IdCondominio` INT UNSIGNED NOT NULL,
   `CorPadrao` CHAR(7) NULL,
+  `RetencaoHistoricoEncomendasMeses` INT NULL,
+  `RetencaoFotosEncomendasMeses` INT NULL,
   PRIMARY KEY (`IdConfiguracao`),
   CONSTRAINT `fk_ConfiguracaoCondominio_IdCondominio` FOREIGN KEY (`IdCondominio`) REFERENCES `Condominio` (`IdCondominio`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

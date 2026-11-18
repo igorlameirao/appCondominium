@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -131,17 +132,41 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     return 'Não foi possível alterar a senha.';
   }
 
+  BoxDecoration _securityTipDecoration(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return BoxDecoration(
+      color: isDark
+          ? AppColors.blueDeep.withValues(alpha: 0.35)
+          : AppColors.bluePrimary.withValues(alpha: 0.07),
+      borderRadius: BorderRadius.circular(HomeSurface.minimalRadius),
+      border: Border.all(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.06)
+            : AppColors.bluePrimary.withValues(alpha: 0.12),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
+    final overlayStyle = HomeSurface.systemUiOverlayStyle(context);
+    final pageBackground = HomeSurface.pageBackground(context);
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlayStyle,
+      child: Scaffold(
+        backgroundColor: pageBackground,
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          systemOverlayStyle: overlayStyle,
+          leading: IconButton(
           icon: Icon(
             Icons.arrow_back_rounded,
             color: HomeSurface.primaryText(context),
@@ -167,13 +192,14 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                     ? 420.0
                     : constraints.maxWidth;
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(
+                  padding: EdgeInsets.fromLTRB(
                     HomeLayout.pageHorizontalPadding,
                     AppSpacing.xs,
                     HomeLayout.pageHorizontalPadding,
-                    AppSpacing.lg,
+                    AppSpacing.lg + keyboardInset,
                   ),
                   child: Align(
+                    alignment: Alignment.topCenter,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: maxFormWidth),
                       child: Container(
@@ -181,29 +207,18 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                         decoration: HomeSurface.minimalCardDecoration(context),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.lock_outline_rounded,
-                                  size: 20,
-                                  color: HomeSurface.iconAccent(context),
-                                ),
-                                const SizedBox(width: AppSpacing.xs),
-                                Expanded(
-                                  child: Text(
-                                    'Atualize sua senha de acesso',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          color:
-                                              HomeSurface.secondaryText(context),
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                            Text(
+                              'Atualize sua senha de acesso',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: HomeSurface.secondaryText(context),
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.35,
                                   ),
-                                ),
-                              ],
                             ),
                             if (_sucesso) ...[
                               const SizedBox(height: AppSpacing.sm),
@@ -221,16 +236,20 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                                 isDark: isDark,
                               ),
                             ],
-                            const SizedBox(height: AppSpacing.sm + 2),
+                            const SizedBox(height: AppSpacing.sm),
                             AbsorbPointer(
                               absorbing: _salvando || _sucesso,
                               child: Opacity(
                                 opacity: _salvando || _sucesso ? 0.88 : 1,
                                 child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
                                     AuthTextField(
-                                      hint: 'Senha atual',
+                                      label: 'Senha atual',
+                                      hint: 'Digite a senha atual',
                                       isDark: isDark,
+                                      compact: true,
+                                      prefixIcon: Icons.lock_outline_rounded,
                                       obscureText: _obscureAtual,
                                       controller: _atualController,
                                       textInputAction: TextInputAction.next,
@@ -244,10 +263,13 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: AppSpacing.xs + 2),
+                                    const SizedBox(height: AppSpacing.sm),
                                     AuthTextField(
-                                      hint: 'Nova senha',
+                                      label: 'Nova senha',
+                                      hint: 'Mínimo de 8 caracteres',
                                       isDark: isDark,
+                                      compact: true,
+                                      prefixIcon: Icons.lock_outline_rounded,
                                       obscureText: _obscureNova,
                                       controller: _novaController,
                                       textInputAction: TextInputAction.next,
@@ -261,10 +283,13 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: AppSpacing.xs + 2),
+                                    const SizedBox(height: AppSpacing.sm),
                                     AuthTextField(
-                                      hint: 'Confirmar nova senha',
+                                      label: 'Confirmar nova senha',
+                                      hint: 'Repita a nova senha',
                                       isDark: isDark,
+                                      compact: true,
+                                      prefixIcon: Icons.lock_outline_rounded,
                                       obscureText: _obscureConfirma,
                                       controller: _confirmaController,
                                       textInputAction: TextInputAction.done,
@@ -285,26 +310,66 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                               ),
                             ),
                             const SizedBox(height: AppSpacing.sm),
-                            if (_salvando)
-                              const Center(
-                                child: Padding(
-                                  padding:
-                                      EdgeInsets.only(bottom: AppSpacing.sm),
-                                  child: SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm,
+                                vertical: AppSpacing.xs + 2,
+                              ),
+                              decoration: _securityTipDecoration(context),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.shield_outlined,
+                                    size: 18,
+                                    color: HomeSurface.iconAccent(context),
+                                  ),
+                                  const SizedBox(width: AppSpacing.xs),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Dicas para uma senha segura',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelMedium
+                                              ?.copyWith(
+                                                color: HomeSurface.primaryText(
+                                                  context,
+                                                ),
+                                                fontWeight: FontWeight.w600,
+                                                height: 1.25,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Use pelo menos 8 caracteres. A nova senha deve ser diferente da atual.',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: HomeSurface.secondaryText(
+                                                  context,
+                                                ),
+                                                height: 1.35,
+                                              ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
                             if (!_sucesso)
                               AbsorbPointer(
                                 absorbing: _salvando,
                                 child: Opacity(
                                   opacity: _salvando ? 0.72 : 1,
                                   child: AuthGradientButton(
+                                    compact: true,
                                     label: _salvando
                                         ? 'Salvando...'
                                         : 'Salvar nova senha',
@@ -327,6 +392,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

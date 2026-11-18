@@ -136,7 +136,7 @@ abstract final class HomeDemoData {
 
   static const drawerNavGroupsWithContext = [
     HomeDrawerNavGroup(
-      title: 'Minha conta',
+      title: 'Contexto',
       items: [
         HomeDrawerNavItem(
           id: 'trocar-condominio',
@@ -152,11 +152,6 @@ abstract final class HomeDemoData {
           id: 'trocar-unidade',
           label: 'Trocar unidade',
           icon: Icons.door_front_door_outlined,
-        ),
-        HomeDrawerNavItem(
-          id: 'alterar-senha',
-          label: 'Alterar senha',
-          icon: Icons.lock_outline_rounded,
         ),
       ],
     ),

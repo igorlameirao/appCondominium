@@ -368,6 +368,13 @@
   cursor: not-allowed;
 }
 
+/* RT-Gerais 13 — ImagemLogin no painel direito do card (login por domínio). */
+.login-panel-logo--config {
+  object-fit: contain;
+  object-position: center;
+  background: #fff;
+}
+
 @media (max-width: 960px) {
   .login-screen {
     padding: 0 max(20px, env(safe-area-inset-right, 0px))

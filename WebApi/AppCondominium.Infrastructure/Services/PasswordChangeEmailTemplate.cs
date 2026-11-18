@@ -3,7 +3,7 @@ using AppCondominium.Infrastructure.Services.Email;
 
 namespace AppCondominium.Infrastructure.Services;
 
-internal static class PasswordChangeEmailTemplate
+public static class PasswordChangeEmailTemplate
 {
     public static string MontarHtml(string nome, DateTime alteradoUtc)
     {

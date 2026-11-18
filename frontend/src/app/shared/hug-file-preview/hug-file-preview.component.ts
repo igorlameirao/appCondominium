@@ -80,7 +80,7 @@ import type { HugArquivoPreviewTipo } from '../hug-file-upload/hug-arquivo.util'
           @if (carregando) {
             <div class="hug-img-preview__carregando" aria-hidden="true">
               <span class="hug-img-preview__carregando-anel"></span>
-              <span class="hug-img-preview__carregando-texto">Carregando…</span>
+              <span class="hug-img-preview__carregando-texto">{{ textoCarregando }}</span>
             </div>
           }
           @if (tipoPreview === 'imagem' && previewUrl) {
@@ -174,6 +174,7 @@ export class HugFilePreviewComponent {
   @Input() layout: HugImageLayout = 'paisagem';
   @Input() iconePlaceholder = 'image';
   @Input() tituloVazio = 'Nenhum arquivo';
+  @Input() textoCarregando = 'Carregando…';
   @Input() disabled = false;
   @Input() somenteLeitura = false;
   @Input() carregando = false;
