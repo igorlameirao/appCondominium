@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
+import { LookupService } from './core/services/lookup.service';
+import {
+  SIDEBAR_ICONE_PADRAO,
+  urlImagemIconeSidebar,
+} from './features/auth/login-condominio-tema.util';
 import { PushToastComponent } from './shared/push-toast/push-toast.component';
 import { CondominioContextService } from './core/services/condominio-context.service';
 import { PermissionService } from './core/services/permission.service';
@@ -113,6 +118,9 @@ export class AppComponent implements OnInit {
   /** Atualiza o rodapé imediatamente ao confirmar troca (antes do reload). */
   private nomeCondominioPainelOverride: string | null = null;
 
+  readonly sidebarIconePadrao = SIDEBAR_ICONE_PADRAO;
+  sidebarIconeSrc = SIDEBAR_ICONE_PADRAO;
+
   constructor(
     public auth: AuthService,
     public condominioCtx: CondominioContextService,
@@ -120,7 +128,8 @@ export class AppComponent implements OnInit {
     private router: Router,
     private conta: ContaService,
     private tenantHost: TenantHostService,
-    private toast: ToastService
+    private toast: ToastService,
+    private lookup: LookupService
   ) {}
 
   ngOnInit(): void {
@@ -136,9 +145,11 @@ export class AppComponent implements OnInit {
       filter((e): e is NavigationEnd => e instanceof NavigationEnd)
     ).subscribe(() => {
       this.carregarSeNecessario();
+      this.carregarIconeSidebar();
       if (!this.isDesktopLayout()) this.mobileMenuOpen = false;
       this.abrirGrupoDaRota();
     });
+    this.carregarIconeSidebar();
   }
 
   private carregarSeNecessario(): void {
@@ -248,6 +259,27 @@ export class AppComponent implements OnInit {
     if (id == null) return;
     const nome = this.condominiosAutorizados.find(c => Number(c.idCondominio) === Number(id))?.nome;
     if (nome) this.nomeCondominioPainelOverride = null;
+    this.carregarIconeSidebar();
+  }
+
+  private carregarIconeSidebar(): void {
+    if (!this.auth.isLoggedIn) {
+      this.sidebarIconeSrc = this.sidebarIconePadrao;
+      return;
+    }
+    const id = this.condominioCtx.idCondominio;
+    if (id == null) {
+      this.sidebarIconeSrc = this.sidebarIconePadrao;
+      return;
+    }
+    this.lookup.configuracaoPorCondominio(id).subscribe({
+      next: cfg => {
+        this.sidebarIconeSrc = urlImagemIconeSidebar(id, cfg) ?? this.sidebarIconePadrao;
+      },
+      error: () => {
+        this.sidebarIconeSrc = this.sidebarIconePadrao;
+      },
+    });
   }
 
   private iniciarTransicaoTenant(id: number): void {

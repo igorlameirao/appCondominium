@@ -28,6 +28,7 @@ public partial class AppDbContext
     public DbSet<RecuperacaoSenhaToken> RecuperacaoSenhaToken { get; set; } = null!;
     public DbSet<FuncaoColaborador> FuncaoColaborador { get; set; } = null!;
     public DbSet<Colaborador> Colaborador { get; set; } = null!;
+    public DbSet<PessoaPreferenciaNotificacao> PessoaPreferenciaNotificacao { get; set; } = null!;
 
     partial void ConfigureEntityKeys(ModelBuilder modelBuilder);
     partial void ConfigureTenantQueryFilters(ModelBuilder modelBuilder);
@@ -120,6 +121,15 @@ public partial class AppDbContext
             e.Property(x => x.IdColaborador).ValueGeneratedOnAdd();
             e.Property(x => x.CTPS).HasMaxLength(20).IsRequired();
             e.HasQueryFilter(x => x.IdCondominio == CurrentTenantId);
+        });
+
+        modelBuilder.Entity<PessoaPreferenciaNotificacao>(e =>
+        {
+            e.ToTable("PessoaPreferenciaNotificacao");
+            e.HasKey(x => new { x.IdPessoa, x.CodigoTipo });
+            e.Property(x => x.CodigoTipo).HasMaxLength(60).IsRequired();
+            e.HasOne<Pessoa>().WithMany().HasForeignKey(x => x.IdPessoa)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Banco>(b =>

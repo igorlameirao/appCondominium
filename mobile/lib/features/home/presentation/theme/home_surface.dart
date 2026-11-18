@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
@@ -7,6 +8,20 @@ abstract final class HomeSurface {
   static Color pageBackground(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return isDark ? AppColors.navyDeep : AppColors.homeScaffoldLight;
+  }
+
+  /// Barra de status e navegação alinhadas ao fundo minimalista da Home.
+  static SystemUiOverlayStyle systemUiOverlayStyle(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = pageBackground(context);
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: background,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
+    );
   }
 
   static Color cardBackground(BuildContext context) {

@@ -8,6 +8,9 @@ class AuthTextField extends StatelessWidget {
     super.key,
     required this.hint,
     required this.isDark,
+    this.label,
+    this.prefixIcon,
+    this.compact = false,
     this.obscureText = false,
     this.suffix,
     this.controller,
@@ -19,6 +22,9 @@ class AuthTextField extends StatelessWidget {
   });
 
   final String hint;
+  final String? label;
+  final IconData? prefixIcon;
+  final bool compact;
   final bool isDark;
   final bool obscureText;
   final Widget? suffix;
@@ -29,6 +35,13 @@ class AuthTextField extends StatelessWidget {
   final VoidCallback? onEditingComplete;
   final ValueChanged<String>? onSubmitted;
 
+  IconData _defaultPrefixIcon() {
+    if (hint == 'Senha' || obscureText) {
+      return Icons.lock_outline_rounded;
+    }
+    return Icons.person_outline_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
     final borderColor =
@@ -38,8 +51,10 @@ class AuthTextField extends StatelessWidget {
     final textColor = isDark ? Colors.white : AppColors.textNavy;
     final hintColor =
         isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final mutedIcon =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
 
-    return TextField(
+    final field = TextField(
       controller: controller,
       obscureText: obscureText,
       textInputAction: textInputAction,
@@ -64,18 +79,19 @@ class AuthTextField extends StatelessWidget {
         filled: true,
         fillColor: fillColor,
         prefixIcon: Icon(
-          hint == 'Senha' ? Icons.lock_outline_rounded : Icons.person_outline_rounded,
-          color: isDark
-              ? AppColors.textMutedDark
-              : AppColors.textMutedLight,
+          prefixIcon ?? _defaultPrefixIcon(),
+          color: mutedIcon,
           size: 18,
         ),
         suffixIcon: suffix,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
+        contentPadding: EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,
-          vertical: 10,
+          vertical: compact ? 12 : 10,
         ),
+        constraints: compact
+            ? const BoxConstraints(minHeight: 50, maxHeight: 54)
+            : const BoxConstraints(),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.fieldRadius),
           borderSide: BorderSide(color: borderColor, width: 1),
@@ -91,6 +107,27 @@ class AuthTextField extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSpacing.fieldRadius),
         ),
       ),
+    );
+
+    if (label == null) return field;
+
+    final labelColor = isDark ? AppColors.textMutedDark : AppColors.textNavy;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          label!,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: labelColor,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        field,
+      ],
     );
   }
 }

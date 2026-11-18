@@ -16,6 +16,12 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddInMemoryCollection(
+        new Dictionary<string, string?> { ["AllowedHosts"] = "*" });
+}
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
 {
@@ -151,4 +157,4 @@ app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+    app.Run();

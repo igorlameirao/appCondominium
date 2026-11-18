@@ -39,6 +39,7 @@ public static partial class DependencyInjection
         services.AddScoped<CnpjService>();
         services.AddScoped<BancoCodigoService>();
         services.AddScoped<IPessoaEnderecoService, PessoaEnderecoService>();
+        services.AddScoped<IPreferenciaNotificacaoService, PreferenciaNotificacaoService>();
         services.AddScoped<IConviteAcessoService, ConviteAcessoService>();
         services.AddScoped<IPasswordRecoveryService, PasswordRecoveryService>();
         services.Configure<ConviteOptions>(config.GetSection(ConviteOptions.SectionName));

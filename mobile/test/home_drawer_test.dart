@@ -115,8 +115,20 @@ void main() {
       final drawer = find.byType(Drawer);
 
       expect(
-        find.descendant(of: drawer, matching: find.text('Minha conta')),
+        find.descendant(of: drawer, matching: find.text('Contexto')),
         findsOneWidget,
+      );
+      expect(
+        find.descendant(of: drawer, matching: find.text('Alterar senha')),
+        findsNothing,
+      );
+      expect(find.byTooltip('Configurações da conta'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: drawer,
+          matching: find.text('Configurações da conta'),
+        ),
+        findsNothing,
       );
 
       final listView = find.descendant(
@@ -156,7 +168,23 @@ void main() {
       await tester.pumpAndSettle();
       await _openDrawer(tester);
 
-      await tester.tap(find.text('Comunicados'));
+      final drawer = find.byType(Drawer);
+      final listView = find.descendant(
+        of: drawer,
+        matching: find.byType(ListView),
+      );
+      await tester.dragUntilVisible(
+        find.text('Comunicados'),
+        listView,
+        const Offset(0, -120),
+      );
+      final comunicados = find.descendant(
+        of: listView,
+        matching: find.text('Comunicados'),
+      );
+      await tester.ensureVisible(comunicados);
+      await tester.pumpAndSettle();
+      await tester.tap(comunicados, warnIfMissed: false);
       await tester.pumpAndSettle();
 
       expect(

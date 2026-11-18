@@ -7,11 +7,12 @@
       <div class="app-premium-brand">
         <img
           class="app-premium-brand__logo"
-          src="/assets/login/LogoAppCondominium_sidebar.png"
+          [src]="sidebarIconeSrc"
           alt="AppCondominium"
           width="44"
           height="44"
-          decoding="async" />
+          decoding="async"
+          (error)="sidebarIconeSrc = sidebarIconePadrao" />
         <div>
           <div class="app-premium-brand__title">AppCondominium</div>
           <div class="app-premium-brand__sub" *ngIf="nomeCondominioAtivo">{{ nomeCondominioAtivo }}</div>

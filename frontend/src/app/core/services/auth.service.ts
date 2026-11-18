@@ -36,6 +36,11 @@ export interface LoginResponse {
   permissoes: string[];
 }
 
+export interface MinhaUnidadeItem {
+  idUnidade: number;
+  descricao: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly tokenKey = 'token';
@@ -85,6 +90,11 @@ export class AuthService {
   /** Vínculos ativos do usuário logado (inclui domínio quando cadastrado). */
   listarVinculosAtivos(): Observable<CondominioVinculo[]> {
     return this.http.get<CondominioVinculo[]>(`${environment.apiUrl}/auth/vinculos-ativos`);
+  }
+
+  /** Unidades com vínculo ativo no condomínio da sessão. */
+  listarMinhasUnidades(): Observable<MinhaUnidadeItem[]> {
+    return this.http.get<MinhaUnidadeItem[]>(`${environment.apiUrl}/auth/minhas-unidades`);
   }
 
   trocarCondominio(idCondominio: number): Observable<LoginResponse> {

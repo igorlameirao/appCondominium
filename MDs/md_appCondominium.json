@@ -556,6 +556,20 @@
             "TipoDado": "CHAR(7)",
             "Obrigatorio": "Não",
             "Indice": ""
+          },
+          {
+            "Campo": "RetencaoHistoricoEncomendasMeses",
+            "RotuloCampo": "Retenção do Histórico de Encomendas",
+            "TipoDado": "INT",
+            "Obrigatorio": "Não",
+            "Indice": ""
+          },
+          {
+            "Campo": "RetencaoFotosEncomendasMeses",
+            "RotuloCampo": "Retenção das Fotografias de Encomendas",
+            "TipoDado": "INT",
+            "Obrigatorio": "Não",
+            "Indice": ""
           }
         ],
         "Regras": [
@@ -563,6 +577,21 @@
             "Regra": "RN - Configuracao Condominio 01",
             "Tipo": "Regra de Tela",
             "Descricao": "O campo IdCondominio não deve ser exibido, deve utilizado o IdCondominio da variável global do sistema conforme especificado RT-Gerais 12 (Regra de Ouro)."
+          },
+          {
+            "Regra": "RN - Configuracao Condominio 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "RetencaoHistoricoEncomendasMeses e RetencaoFotosEncomendasMeses aceitam NULL (configuração não definida), 0 (tempo indeterminado) ou inteiro positivo (quantidade de meses). Valores negativos são inválidos. Quando NULL, o valor efetivo sugerido na leitura é 24 meses para o histórico de encomendas e 3 meses para fotografias no S3, sem gravar automaticamente NULL como substituto na persistência."
+          },
+          {
+            "Regra": "RN - Configuracao Condominio 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "A configuração de retenção é por condomínio (EscopoTenant=Condominio). Consulta e gravação respeitam o tenant ativo, permissão administrativa CONFIGURACAOCONDOMINIO e isolamento multi-tenant existente nos repositórios gerados."
+          },
+          {
+            "Regra": "RT - Configuracao Condominio 04",
+            "Tipo": "Regra de Tela",
+            "Descricao": "Na tela de Configuração do Condomínio, apresentar aba Retenção de Dados com seletores para prazo em meses ou Tempo indeterminado, textos orientativos sobre finalidade (histórico operacional/auditoria de encomendas e armazenamento de fotos no S3) e aviso informativo de privacidade/LGPD sem conteúdo jurídico. A aba Dados de Configuração mantém cor e imagens do tema."
           }
         ],
         "EscopoTenant": "Condominio"
@@ -3726,6 +3755,108 @@
             "Regra": "RN - Colaborador 03",
             "Tipo": "Regra de Negócio",
             "Descricao": "O sistema deverá prover o campo para upload do arquivo da CTPS para o S3. O envio deste é obrigatório."
+          }
+        ]
+      },
+      {
+        "Entidade": "PessoaPreferenciaNotificacao",
+        "RotuloEntidade": "Preferência de Notificação da Pessoa",
+        "Gerar CRUD": "Não",
+        "PerfisAcesso": [],
+        "EscopoTenant": "Global",
+        "Campos": [
+          {
+            "Campo": "IdPessoa",
+            "RotuloCampo": "Pessoa",
+            "TipoDado": "INT - Unsigned",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key e Foreign Key",
+            "EntidadeForeignKey": "Pessoa"
+          },
+          {
+            "Campo": "CodigoTipo",
+            "RotuloCampo": "Tipo de Notificação",
+            "TipoDado": "varchar(80)",
+            "Obrigatorio": "Sim",
+            "Indice": "Primary Key"
+          },
+          {
+            "Campo": "AtivoPush",
+            "RotuloCampo": "Push",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "AtivoEmail",
+            "RotuloCampo": "E-mail",
+            "TipoDado": "BOOLEAN",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          },
+          {
+            "Campo": "DataAtualizacao",
+            "RotuloCampo": "Data de Atualização",
+            "TipoDado": "DateTime",
+            "Obrigatorio": "Sim",
+            "Indice": ""
+          }
+        ],
+        "Regras": [
+          {
+            "Regra": "RN - PessoaPreferenciaNotificacao 01",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "As preferências de notificação são globais por pessoa, sem IdCondominio. A chave primária é composta por IdPessoa e CodigoTipo, garantindo um único registro por pessoa e categoria. A mesma preferência se aplica aos condomínios aos quais a pessoa está vinculada e não muda ao trocar o condomínio ativo."
+          },
+          {
+            "Regra": "RN - PessoaPreferenciaNotificacao 02",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "O catálogo de tipos de notificação será definido no código .NET, sem tabela ou entidade adicional. CodigoTipo identifica uma categoria desse catálogo e não é Foreign Key. As categorias iniciais são ENCOMENDA_RECEBIDA (Encomenda recebida) e ENCOMENDA_RETIRADA (Encomenda retirada), ambas opcionais. Somente códigos existentes no catálogo podem ser gravados."
+          },
+          {
+            "Regra": "RN - PessoaPreferenciaNotificacao 03",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Para notificações opcionais, AtivoPush e AtivoEmail são ativados por padrão. Quando não existir registro para o par IdPessoa e CodigoTipo, a preferência efetiva será AtivoPush=true e AtivoEmail=true. Valores explicitamente gravados como false devem ser respeitados."
+          },
+          {
+            "Regra": "RN - PessoaPreferenciaNotificacao 04",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "AtivoPush e AtivoEmail são controles independentes por categoria. A pessoa pode ativar ambos os canais, somente Push, somente E-mail ou nenhum. Alterar um canal não altera automaticamente o outro e não é obrigatório manter algum canal ativo."
+          },
+          {
+            "Regra": "RN - PessoaPreferenciaNotificacao 05",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "GET /api/conta/preferencias-notificacao e PUT /api/conta/preferencias-notificacao exigem autenticação. IdPessoa será obtido exclusivamente do JWT, nunca do corpo, da rota, da querystring ou de outro parâmetro enviado pelo cliente. A consulta e a gravação ficam restritas à própria pessoa autenticada. Sem autenticação, a API responde 401."
+          },
+          {
+            "Regra": "RN - PessoaPreferenciaNotificacao 06",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "GET /api/conta/preferencias-notificacao retorna as categorias do catálogo .NET e os valores efetivos de AtivoPush e AtivoEmail para a pessoa autenticada, incluindo os padrões das categorias que ainda não possuem registro. PUT /api/conta/preferencias-notificacao grava os dois controles das categorias informadas, incluindo o registro quando o par IdPessoa e CodigoTipo ainda não existir e atualizando-o quando já existir, sem duplicar a chave composta."
+          },
+          {
+            "Regra": "RN - PessoaPreferenciaNotificacao 07",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "DataAtualizacao será preenchida pelo backend na inclusão e atualizada na gravação da preferência. O valor não será editável pelo usuário."
+          },
+          {
+            "Regra": "RN - PessoaPreferenciaNotificacao 08",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "EscopoTenant=Global nesta entidade significa preferência pessoal independente de condomínio, sem filtro por IdCondominio; não significa catálogo público nem acesso às preferências de outras pessoas. O gerenciamento ocorre pela própria conta autenticada, sem CRUD administrativo gerado e sem exigir permissão de gerenciamento de outras pessoas. Essa regra não altera o isolamento das demais entidades nem as regras existentes de autenticação e de contexto do condomínio."
+          },
+          {
+            "Regra": "RN - PessoaPreferenciaNotificacao 09",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "No envio futuro, a preferência global deverá ser consultada por pessoa, categoria e canal, respeitando os vínculos vigentes e as permissões da pessoa no condomínio de origem do evento. Ativar Push ou E-mail não concede acesso a outro condomínio nem amplia permissões; a preferência somente controla os canais das notificações opcionais para as quais a pessoa já é destinatária autorizada."
+          },
+          {
+            "Regra": "RN - PessoaPreferenciaNotificacao 10",
+            "Tipo": "Regra de Negócio",
+            "Descricao": "Nesta etapa, o escopo é o gerenciamento das preferências, com sua persistência, catálogo em código .NET, APIs e interfaces Angular e Flutter. Não implementar notificações reais nem disparar Push ou E-mail ao consultar ou alterar preferências ou ao receber ou retirar encomendas. A regra de envio fica especificada para integração futura."
+          },
+          {
+            "Regra": "RT - PessoaPreferenciaNotificacao 11",
+            "Tipo": "Regra de Tela",
+            "Descricao": "No Angular e no Flutter, as preferências serão gerenciadas em Minha Conta > Notificações. Cada categoria deverá apresentar dois controles independentes, Push e E-mail, carregados e gravados pelas APIs GET/PUT /api/conta/preferencias-notificacao. A interface deve permitir as quatro combinações dos canais, apresentar ambos ativados por padrão quando não houver preferência gravada e não oferecer seleção de pessoa ou condomínio."
           }
         ]
       }

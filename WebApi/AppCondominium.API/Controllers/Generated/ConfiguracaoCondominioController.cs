@@ -31,15 +31,29 @@ public class ConfiguracaoCondominioController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ConfiguracaoCondominio>> Create([FromBody] ConfiguracaoCondominio entity, CancellationToken ct = default)
     {
-        var created = await _repo.AddAsync(entity, ct);
-        return CreatedAtAction(nameof(GetById), new { idConfiguracao = created.IdConfiguracao }, created);
+        try
+        {
+            var created = await _repo.AddAsync(entity, ct);
+            return CreatedAtAction(nameof(GetById), new { idConfiguracao = created.IdConfiguracao }, created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPut("{idConfiguracao}")]
     public async Task<IActionResult> Update([FromRoute] uint? idConfiguracao, [FromBody] ConfiguracaoCondominio entity, CancellationToken ct = default)
     {
-        await _repo.UpdateAsync(entity, ct);
-        return NoContent();
+        try
+        {
+            await _repo.UpdateAsync(entity, ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpDelete("{idConfiguracao}")]

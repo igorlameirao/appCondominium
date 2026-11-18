@@ -65,18 +65,40 @@ public class LookupController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("condominios/{idCondominio:int}/imagem-login")]
+    [HttpHead("condominios/{idCondominio:int}/imagem-login")]
     public async Task<IActionResult> ImagemLogin(uint idCondominio, CancellationToken ct)
     {
-        var objeto = await _arquivos.AbrirAsync(_chaves.ImagemLogin(idCondominio), ct);
-        return objeto == null ? NotFound() : File(objeto.Conteudo, objeto.ContentType);
+        var radical = _chaves.ImagemLogin(idCondominio);
+        if (HttpMethods.IsHead(Request.Method))
+            return await _arquivos.ExisteAsync(radical, ct) ? NoContentComCacheImagem() : NotFound();
+
+        var objeto = await _arquivos.AbrirAsync(radical, ct);
+        return objeto == null ? NotFound() : ArquivoComCacheImagem(objeto.Conteudo, objeto.ContentType);
     }
 
     [AllowAnonymous]
     [HttpGet("condominios/{idCondominio:int}/imagem-icone")]
+    [HttpHead("condominios/{idCondominio:int}/imagem-icone")]
     public async Task<IActionResult> ImagemIcone(uint idCondominio, CancellationToken ct)
     {
-        var objeto = await _arquivos.AbrirAsync(_chaves.ImagemIcone(idCondominio), ct);
-        return objeto == null ? NotFound() : File(objeto.Conteudo, objeto.ContentType);
+        var radical = _chaves.ImagemIcone(idCondominio);
+        if (HttpMethods.IsHead(Request.Method))
+            return await _arquivos.ExisteAsync(radical, ct) ? NoContentComCacheImagem() : NotFound();
+
+        var objeto = await _arquivos.AbrirAsync(radical, ct);
+        return objeto == null ? NotFound() : ArquivoComCacheImagem(objeto.Conteudo, objeto.ContentType);
+    }
+
+    private IActionResult ArquivoComCacheImagem(Stream conteudo, string contentType)
+    {
+        Response.Headers.CacheControl = "no-store, must-revalidate";
+        return File(conteudo, contentType);
+    }
+
+    private NoContentResult NoContentComCacheImagem()
+    {
+        Response.Headers.CacheControl = "no-store, must-revalidate";
+        return new NoContentResult();
     }
 
     public record ConfiguracaoPublicaDto(

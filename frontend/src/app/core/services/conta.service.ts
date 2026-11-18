@@ -10,6 +10,28 @@ export interface PerfilConta {
   email?: string | null;
 }
 
+export interface PreferenciaNotificacaoCategoria {
+  codigoTipo: string;
+  descricao: string;
+  modulo: string;
+  ordem: number;
+  obrigatoria: boolean;
+  pushDisponivel: boolean;
+  emailDisponivel: boolean;
+  ativoPush: boolean;
+  ativoEmail: boolean;
+}
+
+export interface PreferenciaNotificacaoLista {
+  categorias: PreferenciaNotificacaoCategoria[];
+}
+
+export interface PreferenciaNotificacaoSalvarItem {
+  codigoTipo: string;
+  ativoPush: boolean;
+  ativoEmail: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ContaService {
   readonly perfil = signal<PerfilConta | null>(null);
@@ -73,6 +95,18 @@ export class ContaService {
 
   alterarSenha(senhaAtual: string, senhaNova: string): Observable<unknown> {
     return this.http.put(`${environment.apiUrl}/conta/senha`, { senhaAtual, senhaNova });
+  }
+
+  carregarPreferenciasNotificacao(): Observable<PreferenciaNotificacaoLista> {
+    return this.http.get<PreferenciaNotificacaoLista>(`${environment.apiUrl}/conta/preferencias-notificacao`);
+  }
+
+  salvarPreferenciasNotificacao(
+    preferencias: PreferenciaNotificacaoSalvarItem[],
+  ): Observable<PreferenciaNotificacaoLista> {
+    return this.http.put<PreferenciaNotificacaoLista>(`${environment.apiUrl}/conta/preferencias-notificacao`, {
+      preferencias,
+    });
   }
 
   sincronizarComSessao(): void {

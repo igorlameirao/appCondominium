@@ -32,6 +32,8 @@ export type { HugImageLayout };
       [layout]="layout"
       [iconeZona]="iconeZona"
       [varianteCard]="varianteCard"
+      [tituloVazioPersonalizado]="tituloVazio"
+      [textoCarregando]="textoCarregando"
       (arquivoSelecionado)="arquivoSelecionado.emit($event)"
       (removido)="removido.emit()"
       (baixar)="baixar.emit()" />
@@ -58,6 +60,8 @@ export class HugImageUploadComponent {
   @Input() layout: HugImageLayout = 'paisagem';
   @Input() iconeZona = 'image';
   @Input() varianteCard = false;
+  @Input() tituloVazio = '';
+  @Input() textoCarregando = 'Carregando…';
 
   @Output() arquivoSelecionado = new EventEmitter<File>();
   @Output() removido = new EventEmitter<void>();

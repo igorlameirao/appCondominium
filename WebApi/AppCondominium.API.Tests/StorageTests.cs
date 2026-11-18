@@ -6,6 +6,7 @@ using AppCondominium.Application.Interfaces;
 using AppCondominium.Application.Storage;
 using AppCondominium.Domain.Entities;
 using AppCondominium.Infrastructure.Persistence;
+using AppCondominium.Infrastructure.Services;
 using AppCondominium.Infrastructure.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -79,7 +80,8 @@ public class ContaFotoStorageTests
         var controller = new ContaController(
             db, tenant, new PermissaoVazia(), new SenhaNula(),
             new ArquivoAplicacao(arquivos), chaves, new FaceEmbeddingSync(db),
-            new EmailSenderVazio(), NullLogger<ContaController>.Instance);
+            new EmailSenderVazio(), new PreferenciaNotificacaoService(db),
+            NullLogger<ContaController>.Instance);
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext

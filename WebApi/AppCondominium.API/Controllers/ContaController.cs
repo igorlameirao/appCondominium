@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using AppCondominium.API.Storage;
+using AppCondominium.Application.DTOs;
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Application.Storage;
 using AppCondominium.Domain.RecuperacaoSenha;
@@ -25,6 +26,7 @@ public class ContaController : ControllerBase
     private readonly StorageObjectKeyBuilder _chaves;
     private readonly IFaceEmbeddingSync _embedding;
     private readonly IEmailSender _emailSender;
+    private readonly IPreferenciaNotificacaoService _preferenciasNotificacao;
     private readonly ILogger<ContaController> _logger;
 
     public ContaController(
@@ -36,6 +38,7 @@ public class ContaController : ControllerBase
         StorageObjectKeyBuilder chaves,
         IFaceEmbeddingSync embedding,
         IEmailSender emailSender,
+        IPreferenciaNotificacaoService preferenciasNotificacao,
         ILogger<ContaController> logger)
     {
         _db = db;
@@ -46,6 +49,7 @@ public class ContaController : ControllerBase
         _chaves = chaves;
         _embedding = embedding;
         _emailSender = emailSender;
+        _preferenciasNotificacao = preferenciasNotificacao;
         _logger = logger;
     }
 
@@ -108,6 +112,40 @@ public class ContaController : ControllerBase
         var resultado = await _arquivos.ExcluirAsync(_chaves.FotoPerfil(idPessoa), ct);
         await _embedding.InvalidarAsync(idPessoa, ct);
         return resultado;
+    }
+
+    [HttpGet("preferencias-notificacao")]
+    public async Task<ActionResult<PreferenciaNotificacaoListaDto>> ListarPreferenciasNotificacao(CancellationToken ct)
+    {
+        var idPessoa = IdPessoaAtual();
+        if (idPessoa is not uint id)
+            return Unauthorized();
+
+        var categorias = await _preferenciasNotificacao.ListarAsync(id, ct);
+        return Ok(new PreferenciaNotificacaoListaDto(categorias));
+    }
+
+    [HttpPut("preferencias-notificacao")]
+    public async Task<ActionResult<PreferenciaNotificacaoListaDto>> SalvarPreferenciasNotificacao(
+        [FromBody] PreferenciaNotificacaoSalvarRequest req,
+        CancellationToken ct)
+    {
+        var idPessoa = IdPessoaAtual();
+        if (idPessoa is not uint id)
+            return Unauthorized();
+
+        if (req.Preferencias is null || req.Preferencias.Count == 0)
+            return BadRequest("Informe ao menos uma preferência.");
+
+        try
+        {
+            var categorias = await _preferenciasNotificacao.SalvarAsync(id, req.Preferencias, ct);
+            return Ok(new PreferenciaNotificacaoListaDto(categorias));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPut("senha")]

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../domain/models/home_models.dart';
@@ -88,6 +90,24 @@ class HomeDrawerHeader extends StatelessWidget {
                       ),
                 ),
               ],
+            ),
+          ),
+          Semantics(
+            label: 'Configurações da conta',
+            button: true,
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.push(AppRoute.contaConfiguracoes.path);
+              },
+              tooltip: 'Configurações da conta',
+              icon: Icon(Icons.settings_rounded, color: accent, size: 22),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(
+                minWidth: 48,
+                minHeight: 48,
+              ),
             ),
           ),
         ],
