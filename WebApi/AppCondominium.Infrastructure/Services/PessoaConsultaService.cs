@@ -3,6 +3,7 @@ using AppCondominium.Application.DTOs;
 using AppCondominium.Application.Interfaces;
 using AppCondominium.Domain.Entities;
 using AppCondominium.Domain.Validators;
+using AppCondominium.Domain.Vinculos;
 using AppCondominium.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,6 +35,8 @@ public class PessoaConsultaService : IPessoaConsultaService
         vinculoBase = AplicarEscopo(vinculoBase, escopoPapel);
         if (vigente == true)
             vinculoBase = vinculoBase.Where(v => v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje));
+        else if (vigente == false)
+            vinculoBase = vinculoBase.Where(v => v.DataFim != null && v.DataFim < hoje);
 
         var idsVinculo = vinculoBase.Select(v => v.IdPessoa);
         List<uint?> idsPessoa;
@@ -107,6 +110,70 @@ public class PessoaConsultaService : IPessoaConsultaService
                 .ToDictionaryAsync(u => u.IdUnidade!.Value, u => u.Numero != null ? $"Unidade {u.Numero}" : $"Unidade {u.IdUnidade}", ct);
 
         var itens = new List<PessoaListagemItemDto>();
+        var listarPorVinculoGestor = EhGestoresUnificado(codigosPapel);
+        if (listarPorVinculoGestor)
+        {
+            foreach (var v in vinculos.Where(v => v.IdPessoa != null && v.CodigoPapelVinculo != null)
+                         .OrderBy(v => v.IdPessoa).ThenByDescending(v => Vigente(v, hoje)).ThenBy(v => v.CodigoPapelVinculo))
+            {
+                var id = v.IdPessoa!.Value;
+                var p = pessoas.FirstOrDefault(x => x.IdPessoa == id);
+                if (p is null) continue;
+
+                var ehPj = pjRows.ContainsKey(id);
+                var ehPf = pfRows.ContainsKey(id);
+                var tipoPessoa = ehPj ? "PJ" : ehPf ? "PF" : "—";
+                if (!string.IsNullOrWhiteSpace(tipo))
+                {
+                    var t = tipo.Trim().ToUpperInvariant();
+                    if (t == "PF" && !ehPf) continue;
+                    if (t == "PJ" && !ehPj) continue;
+                }
+
+                var ativoVinculo = Vigente(v, hoje);
+                if (vigente == true && !ativoVinculo) continue;
+                if (vigente == false && ativoVinculo) continue;
+
+                var situacaoLabel = ativoVinculo ? "Ativo" : "Encerrado";
+                if (!string.IsNullOrWhiteSpace(situacao))
+                {
+                    var s = situacao.Trim().ToLowerInvariant();
+                    if (s == "ativo" && !ativoVinculo) continue;
+                    if (s == "encerrado" && ativoVinculo) continue;
+                }
+
+                var codPapel = v.CodigoPapelVinculo!.Value;
+                string? complemento = ehPj
+                    ? pjRows.GetValueOrDefault(id)?.NomeFantasia
+                    : pfRows.GetValueOrDefault(id)?.Email;
+
+                itens.Add(new PessoaListagemItemDto(
+                    id,
+                    tipoPessoa,
+                    p.Nome ?? $"Pessoa {id}",
+                    p.CPFCNPJ,
+                    complemento,
+                    situacaoLabel,
+                    null,
+                    null,
+                    v.IdVinculo,
+                    codPapel,
+                    null,
+                    null));
+            }
+
+            itens = itens.OrderBy(i => i.Nome).ThenBy(i => i.CodigoPapelVinculo).ToList();
+            var totalGestor = itens.Count;
+            var pageGestor = itens.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            return new PagedResult<PessoaListagemItemDto>
+            {
+                Items = pageGestor,
+                TotalCount = totalGestor,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
         foreach (var p in pessoas)
         {
             var id = p.IdPessoa!.Value;
@@ -145,16 +212,49 @@ public class PessoaConsultaService : IPessoaConsultaService
                 : pfRows.GetValueOrDefault(id)?.Email;
 
             var principais = vinculos.Where(v => v.IdPessoa == id).ToList();
-            var principal = principais.FirstOrDefault(v =>
-                    v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje))
-                ?? principais.FirstOrDefault();
+            bool Vigente(PessoaVinculo v) => v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje);
+            var principal = principais.FirstOrDefault(Vigente) ?? principais.FirstOrDefault();
+
             string? papelResumo = null;
             string? unidadeResumo = null;
-            uint? idVinculo = principal?.IdVinculo;
-            if (principal?.CodigoPapelVinculo is uint codPapel)
+            string? tipoOcupacaoResumo = null;
+            bool? moradorAtivo = null;
+            uint? codigoPapelLista = principal?.CodigoPapelVinculo;
+
+            if (EhGestoresUnificado(codigosPapel))
+            {
+                var gestor = ResolverVinculoGestorPrincipal(principais, hoje);
+                if (gestor?.CodigoPapelVinculo is uint codGestor)
+                {
+                    codigoPapelLista = codGestor;
+                    principal = gestor;
+                }
+            }
+            else if (EhOcupanteUnificado(codigosPapel))
+            {
+                moradorAtivo = principais.Any(v =>
+                    v.CodigoPapelVinculo == PapelVinculoCodigos.Morador && Vigente(v));
+                var tipoCod = ResolverTipoOcupacaoCodigo(principais, hoje);
+                if (tipoCod is uint codTipo)
+                {
+                    codigoPapelLista = codTipo;
+                    tipoOcupacaoResumo = papeis.GetValueOrDefault(codTipo) ?? codTipo.ToString();
+                }
+                var refUnidade = principais.FirstOrDefault(v => v.IdUnidade != null);
+                if (refUnidade?.IdUnidade is uint idUnOcup)
+                    unidadeResumo = unidades.GetValueOrDefault(idUnOcup);
+                principal = principais.FirstOrDefault(v => v.CodigoPapelVinculo == tipoCod && Vigente(v))
+                    ?? principais.FirstOrDefault(v => v.CodigoPapelVinculo == tipoCod)
+                    ?? principal;
+            }
+            else if (principal?.CodigoPapelVinculo is uint codPapel)
+            {
                 papelResumo = papeis.GetValueOrDefault(codPapel) ?? codPapel.ToString();
+            }
+
+            uint? idVinculo = principal?.IdVinculo;
             if (principal?.IdUnidade is uint idUnidade)
-                unidadeResumo = unidades.GetValueOrDefault(idUnidade);
+                unidadeResumo ??= unidades.GetValueOrDefault(idUnidade);
 
             itens.Add(new PessoaListagemItemDto(
                 id,
@@ -166,7 +266,9 @@ public class PessoaConsultaService : IPessoaConsultaService
                 papelResumo,
                 unidadeResumo,
                 idVinculo,
-                principal?.CodigoPapelVinculo));
+                codigoPapelLista,
+                tipoOcupacaoResumo,
+                moradorAtivo));
         }
 
         var total = itens.Count;
@@ -209,6 +311,67 @@ public class PessoaConsultaService : IPessoaConsultaService
         return new PessoaPorDocumentoDto(
             id, false, pessoa.Nome, pessoa.CPFCNPJ, pessoa.Telefone,
             pf.Email, null, pf.DataNascimento?.ToString("yyyy-MM-dd"), null, null);
+    }
+
+    private static bool Vigente(PessoaVinculo v, DateOnly hoje) =>
+        v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje);
+
+    private static bool EhGestoresUnificado(IReadOnlyCollection<uint>? codigos) =>
+        codigos is { Count: >= 4 }
+        && codigos.Contains(PapelVinculoCodigos.Sindico)
+        && codigos.Contains(PapelVinculoCodigos.Subsindico)
+        && codigos.Contains(PapelVinculoCodigos.Conselheiro)
+        && codigos.Contains(PapelVinculoCodigos.Administradora);
+
+    private static PessoaVinculo? ResolverVinculoGestorPrincipal(IEnumerable<PessoaVinculo> vinculos, DateOnly hoje)
+    {
+        uint[] ordem =
+        [
+            PapelVinculoCodigos.Sindico,
+            PapelVinculoCodigos.Subsindico,
+            PapelVinculoCodigos.Conselheiro,
+            PapelVinculoCodigos.Administradora
+        ];
+        foreach (var cod in ordem)
+        {
+            var vigente = vinculos.FirstOrDefault(v => v.CodigoPapelVinculo == cod && Vigente(v, hoje));
+            if (vigente is not null) return vigente;
+        }
+        foreach (var cod in ordem)
+        {
+            var qualquer = vinculos.FirstOrDefault(v => v.CodigoPapelVinculo == cod);
+            if (qualquer is not null) return qualquer;
+        }
+        return null;
+    }
+
+    private static bool EhOcupanteUnificado(IReadOnlyCollection<uint>? codigos) =>
+        codigos is { Count: >= 4 }
+        && codigos.Contains(PapelVinculoCodigos.Proprietario)
+        && codigos.Contains(PapelVinculoCodigos.Morador)
+        && codigos.Contains(PapelVinculoCodigos.Locatario)
+        && codigos.Contains(PapelVinculoCodigos.DependenteUnidade);
+
+    private static uint? ResolverTipoOcupacaoCodigo(IEnumerable<PessoaVinculo> vinculos, DateOnly hoje)
+    {
+        bool Vigente(PessoaVinculo v) => v.DataInicio <= hoje && (v.DataFim == null || v.DataFim >= hoje);
+        uint[] ordem =
+        [
+            PapelVinculoCodigos.DependenteUnidade,
+            PapelVinculoCodigos.Proprietario,
+            PapelVinculoCodigos.Locatario
+        ];
+        foreach (var cod in ordem)
+        {
+            if (vinculos.Any(v => v.CodigoPapelVinculo == cod && Vigente(v)))
+                return cod;
+        }
+        foreach (var cod in ordem)
+        {
+            if (vinculos.Any(v => v.CodigoPapelVinculo == cod))
+                return cod;
+        }
+        return null;
     }
 
     private static IQueryable<PessoaVinculo> AplicarEscopo(IQueryable<PessoaVinculo> query, string? escopoPapel)

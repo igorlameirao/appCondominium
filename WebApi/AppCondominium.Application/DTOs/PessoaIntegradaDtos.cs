@@ -8,6 +8,9 @@ public class PessoaFisicaIntegradaRequest
     public DateOnly? DataNascimento { get; set; }
     public string? Email { get; set; }
     public string? Senha { get; set; }
+    public string? FotoPerfilBase64 { get; set; }
+    public string? FotoPerfilContentType { get; set; }
+    public bool? FotoPerfilRemover { get; set; }
 }
 
 public class PessoaFisicaIntegradaResponse

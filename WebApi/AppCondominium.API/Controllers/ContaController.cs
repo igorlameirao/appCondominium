@@ -96,7 +96,7 @@ public class ContaController : ControllerBase
         var resultado = await _arquivos.SalvarAsync(
             arquivo, _chaves.FotoPerfil(idPessoa), StorageMedia.FotoPerfilMaxBytes, StorageMedia.ImagensPerfil, ct);
         if (resultado is NoContentResult)
-            await _embedding.InvalidarAsync(idPessoa, ct);
+            await _embedding.RecalcularAsync(idPessoa, ct);
         return resultado;
     }
 

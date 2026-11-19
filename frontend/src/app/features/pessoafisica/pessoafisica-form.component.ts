@@ -63,8 +63,8 @@ import { somenteDigitos, validarCpf } from '../../core/utils/documento-validator
             <div class="cad-secao">
               <app-icone class="cad-secao__icone" nome="map-pin" [tamanho]="26" />
               <div>
-                <h2 class="cad-secao__titulo">Endereços da pessoa</h2>
-                <p class="cad-secao__texto">Inclua um ou mais endereços; serão gravados junto com a pessoa ao clicar em Salvar</p>
+                <h2 class="cad-secao__titulo">Endereços</h2>
+                <p class="cad-secao__texto">Adicione e gerencie os endereços desta pessoa sem sair da tela.</p>
               </div>
             </div>
             <app-pessoa-enderecos-panel

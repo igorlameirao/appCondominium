@@ -25,7 +25,6 @@ export const PapelVinculoCodigo = {
 
 /** Papéis sem tela contextual e ocultos no combobox de novo vínculo. */
 export const PAPEIS_EXCLUIDOS: number[] = [
-  PapelVinculoCodigo.dependenteUnidade,
   PapelVinculoCodigo.familiarUnidade,
   PapelVinculoCodigo.corretor,
   PapelVinculoCodigo.familiarPessoa,

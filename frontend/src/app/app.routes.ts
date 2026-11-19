@@ -3,6 +3,18 @@ import { authGuard } from './core/guards/auth.guard';
 import { entityPermissionGuard } from './core/guards/permission.guard';
 import { contextosDeMenu } from './features/pessoas/pessoa-contexto.config';
 
+const ocupanteRotasLegado: Routes = [
+  { path: 'moradores', pathMatch: 'full', redirectTo: 'ocupantes-proprietarios' },
+  { path: 'moradores/novo', pathMatch: 'full', redirectTo: 'ocupantes-proprietarios/novo' },
+  { path: 'moradores/:idPessoa', redirectTo: 'ocupantes-proprietarios/:idPessoa' },
+  { path: 'proprietarios', pathMatch: 'full', redirectTo: 'ocupantes-proprietarios' },
+  { path: 'proprietarios/novo', pathMatch: 'full', redirectTo: 'ocupantes-proprietarios/novo' },
+  { path: 'proprietarios/:idPessoa', redirectTo: 'ocupantes-proprietarios/:idPessoa' },
+  { path: 'locatarios', pathMatch: 'full', redirectTo: 'ocupantes-proprietarios' },
+  { path: 'locatarios/novo', pathMatch: 'full', redirectTo: 'ocupantes-proprietarios/novo' },
+  { path: 'locatarios/:idPessoa', redirectTo: 'ocupantes-proprietarios/:idPessoa' },
+];
+
 const colaboradorRotasLegado: Routes = [
   { path: 'funcionarios', pathMatch: 'full', redirectTo: 'colaboradores' },
   { path: 'funcionarios/novo', pathMatch: 'full', redirectTo: 'colaboradores/novo' },
@@ -10,6 +22,21 @@ const colaboradorRotasLegado: Routes = [
   { path: 'terceirizados', pathMatch: 'full', redirectTo: 'colaboradores' },
   { path: 'terceirizados/novo', pathMatch: 'full', redirectTo: 'colaboradores/novo' },
   { path: 'terceirizados/:idPessoa', redirectTo: 'colaboradores/:idPessoa' },
+];
+
+const gestoresRotasLegado: Routes = [
+  { path: 'sindicos', pathMatch: 'full', redirectTo: 'gestores' },
+  { path: 'sindicos/novo', pathMatch: 'full', redirectTo: 'gestores/novo' },
+  { path: 'sindicos/:idPessoa', redirectTo: 'gestores/:idPessoa' },
+  { path: 'subsindicos', pathMatch: 'full', redirectTo: 'gestores' },
+  { path: 'subsindicos/novo', pathMatch: 'full', redirectTo: 'gestores/novo' },
+  { path: 'subsindicos/:idPessoa', redirectTo: 'gestores/:idPessoa' },
+  { path: 'conselheiros', pathMatch: 'full', redirectTo: 'gestores' },
+  { path: 'conselheiros/novo', pathMatch: 'full', redirectTo: 'gestores/novo' },
+  { path: 'conselheiros/:idPessoa', redirectTo: 'gestores/:idPessoa' },
+  { path: 'administradoras', pathMatch: 'full', redirectTo: 'gestores' },
+  { path: 'administradoras/novo', pathMatch: 'full', redirectTo: 'gestores/novo' },
+  { path: 'administradoras/:idPessoa', redirectTo: 'gestores/:idPessoa' },
 ];
 
 const pessoaContextoRoutes: Routes = contextosDeMenu().flatMap(ctx => {
@@ -72,7 +99,9 @@ const entityRoutes: Routes = [
   { path: 'consumoagua/:idConsumoAgua', loadComponent: () => import('./features/consumoagua/consumoagua-form.component').then(m => m.ConsumoAguaFormComponent) },
   { path: 'pessoas', loadComponent: () => import('./features/pessoas/pessoas-list.component').then(m => m.PessoasListComponent), data: { pessoaContexto: 'pessoas' } },
   { path: 'pessoas/:idPessoa', loadComponent: () => import('./features/pessoas/pessoa-detail.component').then(m => m.PessoaDetailComponent), data: { pessoaContexto: 'pessoas', modo: 'detalhe' } },
+  ...ocupanteRotasLegado,
   ...colaboradorRotasLegado,
+  ...gestoresRotasLegado,
   ...pessoaContextoRoutes,
   { path: 'funcaocolaborador', loadComponent: () => import('./features/funcaocolaborador/funcaocolaborador-list.component').then(m => m.FuncaoColaboradorListComponent) },
   { path: 'funcaocolaborador/novo', loadComponent: () => import('./features/funcaocolaborador/funcaocolaborador-form.component').then(m => m.FuncaoColaboradorFormComponent) },

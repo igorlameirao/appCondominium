@@ -62,7 +62,7 @@ const MIN_ESPACO_ABAIXO = 180;
         <span class="combo-seta" aria-hidden="true">▼</span>
       </div>
       @if (open && !disabled) {
-        <div class="combo-panel" #painel [ngStyle]="painelEstilo">
+        <div class="combo-panel" #painel [ngStyle]="painelEstilo" (mousedown)="aoPressionarPainel($event)">
           <div class="combo-lista">
             @for (o of visibleOptions; track o.value) {
               <button
@@ -107,6 +107,8 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   @Input() minLengthMessage = 'Digite ao menos {n} letras.';
   /** Exibe o botão × para limpar a seleção (desligar em troca de contexto obrigatória). */
   @Input() allowClear = true;
+  /** Aceita o texto digitado quando não houver opção correspondente (ex.: novo bairro). */
+  @Input() aceitarTextoLivre = false;
   @Output() valueChange = new EventEmitter<number | string | null>();
   @Output() blurCommit = new EventEmitter<number | string | null>();
   @Output() searchChange = new EventEmitter<string>();
@@ -122,9 +124,26 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   filtered: ComboboxOption[] = [];
   /** Após abrir, o primeiro input do usuário passa a filtrar localmente. */
   private filtrarPorTexto = false;
+  /**
+   * Clique na barra de rolagem tira o foco do input. Sem isso a lista recolhe
+   * antes do arraste; preventDefault na barra impede o próprio arraste.
+   */
+  private preservarAbertura = false;
+  /** Blur ocorrido durante a rolagem: confirma o valor só quando a lista fechar de fato. */
+  private blurAdiado = false;
+  private recolocandoFoco = false;
+  private reposicaoLigada = false;
 
-  private readonly aoReposicionar = () => {
-    if (this.open) this.posicionarPainel();
+  private readonly aoReposicionar = (evento?: Event) => {
+    if (!this.open) return;
+    const alvo = evento?.target;
+    if (alvo instanceof Node && this.painel?.nativeElement.contains(alvo)) return;
+    this.posicionarPainel();
+  };
+
+  private readonly aoSoltarPonteiro = () => {
+    if (!this.preservarAbertura) return;
+    setTimeout(() => this.retomarFocoAposRolagem());
   };
 
   get totalPages(): number {
@@ -164,9 +183,14 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
 
   @HostListener('document:mousedown', ['$event'])
   aoClicarFora(event: MouseEvent): void {
-    if (this.open && !this.host.nativeElement.contains(event.target as Node)) {
-      this.fechar();
+    if (!this.open) return;
+    const alvo = event.target as Node | null;
+    if (alvo && this.host.nativeElement.contains(alvo)) return;
+    if (this.pontoDentroDoPainel(event)) {
+      this.preservarAbertura = true;
+      return;
     }
+    this.fechar();
   }
 
   @HostListener('keydown.escape')
@@ -175,6 +199,10 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   }
 
   abrir(): void {
+    if (this.recolocandoFoco) {
+      this.recolocandoFoco = false;
+      return;
+    }
     if (this.disabled) return;
     this.open = true;
     this.filtrarPorTexto = false;
@@ -197,10 +225,26 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   }
 
   fechar(): void {
+    const confirmar = this.blurAdiado;
     this.open = false;
     this.abreAcima = false;
     this.painelEstilo = {};
+    this.preservarAbertura = false;
+    this.blurAdiado = false;
     this.desligarReposicaoViewport();
+    if (confirmar) {
+      this.commitSearchToValue();
+      this.blurCommit.emit(this.value ?? null);
+    }
+  }
+
+  /** Mantém o painel aberto ao usar a barra; nos demais cliques evita o blur do input. */
+  aoPressionarPainel(event: MouseEvent): void {
+    if (this.cliqueMantemLista(event)) {
+      this.preservarAbertura = true;
+      return;
+    }
+    event.preventDefault();
   }
 
   onSearch(): void {
@@ -232,10 +276,14 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   }
 
   onInputBlur(): void {
+    const rolando = this.preservarAbertura;
     setTimeout(() => {
+      if ((rolando || this.preservarAbertura) && this.open) {
+        this.blurAdiado = true;
+        return;
+      }
+      this.blurAdiado = true;
       this.fechar();
-      this.commitSearchToValue();
-      this.blurCommit.emit(this.value ?? null);
     }, 0);
   }
 
@@ -282,13 +330,77 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
   }
 
   private ligarReposicaoViewport(): void {
+    if (this.reposicaoLigada) return;
+    this.reposicaoLigada = true;
     window.addEventListener('resize', this.aoReposicionar);
     window.addEventListener('scroll', this.aoReposicionar, true);
+    window.addEventListener('mouseup', this.aoSoltarPonteiro);
   }
 
   private desligarReposicaoViewport(): void {
+    if (!this.reposicaoLigada) return;
+    this.reposicaoLigada = false;
     window.removeEventListener('resize', this.aoReposicionar);
     window.removeEventListener('scroll', this.aoReposicionar, true);
+    window.removeEventListener('mouseup', this.aoSoltarPonteiro);
+  }
+
+  private retomarFocoAposRolagem(): void {
+    if (!this.open) {
+      this.preservarAbertura = false;
+      return;
+    }
+    this.preservarAbertura = false;
+    const input = this.display?.nativeElement?.querySelector('input') as HTMLInputElement | null;
+    if (!input || document.activeElement === input) {
+      this.blurAdiado = false;
+      return;
+    }
+    this.recolocandoFoco = true;
+    input.focus({ preventScroll: true });
+    if (document.activeElement === input) {
+      this.blurAdiado = false;
+      return;
+    }
+    this.recolocandoFoco = false;
+  }
+
+  private pontoDentroDoPainel(event: MouseEvent): boolean {
+    const painel = this.painel?.nativeElement;
+    if (!painel) return false;
+    const rect = painel.getBoundingClientRect();
+    return event.clientX >= rect.left - 2 && event.clientX <= rect.right + 2
+      && event.clientY >= rect.top - 2 && event.clientY <= rect.bottom + 2;
+  }
+
+  /**
+   * A barra não é um filho do DOM: o alvo do clique é a própria lista.
+   * preventDefault nesse clique impede o arraste, então a lista só ignora o blur.
+   */
+  private cliqueMantemLista(event: MouseEvent): boolean {
+    const lista = this.painel?.nativeElement.querySelector('.combo-lista') as HTMLElement | null;
+    if (!lista) return false;
+    const podeRolar = lista.scrollHeight > lista.clientHeight + 1 || lista.scrollWidth > lista.clientWidth + 1;
+    if (!podeRolar) return false;
+    if (event.target === lista) return true;
+    return this.ehCliqueNaBarraDeRolagem(lista, event);
+  }
+
+  private ehCliqueNaBarraDeRolagem(lista: HTMLElement, event: MouseEvent): boolean {
+    const rect = lista.getBoundingClientRect();
+    const x = event.clientX;
+    const y = event.clientY;
+    if (x < rect.left - 1 || x > rect.right + 1 || y < rect.top - 1 || y > rect.bottom + 1) {
+      return false;
+    }
+    const barraVertical = lista.offsetWidth - lista.clientWidth;
+    const barraHorizontal = lista.offsetHeight - lista.clientHeight;
+    if (barraVertical > 1) {
+      const rtl = getComputedStyle(lista).direction === 'rtl';
+      const naVertical = rtl ? x <= rect.left + barraVertical + 1 : x >= rect.right - barraVertical - 1;
+      if (naVertical) return true;
+    }
+    return barraHorizontal > 1 && y >= rect.bottom - barraHorizontal - 1;
   }
 
   private aplicarFiltroOpcoes(): void {
@@ -322,6 +434,7 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
     if (this.open || this.value == null || this.value === '') return;
     const found = this.options.find(o => o.value == this.value);
     if (found) this.search = found.label;
+    else if (typeof this.value === 'string') this.search = this.value;
   }
 
   private commitSearchToValue(): void {
@@ -342,6 +455,13 @@ export class ComboboxCustomizadaComponent implements OnChanges, OnDestroy {
       if (partial.length === 1) found = partial[0];
     }
     if (!found) {
+      if (this.aceitarTextoLivre) {
+        if (this.value !== q) {
+          this.value = q;
+          this.valueChange.emit(q);
+        }
+        return;
+      }
       if (!this.remoteSearch) this.syncSearchFromValue();
       return;
     }

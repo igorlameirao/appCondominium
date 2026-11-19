@@ -29,9 +29,10 @@ public static class PapelVinculoCodigos
 
     public static readonly uint[] PapeisPermitemPj = [Proprietario, Locatario, Fornecedor];
 
+  /// <summary>Sem novo vínculo fora do fluxo de Ocupantes e Proprietários (Dependente voltou só nesse contexto).</summary>
     public static readonly uint[] PapeisExcluidos =
     [
-        DependenteUnidade, FamiliarUnidade, Corretor, FamiliarPessoa, DependentePessoa
+        FamiliarUnidade, Corretor, FamiliarPessoa, DependentePessoa
     ];
 
     public static bool PermitePessoaJuridica(uint codigo) => PapeisPermitemPj.Contains(codigo);

@@ -553,6 +553,11 @@
       }
     },
     {
+      "permissionKey": "OCUPANTESPROPRIETARIOS",
+      "displayName": "Ocupantes e Proprietários",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
       "permissionKey": "MORADORES",
       "displayName": "Moradores",
       "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
@@ -608,8 +613,13 @@
       "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
     },
     {
+      "permissionKey": "GESTORES",
+      "displayName": "Gestores",
+      "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
+    },
+    {
       "permissionKey": "SINDICOS",
-      "displayName": "Síndicos",
+      "displayName": "Síndicos (legado)",
       "permissions": { "Visualizar": "Sim", "Incluir": "Sim", "Alterar": "Sim", "Excluir": "Não Aplicável", "Exportar": "Não Aplicável", "Importar": "Não Aplicável", "Aprovar": "Não Aplicável", "Imprimir": "Não Aplicável" }
     },
     {

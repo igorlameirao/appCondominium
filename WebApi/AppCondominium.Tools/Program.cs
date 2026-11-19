@@ -63,7 +63,7 @@ try
         return await MaterialTablesMigration.EnsureAsync(host.Services, logger, CancellationToken.None);
 
     if (transferSmtpFromSco)
-        return await SmtpConfigScoTransfer.RunAsync(host.Services, logger, CancellationToken.None);
+        return await TransferirSmtpDoScoAsync(host.Services, logger, CancellationToken.None);
 
     if (diagnoseSmtp)
         return await SmtpPasswordDiagnose.RunAsync(host.Services, CancellationToken.None);
@@ -92,6 +92,17 @@ catch (Exception ex)
 }
 
 return 0;
+
+static Task<int> TransferirSmtpDoScoAsync(IServiceProvider services, ILogger logger, CancellationToken ct)
+{
+#if HAS_SCO_REFERENCE
+    return SmtpConfigScoTransfer.RunAsync(services, logger, ct);
+#else
+    logger.LogError(
+        "O comando transfer-smtp-from-sco precisa do projeto SCO em C:\\Projetos\\M7\\SCO\\src\\ControleOcorrencias.Infrastructure.");
+    return Task.FromResult(1);
+#endif
+}
 
 static string CaminhoUserSecrets() =>
     Path.Combine(

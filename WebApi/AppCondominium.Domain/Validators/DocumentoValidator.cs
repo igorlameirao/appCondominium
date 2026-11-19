@@ -58,6 +58,7 @@ public static class DocumentoValidator
             }
         }
         if (pos != 14) return false;
+        if (!char.IsDigit(buffer[12]) || !char.IsDigit(buffer[13])) return false;
 
         int[] p1 = { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
         int[] p2 = { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };

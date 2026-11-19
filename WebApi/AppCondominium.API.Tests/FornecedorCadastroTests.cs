@@ -44,7 +44,7 @@ public class FornecedorCadastroTests
   {
     await using var db = await CriarDb();
     var tenant = new TenantMutavel(1);
-    var pessoaSvc = new PessoaCadastroService(db);
+    var pessoaSvc = new PessoaCadastroService(db, new FotoPerfilNula());
     await pessoaSvc.CriarOuAtualizarPessoaFisicaAsync(new PessoaFisicaIntegradaRequest
     {
       CPFCNPJ = "52998224725",
@@ -91,7 +91,7 @@ public class FornecedorCadastroTests
   }
 
   private static FornecedorCadastroService CriarServico(AppDbContext db, ICondominioContext tenant)
-    => new(db, tenant, new PessoaCadastroService(db));
+    => new(db, tenant, new PessoaCadastroService(db, new FotoPerfilNula()));
 
   private static async Task<AppDbContext> CriarDb()
   {

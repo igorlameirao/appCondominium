@@ -5,7 +5,16 @@ import {
   ValidationErrors, Validator
 } from '@angular/forms';
 import {
-  mascaraCnpj, mascaraCpf, somenteDigitos, validarCnpj, validarCpf, validarCpfCnpj
+  inferirTipoPessoaPorDocumento,
+  limiteDocumentoUnificado,
+  mascaraCnpj,
+  mascaraCpf,
+  mascaraDocumentoUnificado,
+  normalizarDocumento,
+  somenteDigitos,
+  validarCnpj,
+  validarCpf,
+  validarCpfCnpj
 } from '../../core/utils/documento-validator';
 
 @Component({
@@ -85,6 +94,7 @@ export class DocumentoInputComponent implements ControlValueAccessor, Validator,
 
   ngOnChanges(ch: SimpleChanges): void {
     if (ch['required']) this.onValidatorChange();
+    if (ch['tipo']) this.maxLen = this.tipo === 'cpf' ? 14 : 18;
   }
 
   registerOnValidatorChange(fn: () => void): void { this.onValidatorChange = fn; }
@@ -123,8 +133,8 @@ export class DocumentoInputComponent implements ControlValueAccessor, Validator,
 
   onInput(ev: Event): void {
     const v = (ev.target as HTMLInputElement).value;
-    this.display = v;
     this.raw = this.unmask(v);
+    this.display = this.mask(this.raw);
     this.atualizarFeedback();
     this.onChange(this.raw);
   }
@@ -132,13 +142,17 @@ export class DocumentoInputComponent implements ControlValueAccessor, Validator,
   private mask(v: string): string {
     if (this.tipo === 'cpf') return mascaraCpf(v);
     if (this.tipo === 'cnpj') return mascaraCnpj(v);
-    const d = somenteDigitos(v);
-    return d.length <= 11 ? mascaraCpf(v) : mascaraCnpj(v);
+    return mascaraDocumentoUnificado(v);
   }
 
   private unmask(v: string): string {
-    if (this.tipo === 'cnpj') return v.replace(/[^0-9A-Za-z]/g, '').toUpperCase().slice(0, 14);
-    return somenteDigitos(v);
+    if (this.tipo === 'cnpj') {
+      return normalizarDocumento(v).slice(0, 14);
+    }
+    if (this.tipo === 'cpfcnpj') {
+      return limiteDocumentoUnificado(v);
+    }
+    return somenteDigitos(v).slice(0, 11);
   }
 
   private atualizarFeedback(): void {
@@ -146,12 +160,29 @@ export class DocumentoInputComponent implements ControlValueAccessor, Validator,
     let ok = true;
     if (v) ok = this.documentoValido(v);
     else if (this.required) ok = false;
-    this.invalid = this.foiInteragido && !ok;
+    const completoInvalido = !!v && this.documentoCompleto(v) && !this.documentoChecksumValido(v);
+    const vazioObrigatorio = !v && this.required;
+    this.invalid = this.foiInteragido && (completoInvalido || vazioObrigatorio);
     this.validChange.emit(ok);
     this.onValidatorChange();
   }
 
   private documentoValido(v: string): boolean {
+    if (!this.documentoCompleto(v)) return false;
+    return this.documentoChecksumValido(v);
+  }
+
+  private documentoCompleto(v: string): boolean {
+    const raw = this.tipo === 'cpf' ? somenteDigitos(v) : normalizarDocumento(v);
+    if (!raw) return false;
+    if (this.tipo === 'cpf') return raw.length === 11;
+    if (this.tipo === 'cnpj') return raw.length === 14;
+    const inferido = inferirTipoPessoaPorDocumento(v);
+    if (inferido === 'PF') return raw.length === 11 && /^\d+$/.test(raw);
+    return raw.length === 14;
+  }
+
+  private documentoChecksumValido(v: string): boolean {
     if (this.tipo === 'cpf') return validarCpf(v);
     if (this.tipo === 'cnpj') return validarCnpj(v);
     return validarCpfCnpj(v);

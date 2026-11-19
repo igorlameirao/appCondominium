@@ -1313,43 +1313,6 @@
   color: #0f172a;
 }
 
-/* Pessoas: uma faixa 35 / 20 / 20 / 13 / 12. A largura segue o conteúdo (hug). */
-
-.lst-page--pessoas .lst-filtros__corpo {
-  container-type: inline-size;
-  container-name: pessoas-filtros;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.lst-page--pessoas .lst-filtros__corpo > .lst-filtros__grade--pessoas {
-  flex: 1 1 100%;
-}
-
-.lst-filtros__grade--pessoas {
-  display: grid;
-  grid-template-columns: 35fr 20fr 20fr 13fr 12fr;
-  gap: 12px;
-  align-items: end;
-  width: 100%;
-  min-width: 0;
-}
-
-.lst-filtros__grade--pessoas > .form-group {
-  flex: none;
-  width: auto;
-  max-width: none;
-  min-width: 0;
-}
-
-.lst-filtros__grade--pessoas > .btn-filtrar,
-.lst-filtros__grade--pessoas > .btn-limpar {
-  width: 100%;
-  height: var(--cad-campo-altura, 38px);
-  min-height: var(--cad-campo-altura, 38px);
-  align-self: end;
-}
-
 .lst-page--pessoas .lst-grade thead .lst-grade__acoes,
 .lst-page--pessoas .lst-grade th.lst-grade__acoes,
 .lst-page--pessoas .lst-grade td.lst-grade__acoes {
@@ -1361,40 +1324,9 @@
   width: 100%;
 }
 
-@container pessoas-filtros (max-width: 900px) {
-  .lst-filtros__grade--pessoas {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .lst-filtros__grade--pessoas > .form-group:first-child {
-    grid-column: 1 / -1;
-  }
-}
-
-@container pessoas-filtros (max-width: 520px) {
-  .lst-filtros__grade--pessoas {
-    grid-template-columns: 1fr;
-  }
-
-  .lst-filtros__grade--pessoas > .form-group:first-child {
-    grid-column: auto;
-  }
-}
-
 @media (max-width: 720px) {
   .lst-page--pessoas {
     width: 100%;
     min-width: 0;
-  }
-
-  .lst-filtros__grade--pessoas {
-    grid-template-columns: 1fr;
-  }
-
-  .lst-filtros__grade--pessoas > .form-group,
-  .lst-filtros__grade--pessoas > .btn-filtrar,
-  .lst-filtros__grade--pessoas > .btn-limpar {
-    width: 100%;
-    max-width: none;
   }
 }

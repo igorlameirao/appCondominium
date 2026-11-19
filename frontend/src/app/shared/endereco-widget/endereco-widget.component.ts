@@ -14,6 +14,7 @@ import { Municipio } from '../../features/municipio/municipio.model';
 import { UF } from '../../features/uf/uf.model';
 import { mascaraCep, somenteDigitos } from '../../core/utils/documento-validator';
 import { ToastService } from '../../core/services/toast.service';
+import { LookupService } from '../../core/services/lookup.service';
 
 const UF_NOMES: Record<string, string> = {
   AC: 'Acre', AL: 'Alagoas', AP: 'Amapá', AM: 'Amazonas', BA: 'Bahia', CE: 'Ceará',
@@ -43,44 +44,79 @@ interface ViaCep {
   template: `
     <app-list-loading-modal [visible]="carregando" message="Aguarde, carregando..." [delayMs]="0" />
     <app-list-loading-modal [visible]="cepLoading" message="Aguarde, consultando o CEP..." />
-    <div class="form-grid">
-      <div style="grid-column: 1 / span 2; grid-row: 1" class="form-group fg-col-2">
+    <div
+      class="form-grid endereco-widget__grade"
+      [class.endereco-widget__grade--pessoa]="exibirTipoEndereco">
+      <div class="form-group endereco-widget__cep">
         <label>CEP *</label>
         <input type="text" name="cEP" [ngModel]="cepDisplay" (ngModelChange)="onCepModel($event)"
           (focus)="onCepFocus()" (blur)="onCepBlur()" [disabled]="readonly"
           [attr.maxlength]="cepFocused ? 8 : 10" required />
       </div>
-      <div style="grid-column: 3 / span 10; grid-row: 1" class="form-group fg-col-10">
+      <div class="form-group endereco-widget__logradouro">
         <label>Logradouro *</label>
         <input type="text" [value]="logradouro" (input)="onLogradouro($any($event.target).value)"
           [disabled]="readonly" maxlength="100" required />
       </div>
-      <div style="grid-column: 1 / span 2; grid-row: 2" class="form-group fg-col-2">
+      <div class="form-group endereco-widget__numero">
         <label>Número{{ numeroObrigatorio ? ' *' : '' }}</label>
         <input type="text" name="numeroEndereco" [(ngModel)]="numero" (ngModelChange)="emitChange()" [disabled]="readonlyNumero" [required]="numeroObrigatorio" />
       </div>
-      <div style="grid-column: 3 / span 10; grid-row: 2" class="form-group fg-col-10">
+      <div class="form-group endereco-widget__complemento">
         <label>Complemento</label>
         <input type="text" [value]="complemento" (input)="onComplemento($any($event.target).value)"
           [disabled]="readonlyNumero" maxlength="255" />
       </div>
-      <div style="grid-column: 1 / span 6; grid-row: 3" class="form-group fg-col-6">
+      <div class="form-group endereco-widget__uf">
         <label>UF</label>
         <app-combobox-customizada [options]="ufOptions" [(value)]="siglaUf"
           (valueChange)="onUfChange()" (blurCommit)="onUfCommit($event)"
           [disabled]="readonly" placeholder="Digite para filtrar a UF..." />
       </div>
-      <div style="grid-column: 7 / span 6; grid-row: 3" class="form-group fg-col-6">
+      <div class="form-group endereco-widget__municipio">
         <label>Município</label>
-        <app-combobox-customizada [options]="municipioOptions" [(value)]="codigoIbgeMunicipio"
-          (valueChange)="onMunicipioChange()" (blurCommit)="onMunicipioCommit($event)"
-          [disabled]="readonly" placeholder="Digite para filtrar o município..." />
+        <app-combobox-customizada
+          inputId="enderecoMunicipio"
+          ariaLabel="Município"
+          [options]="municipioOptions"
+          [(value)]="codigoIbgeMunicipio"
+          (valueChange)="onMunicipioChange()"
+          (blurCommit)="onMunicipioCommit($event)"
+          [disabled]="readonly || !siglaUf"
+          [required]="true"
+          placeholder="Digite para filtrar o município..." />
       </div>
-      <div style="grid-column: 1 / span 6; grid-row: 4" class="form-group fg-col-6">
+      <div class="form-group endereco-widget__bairro">
         <label>Bairro *</label>
         <app-combobox-customizada [options]="bairroOptions" [(value)]="bairroSelecionado"
           (valueChange)="onBairroChange()" (blurCommit)="onBairroCommit($event)"
-          [disabled]="readonly" [required]="true" placeholder="Digite para filtrar o bairro..." />
+          [aceitarTextoLivre]="!readonly"
+          [disabled]="readonly || codigoIbgeMunicipio == null" [required]="true"
+          placeholder="Digite para filtrar ou cadastrar o bairro..." />
+      </div>
+      <div class="form-group endereco-widget__tipo" *ngIf="exibirTipoEndereco">
+        <label id="endereco-tipo-vinculo-label">Tipo *</label>
+        <div
+          class="cad-segment cad-segment--compacto"
+          role="radiogroup"
+          aria-labelledby="endereco-tipo-vinculo-label"
+          [attr.aria-invalid]="erroTipo ? true : null"
+          [class.cad-segment--erro]="!!erroTipo"
+          (keydown)="onTipoSegmentKeydown($event)">
+          <button
+            type="button"
+            *ngFor="let op of opcoesTipoEndereco"
+            role="radio"
+            class="cad-segment__opcao"
+            [class.cad-segment__opcao--ativa]="tipoAtivo(op.value)"
+            [attr.aria-checked]="tipoAtivo(op.value)"
+            [attr.aria-disabled]="principalIndisponivelPara(op.value) ? true : null"
+            [class.cad-segment__opcao--bloqueada]="principalIndisponivelPara(op.value)"
+            (click)="selecionarTipo(op.value)">
+            {{ op.label }}
+          </button>
+        </div>
+        <p class="endereco-widget__erro-tipo" *ngIf="erroTipo" role="alert">{{ erroTipo }}</p>
       </div>
     </div>
     <div class="cep-list" *ngIf="cepMatches.length">
@@ -99,6 +135,18 @@ interface ViaCep {
   styles: [`
     :host { display: block; min-width: 0; }
     .cep-list button { display: block; width: 100%; text-align: left; margin: 4px 0; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc; cursor: pointer; }
+    .endereco-widget__grade:not(.endereco-widget__grade--pessoa) .endereco-widget__cep { grid-column: 1 / span 2; grid-row: 1; }
+    .endereco-widget__grade:not(.endereco-widget__grade--pessoa) .endereco-widget__logradouro { grid-column: 3 / span 10; grid-row: 1; }
+    .endereco-widget__grade:not(.endereco-widget__grade--pessoa) .endereco-widget__numero { grid-column: 1 / span 2; grid-row: 2; }
+    .endereco-widget__grade:not(.endereco-widget__grade--pessoa) .endereco-widget__complemento { grid-column: 3 / span 10; grid-row: 2; }
+    .endereco-widget__grade:not(.endereco-widget__grade--pessoa) .endereco-widget__uf { grid-column: 1 / span 6; grid-row: 3; }
+    .endereco-widget__grade:not(.endereco-widget__grade--pessoa) .endereco-widget__municipio { grid-column: 7 / span 6; grid-row: 3; }
+    .endereco-widget__grade:not(.endereco-widget__grade--pessoa) .endereco-widget__bairro { grid-column: 1 / span 6; grid-row: 4; }
+    .endereco-widget__erro-tipo {
+      margin: 6px 0 0;
+      font-size: 12px;
+      color: var(--cad-campo-erro, #dc3545);
+    }
   `]
 })
 export class EnderecoWidgetComponent implements OnInit, OnChanges {
@@ -113,12 +161,24 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
   @Input() readonly = false;
   @Input() readonlyNumero = false;
   @Input() numeroObrigatorio = false;
+  @Input() exibirTipoEndereco = false;
+  @Input() tipoEndereco = 1;
+  @Input() erroTipo = '';
+  @Input() bloquearTipoPrincipal = false;
   @Output() idEnderecoChange = new EventEmitter<number | null>();
   @Output() cepChange = new EventEmitter<string>();
   @Output() logradouroChange = new EventEmitter<string>();
   @Output() numeroChange = new EventEmitter<string>();
   @Output() complementoChange = new EventEmitter<string>();
   @Output() idBairroChange = new EventEmitter<number | null>();
+  @Output() tipoEnderecoChange = new EventEmitter<number>();
+  @Output() tipoPrincipalIndisponivel = new EventEmitter<void>();
+
+  readonly opcoesTipoEndereco = [
+    { value: 0, label: 'Principal' },
+    { value: 1, label: 'Secundário' },
+    { value: 2, label: 'Inativo' },
+  ] as const;
 
   cepDisplay = '';
   cepFocused = false;
@@ -146,7 +206,7 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
   private ultimaSiglaUf: string | null = null;
   private ultimoCodigoIbgeMunicipio: number | null = null;
   private idEnderecoResolvido: number | null = null;
-  private listasPendentes = 3;
+  private listasPendentes = 1;
   private filaInicial = 0;
   private readonly toast = inject(ToastService);
   private readonly zone = inject(NgZone);
@@ -155,7 +215,8 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
     private enderecoSvc: EnderecoService,
     private bairroSvc: BairroService,
     private municipioSvc: MunicipioService,
-    private ufSvc: UFService
+    private ufSvc: UFService,
+    private lookup: LookupService
   ) {}
 
   ngOnInit(): void {
@@ -257,22 +318,6 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
       next: r => {
         this.ufs = r.items ?? [];
         this.ufOptions = this.ufs.map(u => ({ value: u.siglaUF!, label: `${u.siglaUF} — ${u.estado}` }));
-        this.aplicarBairro(this.idBairro ?? null);
-        this.marcarListaPronta();
-      },
-      error: () => this.marcarListaPronta()
-    });
-    this.municipioSvc.getPaged(1, 500).subscribe({
-      next: r => {
-        this.municipios = r.items ?? [];
-        this.aplicarBairro(this.idBairro ?? null);
-        this.marcarListaPronta();
-      },
-      error: () => this.marcarListaPronta()
-    });
-    this.bairroSvc.getPaged(1, 500).subscribe({
-      next: r => {
-        this.bairros = r.items ?? [];
         this.aplicarBairro(this.idBairro ?? null);
         this.marcarListaPronta();
       },
@@ -443,7 +488,16 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
     if (!this.municipios.some(m => Number(m.codigoIBGEMunicipio) === codigo)) {
       this.municipios.push(municipio);
     }
-    this.filterMunicipios();
+    if (this.siglaUf && municipio.siglaUF === this.siglaUf) {
+      if (!this.municipioOptions.some(o => Number(o.value) === codigo)) {
+        this.municipioOptions = [
+          ...this.municipioOptions,
+          { value: codigo, label: municipio.nome ?? String(codigo) }
+        ].sort((a, b) => String(a.label).localeCompare(String(b.label), 'pt-BR'));
+      }
+    } else {
+      this.filterMunicipios();
+    }
   }
 
   private garantirBairro(nome: string, codigoMunicipio: number, done: () => void): void {
@@ -489,6 +543,16 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
   private usarBairro(bairro: Bairro): void {
     if (bairro.idBairro != null && !this.bairros.some(b => b.idBairro === bairro.idBairro)) {
       this.bairros.push(bairro);
+      if (
+        this.codigoIbgeMunicipio != null
+        && Number(bairro.codigoIBGEMunicipio) === Number(this.codigoIbgeMunicipio)
+        && !this.bairroOptions.some(o => o.value === bairro.idBairro)
+      ) {
+        this.bairroOptions = [
+          ...this.bairroOptions,
+          { value: bairro.idBairro, label: bairro.nome ?? '' }
+        ].sort((a, b) => String(a.label).localeCompare(String(b.label), 'pt-BR'));
+      }
     }
     this.aplicarBairro(bairro.idBairro ?? null);
   }
@@ -561,11 +625,19 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
       this.bairroSelecionado = null;
       this.idBairro = null;
       this.ultimoCodigoIbgeMunicipio = null;
+      this.bairroOptions = [];
       this.ultimaSiglaUf = uf;
     }
-    this.filterMunicipios();
-    this.filterBairros();
-    this.emitChange();
+    if (!uf) {
+      this.municipioOptions = [];
+      this.bairroOptions = [];
+      this.emitChange();
+      return;
+    }
+    this.carregarMunicipiosPorUf(uf, () => {
+      this.filterBairros();
+      this.emitChange();
+    });
   }
 
   private aplicarFiltroMunicipio(limparBairroSeMudou: boolean): void {
@@ -575,8 +647,64 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
       this.idBairro = null;
       this.ultimoCodigoIbgeMunicipio = codigo;
     }
-    this.filterBairros();
-    this.emitChange();
+    if (codigo == null) {
+      this.bairroOptions = [];
+      this.emitChange();
+      return;
+    }
+    this.carregarBairrosPorMunicipio(Number(codigo), () => this.emitChange());
+  }
+
+  private carregarMunicipiosPorUf(sigla: string, done: () => void = () => {}): void {
+    this.lookup.municipiosPorUf(sigla).subscribe({
+      next: items => {
+        const lista = items ?? [];
+        for (const m of lista) {
+          const codigo = Number(m.codigoIBGEMunicipio);
+          if (!this.municipios.some(x => Number(x.codigoIBGEMunicipio) === codigo)) {
+            this.municipios.push({
+              codigoIBGEMunicipio: codigo,
+              nome: m.nome,
+              siglaUF: m.siglaUF
+            });
+          }
+        }
+        this.municipioOptions = lista.map(m => ({
+          value: Number(m.codigoIBGEMunicipio),
+          label: m.nome ?? String(m.codigoIBGEMunicipio)
+        }));
+        done();
+      },
+      error: () => {
+        this.municipioOptions = [];
+        done();
+      }
+    });
+  }
+
+  private carregarBairrosPorMunicipio(codigoIbge: number, done: () => void = () => {}): void {
+    this.lookup.bairrosPorMunicipio(codigoIbge).subscribe({
+      next: items => {
+        const lista = items ?? [];
+        for (const b of lista) {
+          if (b.idBairro != null && !this.bairros.some(x => x.idBairro === b.idBairro)) {
+            this.bairros.push({
+              idBairro: b.idBairro,
+              nome: b.nome,
+              codigoIBGEMunicipio: b.codigoIBGEMunicipio
+            });
+          }
+        }
+        this.bairroOptions = lista
+          .filter(b => b.idBairro != null)
+          .map(b => ({ value: b.idBairro!, label: b.nome ?? '' }));
+        done();
+      },
+      error: () => {
+        this.bairroOptions = [];
+        done();
+      }
+    });
   }
 
   onBairroChange(): void {
@@ -600,10 +728,32 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
   private confirmarBairroSelecionado(): void {
     if (typeof this.bairroSelecionado === 'number') {
       this.aplicarBairro(this.bairroSelecionado);
-    } else {
-      this.idBairro = null;
+      this.emitChange();
+      return;
     }
+    if (typeof this.bairroSelecionado === 'string' && this.bairroSelecionado.trim()) {
+      this.resolverBairroDigitado(this.bairroSelecionado);
+      return;
+    }
+    this.idBairro = null;
     this.emitChange();
+  }
+
+  private resolverBairroDigitado(nome: string): void {
+    const codigo = this.codigoIbgeMunicipio;
+    const nomeBusca = nome.trim();
+    if (!nomeBusca) {
+      this.idBairro = null;
+      this.emitChange();
+      return;
+    }
+    if (codigo == null) {
+      this.toast.showError('Selecione o município antes de informar o bairro.');
+      this.idBairro = null;
+      this.emitChange();
+      return;
+    }
+    this.garantirBairro(nomeBusca, Number(codigo), () => this.emitChange());
   }
 
   private aplicarBairro(id: number | null, done: () => void = () => {}): void {
@@ -654,12 +804,22 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
       this.codigoIbgeMunicipio = codigoMunicipio;
       const municipio = this.municipios.find(x => Number(x.codigoIBGEMunicipio) === codigoMunicipio);
       this.siglaUf = municipio?.siglaUF ?? this.siglaUf;
-      this.filterMunicipios();
-      this.filterBairros();
-      this.ultimaSiglaUf = this.siglaUf;
-      this.ultimoCodigoIbgeMunicipio = codigoMunicipio;
-      this.sincronizando = false;
-      done();
+      const uf = this.siglaUf;
+      const finalizar = () => {
+        this.ultimaSiglaUf = uf;
+        this.ultimoCodigoIbgeMunicipio = codigoMunicipio;
+        this.sincronizando = false;
+        done();
+      };
+      if (!uf) {
+        this.filterMunicipios();
+        this.filterBairros();
+        finalizar();
+        return;
+      }
+      this.carregarMunicipiosPorUf(uf, () => {
+        this.carregarBairrosPorMunicipio(codigoMunicipio, finalizar);
+      });
     });
   }
 
@@ -699,6 +859,41 @@ export class EnderecoWidgetComponent implements OnInit, OnChanges {
     const codigo = Number(this.codigoIbgeMunicipio);
     const list = this.bairros.filter(b => Number(b.codigoIBGEMunicipio) === codigo);
     this.bairroOptions = list.map(b => ({ value: b.idBairro!, label: b.nome ?? '' }));
+  }
+
+  tipoAtivo(valor: number): boolean {
+    return this.tipoEndereco === valor;
+  }
+
+  principalIndisponivelPara(valor: number): boolean {
+    return valor === 0 && this.bloquearTipoPrincipal && !this.tipoAtivo(0);
+  }
+
+  selecionarTipo(valor: number): void {
+    if (this.principalIndisponivelPara(valor)) {
+      this.tipoPrincipalIndisponivel.emit();
+      return;
+    }
+    if (this.tipoEndereco !== valor) {
+      this.tipoEnderecoChange.emit(valor);
+    }
+  }
+
+  onTipoSegmentKeydown(event: KeyboardEvent): void {
+    if (!this.exibirTipoEndereco) return;
+    const tipos = this.opcoesTipoEndereco.map(o => o.value);
+    const idx = tipos.indexOf(this.tipoEndereco as 0 | 1 | 2);
+    if (idx < 0) return;
+    let next = idx;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      next = (idx + 1) % tipos.length;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      next = (idx + tipos.length - 1) % tipos.length;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    this.selecionarTipo(tipos[next]!);
   }
 
   emitChange(): void {

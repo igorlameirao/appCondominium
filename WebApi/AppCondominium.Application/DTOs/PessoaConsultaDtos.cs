@@ -10,7 +10,9 @@ public record PessoaListagemItemDto(
     string? PapelResumo = null,
     string? UnidadeResumo = null,
     uint? IdVinculoPrincipal = null,
-    uint? CodigoPapelVinculo = null);
+    uint? CodigoPapelVinculo = null,
+    string? TipoOcupacaoResumo = null,
+    bool? MoradorAtivo = null);
 
 public record PessoaPorDocumentoDto(
     uint IdPessoa,

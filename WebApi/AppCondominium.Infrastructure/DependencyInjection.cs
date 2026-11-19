@@ -33,6 +33,7 @@ public static partial class DependencyInjection
         services.AddScoped<IPessoaConsultaService, PessoaConsultaService>();
         services.AddScoped<IColaboradorService, ColaboradorService>();
         services.AddScoped<IPessoaContextoInclusaoService, PessoaContextoInclusaoService>();
+        services.AddScoped<IPessoaFotoPerfilService, PessoaFotoPerfilService>();
         services.AddScoped<Repositories.FuncaoColaboradorRepository>();
         services.AddScoped<IFornecedorConsultaService, FornecedorConsultaService>();
         services.AddHttpClient();
@@ -59,6 +60,8 @@ public static partial class DependencyInjection
         services.AddSingleton<IPasswordHasher, PasswordHasherService>();
         services.AddSingleton<PessoafisicaSenhaInterceptor>();
         services.AddScoped<ArquivoCleanupInterceptor>();
+        services.Configure<FaceRecognitionOptions>(config.GetSection(FaceRecognitionOptions.SectionName));
+        services.AddSingleton<IFaceEmbeddingGenerator, FaceInsightOnnxGenerator>();
         services.AddScoped<IFaceEmbeddingSync, FaceEmbeddingSync>();
         RegistrarArmazenamento(services, config);
 
