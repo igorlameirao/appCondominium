@@ -27,6 +27,10 @@ public class PessoaContextoGravacaoRequest
     public string? CtpsContentType { get; set; }
     public uint? CodigoPapelVinculo { get; set; }
     public byte? TipoColaborador { get; set; }
+    public bool? EhMorador { get; set; }
+    public string? FotoPerfilBase64 { get; set; }
+    public string? FotoPerfilContentType { get; set; }
+    public bool? FotoPerfilRemover { get; set; }
 }
 
 public class PessoaContextoGravacaoResponse

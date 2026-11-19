@@ -10,8 +10,13 @@ namespace AppCondominium.Infrastructure.Services;
 public class PessoaCadastroService : IPessoaCadastroService
 {
     private readonly AppDbContext _db;
+    private readonly IPessoaFotoPerfilService _fotoPerfil;
 
-    public PessoaCadastroService(AppDbContext db) => _db = db;
+    public PessoaCadastroService(AppDbContext db, IPessoaFotoPerfilService fotoPerfil)
+    {
+        _db = db;
+        _fotoPerfil = fotoPerfil;
+    }
 
     public async Task<PessoaFisicaIntegradaResponse> CriarOuAtualizarPessoaFisicaAsync(
         PessoaFisicaIntegradaRequest request, uint? idPessoa, CancellationToken ct = default,
@@ -86,6 +91,12 @@ public class PessoaCadastroService : IPessoaCadastroService
         }
 
         await _db.SaveChangesAsync(ct);
+        await _fotoPerfil.AplicarAsync(
+            idFinal,
+            request.FotoPerfilBase64,
+            request.FotoPerfilContentType,
+            request.FotoPerfilRemover == true,
+            ct);
         return new PessoaFisicaIntegradaResponse { IdPessoa = idFinal, Dados = request };
     }
 

@@ -115,6 +115,13 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.cad-aba .cad-aba-indicador-host {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-self: center;
+  line-height: 0;
+}
+
 .cad-aba {
   display: inline-flex;
   flex: 0 0 auto;
@@ -1217,6 +1224,31 @@ app-endereco-widget .form-group input:not([required]):not([disabled]):not([type=
   grid-template-columns: minmax(11rem, 13.5rem) minmax(6.5rem, 8.5rem) minmax(0, 1fr);
 }
 
+.cad-wrapper .form-grid.pessoa-dados-gerais {
+  grid-template-columns: minmax(11rem, 13.5rem) minmax(0, 1fr);
+  margin-bottom: 16px;
+}
+
+.cad-wrapper .form-grid.pessoa-dados-gerais--pf {
+  grid-template-rows: auto auto;
+}
+
+.cad-wrapper .pessoa-dados-gerais .pessoa-pf-dados__doc {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.cad-wrapper .pessoa-dados-gerais .pessoa-pf-dados__nome {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.cad-wrapper .pessoa-dados-gerais--pf .pessoa-dados-gerais__nasc {
+  grid-column: 1;
+  grid-row: 2;
+  max-width: 11rem;
+}
+
 .cad-wrapper .pessoa-pf-dados__doc { grid-column: 1; }
 .cad-wrapper .pessoa-pf-dados__nome { grid-column: 2 / -1; }
 .cad-wrapper .pessoa-pf-dados__tel { grid-column: 1; }
@@ -1309,19 +1341,607 @@ app-endereco-widget .form-group input:not([required]):not([disabled]):not([type=
 .cad-wrapper .pessoa-vinculo-dados__obs { grid-column: 1 / -1; }
 .cad-wrapper .pessoa-vinculo-dados__pessoa--novo { grid-column: 1 / span 2; }
 
+/* Aba Vínculo (contexto) — tipo compacto, unidade ampla, datas largas. */
+.cad-wrapper .tipo-colaborador-opcoes {
+  border: 1px solid var(--cad-borda, #d8dce2);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.cad-wrapper .tipo-colaborador-opcoes--compacto {
+  max-width: 11.5rem;
+  padding: 0.45rem 0.65rem 0.55rem;
+}
+
+.cad-wrapper .tipo-colaborador-opcoes legend {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0 0.35rem;
+}
+
+.cad-wrapper .tipo-colaborador-opcoes__item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  margin: 0.2rem 0;
+  cursor: pointer;
+}
+
+.cad-wrapper .tipo-colaborador-opcoes__item--check {
+  margin-top: 0.35rem;
+}
+
+.cad-wrapper .pessoa-vinculo-ctx {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.cad-wrapper .pessoa-vinculo-ctx__tipo {
+  align-self: start;
+}
+
+.cad-wrapper .pessoa-vinculo-ctx__linha {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px 20px;
+  align-items: end;
+  width: 100%;
+}
+
+.cad-wrapper .pessoa-vinculo-ctx__unidade,
+.cad-wrapper .pessoa-vinculo-ctx__relacionada {
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-vinculo-ctx__data {
+  max-width: 8.5rem;
+}
+
+.cad-wrapper .pessoa-vinculo-ctx__data input[type="date"] {
+  width: 100%;
+  max-width: 8.5rem;
+  box-sizing: border-box;
+}
+
+/* Ocupantes / proprietários — aba Vínculo (cards + morador). */
+.cad-wrapper .pessoa-vinculo-ocupante {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__tipos {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__rotulo {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0;
+  margin: 0 0 0.65rem;
+  color: var(--color-text, #0f172a);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__cards--gestor {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 1100px) {
+  .cad-wrapper .pessoa-vinculo-ocupante__cards--gestor {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  min-height: 4.25rem;
+  border: 1.5px solid var(--color-border, #e2e8f0);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__card--ativa {
+  border-color: var(--cad-primary);
+  background: var(--cad-primary-soft);
+  box-shadow: 0 0 0 1px var(--cad-primary);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__card:has(input:focus-visible) {
+  box-shadow: var(--cad-focus-ring);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__card:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__card-radio {
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--cad-primary);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__card-linha {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__divisor {
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 1px;
+  min-height: 2.25rem;
+  background: var(--color-border, #e2e8f0);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__card-icone {
+  flex: 0 0 auto;
+  color: var(--cad-primary);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__card-texto {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__card-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-text, #0f172a);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__card-apoio {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--cad-muted);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__morador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  min-height: 4.25rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__morador-corpo {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__morador-icone {
+  flex: 0 0 auto;
+  color: var(--cad-primary);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__morador-texto {
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__morador-titulo {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-text, #0f172a);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__morador-apoio {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--cad-muted);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campos.pessoa-vinculo-ctx__linha {
+  align-items: start;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campo > label {
+  margin: 0;
+  min-height: 1.125rem;
+  line-height: 1.25;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campo-controle {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campo-controle > * {
+  width: 100%;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campo-rodape {
+  display: block;
+  min-height: 1rem;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1rem;
+  font-weight: 500;
+  color: var(--cad-muted);
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campo-rodape:empty {
+  visibility: hidden;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campos .pessoa-vinculo-ctx__data {
+  max-width: none;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campos--datas-duplas.pessoa-vinculo-ctx__linha {
+  grid-template-columns: repeat(2, minmax(0, auto));
+  justify-content: start;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campos--datas-duplas .pessoa-vinculo-ctx__data {
+  max-width: 8.5rem;
+  width: 8.5rem;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campos--datas-duplas .pessoa-vinculo-ocupante__campo-controle {
+  width: 8.5rem;
+  max-width: 8.5rem;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campos--datas-duplas .pessoa-vinculo-ocupante__campo-controle app-campo-data {
+  width: 8.5rem;
+  max-width: 8.5rem;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campos .pessoa-vinculo-ocupante__campo-controle .combo-input,
+.cad-wrapper .pessoa-vinculo-ocupante__campos .pessoa-vinculo-ocupante__campo-controle .combo-display {
+  min-height: 2.75rem;
+  box-sizing: border-box;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campos .pessoa-vinculo-ocupante__campo-controle app-campo-data {
+  display: block;
+  width: 100%;
+}
+
+.cad-wrapper .pessoa-vinculo-ocupante__campos .pessoa-vinculo-ocupante__campo-controle .mat-mdc-text-field-wrapper {
+  min-height: 2.75rem;
+}
+
+@media (max-width: 900px) {
+  .cad-wrapper .pessoa-vinculo-ocupante__cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cad-wrapper .pessoa-vinculo-ocupante__card {
+    min-height: 0;
+  }
+
+  .cad-wrapper .pessoa-vinculo-ocupante__morador {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .cad-wrapper .pessoa-vinculo-ocupante__morador .cad-switch {
+    align-self: flex-end;
+  }
+}
+
+/* —— Aba Endereços (painel embutido) —— */
+.cad-wrapper .pessoa-enderecos-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cad-wrapper .pessoa-enderecos-form {
+  border: 1px solid var(--cad-borda-suave, rgba(0, 0, 0, 0.08));
+  border-radius: var(--cad-raio-md, 10px);
+  padding: 16px 18px 18px;
+  background: var(--cad-fundo-secao, var(--cad-surface, #fff));
+}
+
+.cad-wrapper .pessoa-enderecos-form:focus {
+  outline: none;
+}
+
+.cad-wrapper .pessoa-enderecos-form:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cad-primary) 35%, transparent);
+}
+
+.cad-wrapper .pessoa-enderecos-form__titulo {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--cad-texto, inherit);
+}
+
+.cad-wrapper .pessoa-enderecos-form__corpo {
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-enderecos-form__corpo .field-error {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--cad-campo-erro, #dc3545);
+}
+
+.cad-wrapper .pessoa-enderecos-form__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-top: 18px;
+  padding-top: 4px;
+}
+
+.cad-wrapper .pessoa-enderecos-form__acoes-espaco {
+  flex: 1 1 12px;
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-enderecos-lista__titulo {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--cad-texto, inherit);
+}
+
+.cad-wrapper .pessoa-enderecos-lista__contador {
+  font-weight: 500;
+  color: var(--cad-muted);
+  margin-left: 4px;
+}
+
+.cad-wrapper .pessoa-enderecos-lista__vazio {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--cad-muted);
+  border: 1px dashed var(--cad-borda-suave, rgba(0, 0, 0, 0.12));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--cad-muted) 6%, transparent);
+}
+
+.cad-wrapper .pessoa-enderecos-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cad-wrapper .pessoa-enderecos-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--cad-borda-suave, rgba(0, 0, 0, 0.08));
+  border-radius: var(--cad-raio-md, 10px);
+  background: var(--cad-surface, #fff);
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-enderecos-card--editando {
+  border-color: color-mix(in srgb, var(--cad-primary) 55%, var(--cad-borda-suave, #ddd));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cad-primary) 25%, transparent);
+}
+
+.cad-wrapper .pessoa-enderecos-card__icone {
+  flex-shrink: 0;
+  color: var(--cad-primary);
+}
+
+.cad-wrapper .pessoa-enderecos-card__divisor {
+  flex-shrink: 0;
+  align-self: stretch;
+  width: 1px;
+  min-height: 2.5rem;
+  background: var(--cad-borda-suave, rgba(0, 0, 0, 0.1));
+}
+
+.cad-wrapper .pessoa-enderecos-card__corpo {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.cad-wrapper .pessoa-enderecos-card__linha-principal {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--cad-texto, inherit);
+  word-break: break-word;
+}
+
+.cad-wrapper .pessoa-enderecos-card__linha-secundaria {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--cad-muted);
+}
+
+.cad-wrapper .pessoa-enderecos-card__tipo {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--cad-muted) 14%, transparent);
+  color: var(--cad-muted);
+}
+
+.cad-wrapper .pessoa-enderecos-card__tipo--principal {
+  background: color-mix(in srgb, var(--cad-primary) 14%, transparent);
+  color: var(--cad-primary);
+}
+
+.cad-wrapper .pessoa-enderecos-card__tipo--inativo {
+  opacity: 0.85;
+}
+
+.cad-wrapper .pessoa-enderecos-card__acoes {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+  margin-left: auto;
+}
+
+/* Endereço da pessoa — grade CEP/Logradouro/Número + Tipo segmentado na 3ª linha */
+.cad-wrapper app-endereco-widget .endereco-widget__grade--pessoa .endereco-widget__cep { grid-column: 1 / span 2; grid-row: 1; }
+.cad-wrapper app-endereco-widget .endereco-widget__grade--pessoa .endereco-widget__logradouro { grid-column: 3 / span 8; grid-row: 1; }
+.cad-wrapper app-endereco-widget .endereco-widget__grade--pessoa .endereco-widget__numero { grid-column: 11 / span 2; grid-row: 1; }
+.cad-wrapper app-endereco-widget .endereco-widget__grade--pessoa .endereco-widget__complemento { grid-column: 1 / span 8; grid-row: 2; }
+.cad-wrapper app-endereco-widget .endereco-widget__grade--pessoa .endereco-widget__uf { grid-column: 9 / span 4; grid-row: 2; }
+.cad-wrapper app-endereco-widget .endereco-widget__grade--pessoa .endereco-widget__municipio { grid-column: 1 / span 4; grid-row: 3; }
+.cad-wrapper app-endereco-widget .endereco-widget__grade--pessoa .endereco-widget__bairro { grid-column: 5 / span 4; grid-row: 3; }
+.cad-wrapper app-endereco-widget .endereco-widget__grade--pessoa .endereco-widget__tipo { grid-column: 9 / span 4; grid-row: 3; align-self: start; }
+
+.cad-wrapper app-endereco-widget .cad-segment--compacto {
+  min-height: var(--cad-campo-altura, 38px);
+}
+
+.cad-wrapper app-endereco-widget .cad-segment--compacto .cad-segment__opcao {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 4px;
+  font-size: 11px;
+  line-height: 1.15;
+}
+
+.cad-wrapper app-endereco-widget .cad-segment--erro {
+  border-color: var(--cad-campo-erro, #dc3545);
+}
+
+.cad-wrapper app-endereco-widget .cad-segment__opcao--bloqueada {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .cad-wrapper app-endereco-widget .endereco-widget__grade--pessoa > .form-group {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .cad-wrapper app-endereco-widget .cad-segment--compacto {
+    flex-wrap: wrap;
+  }
+
+  .cad-wrapper app-endereco-widget .cad-segment--compacto .cad-segment__opcao {
+    flex: 1 1 calc(33.333% - 4px);
+    min-width: 5.5rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .cad-wrapper .pessoa-enderecos-card__acoes {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .cad-wrapper .pessoa-enderecos-card__divisor {
+    display: none;
+  }
+
+  .cad-wrapper .pessoa-enderecos-form__acoes .btn-gravar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 1100px) {
+  .cad-wrapper .pessoa-vinculo-ctx__linha {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cad-wrapper .tipo-colaborador-opcoes--compacto {
+    max-width: none;
+  }
+
+  .cad-wrapper .pessoa-vinculo-ctx__data,
+  .cad-wrapper .pessoa-vinculo-ctx__data input[type="date"] {
+    max-width: none;
+  }
+
+  .cad-wrapper .pessoa-vinculo-ocupante__campos--datas-duplas.pessoa-vinculo-ctx__linha {
+    width: fit-content;
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 900px) {
   .cad-wrapper .form-grid.pessoa-pf-dados,
   .cad-wrapper .form-grid.pessoa-pj-dados,
   .cad-wrapper .form-grid.pessoa-contatos-dados,
-  .cad-wrapper .form-grid.pessoa-vinculo-dados {
+  .cad-wrapper .form-grid.pessoa-vinculo-dados,
+  .cad-wrapper .form-grid.pessoa-dados-gerais {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .cad-wrapper .form-grid.pessoa-pf-dados > .form-group,
   .cad-wrapper .form-grid.pessoa-pj-dados > .form-group,
   .cad-wrapper .form-grid.pessoa-contatos-dados > .form-group,
-  .cad-wrapper .form-grid.pessoa-vinculo-dados > .form-group {
+  .cad-wrapper .form-grid.pessoa-vinculo-dados > .form-group,
+  .cad-wrapper .form-grid.pessoa-dados-gerais > .form-group {
     grid-column: 1 / -1 !important;
+    grid-row: auto !important;
   }
 
   .cad-wrapper .form-grid.pessoa-contatos-dados,

@@ -16,10 +16,16 @@ import { PessoaConsultaService, PessoaListagemItem } from '../../core/services/p
 import { PagedResult } from '../../core/models/paged-result';
 import {
   CHAVES_PERMISSAO_COLABORADOR,
+  CHAVES_PERMISSAO_GESTOR,
+  CHAVES_PERMISSAO_OCUPANTE,
   PessoaContextoConfig,
   ehContextoColaborador,
+  ehContextoGestor,
+  ehContextoOcupante,
   pessoaContextoPorId,
   rotuloTipoColaborador,
+  rotuloTipoGestor,
+  rotuloTipoOcupacao,
 } from './pessoa-contexto.config';
 
 @Component({
@@ -53,7 +59,7 @@ import {
               <app-icone class="lst-filtros__seta" [nome]="filtrosRecolhidos ? 'chevron-down' : 'chevron-up'" [tamanho]="18" />
             </button>
             <div class="lst-filtros__corpo" id="lst-filtros-pessoas" *ngIf="!filtrosRecolhidos">
-              <div class="lst-filtros__grade lst-filtros__grade--pessoas">
+              <div class="lst-filtros__grade">
                 <div class="form-group">
                   <label for="pessoas-filtro-texto">Nome, CPF ou CNPJ</label>
                   <input id="pessoas-filtro-texto" type="search" [(ngModel)]="filterText" (keyup.enter)="applyFilter()" placeholder="Mín. 3 caracteres" />
@@ -74,6 +80,8 @@ import {
                     <option value="encerrado">Somente histórico</option>
                   </select>
                 </div>
+              </div>
+              <div class="lst-filtros__acoes">
                 <button type="button" class="btn-filtrar" (click)="applyFilter()">Filtrar</button>
                 <button type="button" class="btn-limpar" (click)="clearFilter()">Limpar</button>
               </div>
@@ -87,8 +95,10 @@ import {
                   <th scope="col" *ngIf="mostraFiltroTipo">Tipo</th>
                   <th scope="col" class="lst-col--conteudo">Nome</th>
                   <th scope="col">CPF/CNPJ</th>
-                  <th scope="col" *ngIf="contextoEspecializado && !mostraColunaTipoColaborador">Papel</th>
-                  <th scope="col" *ngIf="mostraColunaTipoColaborador">Tipo</th>
+                  <th scope="col" *ngIf="mostraColunaPapel">Papel</th>
+                  <th scope="col" *ngIf="mostraColunaTipoColaborador || mostraColunaTipoGestor">Tipo</th>
+                  <th scope="col" *ngIf="mostraColunaOcupante">Tipo</th>
+                  <th scope="col" *ngIf="mostraColunaOcupante">Morador</th>
                   <th scope="col" *ngIf="contexto.escopoPapel === 'unidade'">Unidade</th>
                   <th scope="col" *ngIf="!contextoEspecializado">Complemento</th>
                   <th scope="col">Situação</th>
@@ -100,10 +110,17 @@ import {
                   <td *ngIf="mostraFiltroTipo"><span class="lst-badge lst-badge--neutro">{{ item.tipo }}</span></td>
                   <td class="lst-col--conteudo">{{ item.nome }}</td>
                   <td>{{ item.cpfcnpj ?? '—' }}</td>
-                  <td *ngIf="contextoEspecializado && !mostraColunaTipoColaborador">{{ item.papelResumo ?? '—' }}</td>
+                  <td *ngIf="mostraColunaPapel">{{ item.papelResumo ?? '—' }}</td>
                   <td *ngIf="mostraColunaTipoColaborador">
                     <span class="lst-badge lst-badge--neutro">{{ rotuloTipoColaborador(item.codigoPapelVinculo, item.papelResumo) }}</span>
                   </td>
+                  <td *ngIf="mostraColunaTipoGestor">
+                    <span class="lst-badge lst-badge--neutro">{{ rotuloTipoGestor(item.codigoPapelVinculo, item.papelResumo) }}</span>
+                  </td>
+                  <td *ngIf="mostraColunaOcupante">
+                    <span class="lst-badge lst-badge--neutro">{{ rotuloTipoOcupacao(item.codigoPapelVinculo, item.tipoOcupacaoResumo ?? item.papelResumo) }}</span>
+                  </td>
+                  <td *ngIf="mostraColunaOcupante">{{ item.moradorAtivo ? 'Sim' : 'Não' }}</td>
                   <td *ngIf="contexto.escopoPapel === 'unidade'">{{ item.unidadeResumo ?? '—' }}</td>
                   <td *ngIf="!contextoEspecializado" class="lst-col--resumo" [title]="item.complemento || ''">{{ item.complemento ?? '—' }}</td>
                   <td>
@@ -164,11 +181,29 @@ export class PessoasListComponent implements OnInit {
   get contextoEspecializado(): boolean { return this.contexto.id !== 'pessoas'; }
   get mostraFiltroTipo(): boolean { return this.contexto.tipoPessoa !== 'PF'; }
   get mostraColunaTipoColaborador(): boolean { return ehContextoColaborador(this.contexto.id); }
+  get mostraColunaTipoGestor(): boolean { return ehContextoGestor(this.contexto.id); }
+  get mostraColunaOcupante(): boolean { return ehContextoOcupante(this.contexto.id); }
+  /** Papel único (sempre "Prestador") não entra na grade; a coluna útil é a unidade. */
+  get mostraColunaPapel(): boolean {
+    return this.contextoEspecializado
+      && !this.mostraColunaTipoColaborador
+      && !this.mostraColunaOcupante
+      && !this.mostraColunaTipoGestor
+      && this.contexto.id !== 'prestador-unidade';
+  }
   readonly rotuloTipoColaborador = rotuloTipoColaborador;
+  readonly rotuloTipoGestor = rotuloTipoGestor;
+  readonly rotuloTipoOcupacao = rotuloTipoOcupacao;
   get podeIncluir(): boolean {
     if (!this.contexto.inclusao) return false;
     if (ehContextoColaborador(this.contexto.id)) {
       return this.permissions.canAny([...CHAVES_PERMISSAO_COLABORADOR], 'Incluir');
+    }
+    if (ehContextoOcupante(this.contexto.id)) {
+      return this.permissions.canAny([...CHAVES_PERMISSAO_OCUPANTE], 'Incluir');
+    }
+    if (ehContextoGestor(this.contexto.id)) {
+      return this.permissions.canAny([...CHAVES_PERMISSAO_GESTOR], 'Incluir');
     }
     return this.permissions.can(this.contexto.permissionKey, 'Incluir');
   }

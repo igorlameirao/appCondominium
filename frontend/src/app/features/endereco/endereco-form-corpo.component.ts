@@ -29,25 +29,15 @@ import { EnderecoWidgetComponent } from '../../shared/endereco-widget/endereco-w
       (numeroChange)="numeroChange.emit($event)"
       (complementoChange)="complementoChange.emit($event)"
       [readonly]="readonlyEndereco"
-      [readonlyNumero]="readonlyNumero" />
-    <div class="form-grid endereco-form-corpo__tipo" *ngIf="exibirTipoEndereco">
-      <div class="form-group fg-col-3">
-        <label>Tipo *</label>
-        <select [ngModel]="tipoEndereco" (ngModelChange)="tipoEnderecoChange.emit($event)" name="tipoEnderecoVinculo">
-          <option [ngValue]="0">Principal</option>
-          <option [ngValue]="1">Secundário</option>
-          <option [ngValue]="2">Inativo</option>
-        </select>
-      </div>
-    </div>
+      [readonlyNumero]="readonlyNumero"
+      [exibirTipoEndereco]="exibirTipoEndereco"
+      [tipoEndereco]="tipoEndereco"
+      [erroTipo]="erroTipo"
+      [bloquearTipoPrincipal]="bloquearTipoPrincipal"
+      (tipoEnderecoChange)="tipoEnderecoChange.emit($event)"
+      (tipoPrincipalIndisponivel)="tipoPrincipalIndisponivel.emit()" />
   `,
-  styles: [`
-    :host { display: block; }
-    .endereco-form-corpo__tipo {
-      margin-top: 20px;
-      padding-top: 4px;
-    }
-  `]
+  styles: [`:host { display: block; }`]
 })
 export class EnderecoFormCorpoComponent {
   @Input() exibirId = false;
@@ -61,6 +51,9 @@ export class EnderecoFormCorpoComponent {
   @Input() readonlyNumero = false;
   @Input() exibirTipoEndereco = false;
   @Input() tipoEndereco = 1;
+  /** Mensagem de validação exibida junto ao campo Tipo (ex.: regra de único Principal). */
+  @Input() erroTipo = '';
+  @Input() bloquearTipoPrincipal = false;
 
   @Output() cepChange = new EventEmitter<string>();
   @Output() logradouroChange = new EventEmitter<string>();
@@ -68,4 +61,5 @@ export class EnderecoFormCorpoComponent {
   @Output() numeroChange = new EventEmitter<string>();
   @Output() complementoChange = new EventEmitter<string>();
   @Output() tipoEnderecoChange = new EventEmitter<number>();
+  @Output() tipoPrincipalIndisponivel = new EventEmitter<void>();
 }

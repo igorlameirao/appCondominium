@@ -27,6 +27,10 @@ export interface PessoaContextoGravacao {
   ctpsContentType?: string;
   codigoPapelVinculo?: number;
   tipoColaborador?: 1 | 2;
+  ehMorador?: boolean;
+  fotoPerfilBase64?: string;
+  fotoPerfilContentType?: string;
+  fotoPerfilRemover?: boolean;
 }
 
 export interface PessoaContextoGravacaoResponse {

@@ -4,11 +4,11 @@
   <button
     type="button"
     class="foto-perfil"
-    [class.foto-perfil--vazia]="!fotoUrl"
+    [class.foto-perfil--vazia]="!urlFotoExibida"
     [attr.aria-label]="'Abrir minha conta — ' + nome"
     (click)="aoClicarAvatar($event)">
-    @if (fotoUrl) {
-      <img [src]="fotoUrl" [alt]="'Foto de ' + nome" />
+    @if (urlFotoExibida) {
+      <img [src]="urlFotoExibida" [alt]="'Foto de ' + nome" />
     } @else if (iniciais) {
       <span class="foto-perfil__iniciais">{{ iniciais }}</span>
     } @else {
@@ -55,7 +55,7 @@
           role="menuitem"
           class="foto-perfil-menu__item foto-perfil-menu__item--perigo"
           tabindex="-1"
-          [disabled]="!fotoUrl"
+          [disabled]="!urlFotoExibida"
           (click)="pedirRemocao()">
           <app-icone nome="trash" [tamanho]="14" />
           <span>Remover foto</span>

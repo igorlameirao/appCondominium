@@ -16,7 +16,12 @@ import {
   CondominioTrocaItem,
   TrocarCondominioModalComponent,
 } from './shared/trocar-condominio/trocar-condominio-modal.component';
-import { CHAVES_PERMISSAO_COLABORADOR, contextosDeMenu } from './features/pessoas/pessoa-contexto.config';
+import {
+  CHAVES_PERMISSAO_COLABORADOR,
+  CHAVES_PERMISSAO_GESTOR,
+  CHAVES_PERMISSAO_OCUPANTE,
+  contextosDeMenu,
+} from './features/pessoas/pessoa-contexto.config';
 
 interface MenuLink { label: string; route: string; }
 
@@ -58,19 +63,14 @@ export class AppComponent implements OnInit {
       { label: 'Hidrômetro', route: '/hidrometro' }, { label: 'Consumo Água', route: '/consumoagua' }
     ]},
     { label: 'Pessoas e Vínculos', icon: 'users', links: [
-      { label: 'Moradores', route: '/moradores' },
-      { label: 'Proprietários', route: '/proprietarios' },
-      { label: 'Locatários', route: '/locatarios' },
+      { label: 'Ocupantes e Proprietários', route: '/ocupantes-proprietarios' },
       { label: 'Prestadores (unidade)', route: '/prestadores-unidade' },
       { label: 'Visitantes', route: '/visitantes' },
       { label: 'Representantes legais', route: '/representantes-legais' },
-      { label: 'Colaborador', route: '/colaboradores' },
+      { label: 'Colaboradores', route: '/colaboradores' },
       { label: 'Prestadores (condomínio)', route: '/prestadores' },
       { label: 'Fornecedores', route: '/fornecedores' },
-      { label: 'Síndicos', route: '/sindicos' },
-      { label: 'Subsíndicos', route: '/subsindicos' },
-      { label: 'Conselheiros', route: '/conselheiros' },
-      { label: 'Administradoras', route: '/administradoras' },
+      { label: 'Gestores', route: '/gestores' },
       { label: 'Entregadores', route: '/entregadores' },
       { label: 'Funções de colaborador', route: '/funcaocolaborador' },
       { label: 'Convites', route: '/convites' }
@@ -383,6 +383,12 @@ export class AppComponent implements OnInit {
     }
     if (path === 'colaboradores' || path.startsWith('colaboradores/')) {
       return this.permissions.canAny([...CHAVES_PERMISSAO_COLABORADOR], 'Visualizar');
+    }
+    if (path === 'ocupantes-proprietarios' || path.startsWith('ocupantes-proprietarios/')) {
+      return this.permissions.canAny([...CHAVES_PERMISSAO_OCUPANTE], 'Visualizar');
+    }
+    if (path === 'gestores' || path.startsWith('gestores/')) {
+      return this.permissions.canAny([...CHAVES_PERMISSAO_GESTOR], 'Visualizar');
     }
     return this.permissions.can(this.keyOf(route), 'Visualizar');
   }

@@ -5,11 +5,23 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ScoInfrastructureProject>$(MSBuildThisFileDirectory)..\..\..\SCO\src\ControleOcorrencias.Infrastructure\ControleOcorrencias.Infrastructure.csproj</ScoInfrastructureProject>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="Exists('$(ScoInfrastructureProject)')">
+    <DefineConstants>$(DefineConstants);HAS_SCO_REFERENCE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AppCondominium.Infrastructure\AppCondominium.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\SCO\src\ControleOcorrencias.Infrastructure\ControleOcorrencias.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('$(ScoInfrastructureProject)')">
+    <ProjectReference Include="$(ScoInfrastructureProject)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!Exists('$(ScoInfrastructureProject)')">
+    <Compile Remove="SmtpConfigScoTransfer.cs" />
   </ItemGroup>
 
   <ItemGroup>

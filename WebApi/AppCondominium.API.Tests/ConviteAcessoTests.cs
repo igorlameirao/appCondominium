@@ -131,7 +131,7 @@ public class ConviteAcessoTests
             db,
             tenant,
             new PessoaVinculoService(db, tenant),
-            new PessoaCadastroService(db),
+            new PessoaCadastroService(db, new FotoPerfilNula()),
             new PermissionResolver(db),
             new FakeEmailSender(emailOk),
             Options.Create(new ConviteOptions { ValidadeHoras = 48, AceiteBaseUrl = "https://test/convite/aceitar" }),

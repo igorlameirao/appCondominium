@@ -5,8 +5,10 @@ import {
   EventEmitter,
   HostListener,
   Input,
+  OnChanges,
   OnDestroy,
   Output,
+  SimpleChanges,
   ViewChild,
   inject,
 } from '@angular/core';
@@ -22,7 +24,7 @@ let proximoMenuId = 0;
   imports: [Icone, AnexarAoBodyDirective],
   templateUrl: './usuario-foto.component.html',
 })
-export class UsuarioFotoComponent implements OnDestroy {
+export class UsuarioFotoComponent implements OnChanges, OnDestroy {
   private cd = inject(ChangeDetectorRef);
 
   @Input() fotoUrl: string | null = null;
@@ -54,13 +56,30 @@ export class UsuarioFotoComponent implements OnDestroy {
   private stream: MediaStream | null = null;
   private quadro: HTMLCanvasElement | null = null;
   private pedidoCamera = 0;
+  /** Prévia local até o pai atualizar @Input fotoUrl (ex.: captura ainda não gravada). */
+  private fotoPreviewLocal: string | null = null;
+  private fotoPreviewLocalEhBlob = false;
 
   get iniciais(): string {
     return iniciaisDeNome(this.nome);
   }
 
+  get urlFotoExibida(): string | null {
+    return this.fotoPreviewLocal ?? this.fotoUrl;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['fotoUrl']) return;
+    if (this.fotoUrl) {
+      this.limparFotoPreviewLocal();
+    } else if (!this.fotoPreviewLocal) {
+      this.cd.markForCheck();
+    }
+  }
+
   ngOnDestroy(): void {
     this.encerrarCamera();
+    this.limparFotoPreviewLocal();
   }
 
   aoClicarAvatar(evento: MouseEvent): void {
@@ -80,7 +99,9 @@ export class UsuarioFotoComponent implements OnDestroy {
       this.cd.detectChanges();
       return;
     }
+    this.definirFotoPreviewLocal(URL.createObjectURL(arquivo), true);
     this.fotoSelecionada.emit(arquivo);
+    this.cd.detectChanges();
   }
 
   alternarMenuFoto(evento: Event): void {
@@ -112,7 +133,7 @@ export class UsuarioFotoComponent implements OnDestroy {
   }
 
   pedirRemocao(): void {
-    if (!this.fotoUrl) return;
+    if (!this.urlFotoExibida) return;
     this.fecharMenuFoto();
     this.confirmarRemocao = true;
     this.cd.detectChanges();
@@ -124,7 +145,9 @@ export class UsuarioFotoComponent implements OnDestroy {
 
   confirmarRemocaoFoto(): void {
     this.confirmarRemocao = false;
+    this.limparFotoPreviewLocal();
     this.fotoRemovida.emit();
+    this.cd.detectChanges();
   }
 
   aoTeclaMenu(evento: KeyboardEvent): void {
@@ -230,6 +253,9 @@ export class UsuarioFotoComponent implements OnDestroy {
         this.cd.detectChanges();
         return;
       }
+      if (this.fotoCapturada) {
+        this.definirFotoPreviewLocal(this.fotoCapturada, false);
+      }
       this.fotoSelecionada.emit(new File([blob], `captura-${Date.now()}.jpg`, { type: 'image/jpeg' }));
       this.fecharCaptura();
       this.cd.detectChanges();
@@ -306,5 +332,19 @@ export class UsuarioFotoComponent implements OnDestroy {
     this.stream = null;
     const elemento = this.preview?.nativeElement;
     if (elemento) elemento.srcObject = null;
+  }
+
+  private definirFotoPreviewLocal(url: string, ehBlob: boolean): void {
+    this.limparFotoPreviewLocal();
+    this.fotoPreviewLocal = url;
+    this.fotoPreviewLocalEhBlob = ehBlob;
+  }
+
+  private limparFotoPreviewLocal(): void {
+    if (this.fotoPreviewLocalEhBlob && this.fotoPreviewLocal?.startsWith('blob:')) {
+      URL.revokeObjectURL(this.fotoPreviewLocal);
+    }
+    this.fotoPreviewLocal = null;
+    this.fotoPreviewLocalEhBlob = false;
   }
 }

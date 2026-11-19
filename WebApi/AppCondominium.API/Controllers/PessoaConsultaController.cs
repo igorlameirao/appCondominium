@@ -44,6 +44,15 @@ public class PessoaConsultaController : ControllerBase
         {
             escopoPapel ??= def.EscopoPapel == "qualquer" ? null : def.EscopoPapel;
             codigosPapel ??= def.CodigosPapel;
+            if (vigente is null)
+            {
+                vigente = situacao?.Trim().ToLowerInvariant() switch
+                {
+                    "ativo" => true,
+                    "encerrado" => false,
+                    _ => null
+                };
+            }
             vigente ??= true;
             if (def.TipoPessoa == "PF") tipo = "PF";
         }
@@ -113,6 +122,10 @@ public class PessoaConsultaController : ControllerBase
     {
         if (string.Equals(def.Id, "colaborador", StringComparison.OrdinalIgnoreCase))
             return ["COLABORADORES", "FUNCIONARIOS", "TERCEIRIZADOS"];
+        if (string.Equals(def.Id, "ocupante-proprietario", StringComparison.OrdinalIgnoreCase))
+            return ["OCUPANTESPROPRIETARIOS", "MORADORES", "PROPRIETARIOS", "LOCATARIOS"];
+        if (string.Equals(def.Id, "gestores", StringComparison.OrdinalIgnoreCase))
+            return ["GESTORES", "SINDICOS", "SUBSINDICOS", "CONSELHEIROS", "ADMINISTRADORAS"];
         return [def.PermissionKey];
     }
 

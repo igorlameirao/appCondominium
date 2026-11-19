@@ -10,6 +10,9 @@ export interface PessoaFisicaIntegradaRequest {
   dataNascimento?: string;
   email?: string;
   senha?: string;
+  fotoPerfilBase64?: string;
+  fotoPerfilContentType?: string;
+  fotoPerfilRemover?: boolean;
 }
 
 export interface PessoaFisicaIntegradaResponse {

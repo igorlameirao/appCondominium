@@ -69,6 +69,49 @@ public class PessoaConsultaTenantTests
         Assert.Equal("Unidade 101", item.UnidadeResumo);
     }
 
+    [Fact]
+    public async Task Lista_gestores_retorna_somente_vinculos_de_gestao_com_tipo()
+    {
+        await using var db = await CriarDb();
+        var tenant = new TenantMutavel(1);
+        var svc = new PessoaConsultaService(db, tenant);
+        db.Pessoa.Add(new Pessoa { IdPessoa = 1, Nome = "Ana Gestora", CPFCNPJ = "39053344705" });
+        db.Pessoa.Add(new Pessoa { IdPessoa = 2, Nome = "Bruno Fornecedor", CPFCNPJ = "15350946056" });
+        db.Pessoafisica.Add(new Pessoafisica { IdPessoa = 1, DataNascimento = new DateOnly(1990, 1, 1) });
+        db.Pessoafisica.Add(new Pessoafisica { IdPessoa = 2, DataNascimento = new DateOnly(1980, 1, 1) });
+        db.PapelVinculo.Add(new PapelVinculo { CodigoPapelVinculo = 10, Descricao = "Síndico", EscopoPapel = 1 });
+        db.PapelVinculo.Add(new PapelVinculo { CodigoPapelVinculo = 12, Descricao = "Conselheiro", EscopoPapel = 1 });
+        db.PapelVinculo.Add(new PapelVinculo { CodigoPapelVinculo = 17, Descricao = "Fornecedor", EscopoPapel = 1 });
+        db.PessoaVinculo.Add(new PessoaVinculo
+        {
+            IdPessoa = 1, IdCondominio = 1, CodigoPapelVinculo = 10,
+            DataInicio = new DateOnly(2024, 1, 1), Responsavel = 0
+        });
+        db.PessoaVinculo.Add(new PessoaVinculo
+        {
+            IdPessoa = 1, IdCondominio = 1, CodigoPapelVinculo = 12,
+            DataInicio = new DateOnly(2023, 1, 1), DataFim = new DateOnly(2023, 12, 31), Responsavel = 0
+        });
+        db.PessoaVinculo.Add(new PessoaVinculo
+        {
+            IdPessoa = 2, IdCondominio = 1, CodigoPapelVinculo = 17,
+            DataInicio = new DateOnly(2024, 1, 1), Responsavel = 0
+        });
+        await db.SaveChangesAsync();
+
+        var codigosGestor = new uint[] { 10, 11, 12, 13 };
+        var lista = await svc.ListarAsync(1, 20, null, "PF", null, "condominio", codigosGestor, true);
+        Assert.Single(lista.Items);
+        Assert.Equal(1u, lista.Items[0].IdPessoa);
+        Assert.Equal(10u, lista.Items[0].CodigoPapelVinculo);
+
+        var todas = await svc.ListarAsync(1, 20, null, "PF", null, "condominio", codigosGestor, null);
+        Assert.Equal(2, todas.Items.Count);
+        Assert.All(todas.Items, i => Assert.Equal(1u, i.IdPessoa));
+        Assert.Contains(todas.Items, i => i.CodigoPapelVinculo == 10);
+        Assert.Contains(todas.Items, i => i.CodigoPapelVinculo == 12);
+    }
+
     private static async Task<AppDbContext> CriarDb()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()

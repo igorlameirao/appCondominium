@@ -15,6 +15,8 @@ export interface PessoaListagemItem {
   unidadeResumo?: string;
   idVinculoPrincipal?: number;
   codigoPapelVinculo?: number;
+  tipoOcupacaoResumo?: string;
+  moradorAtivo?: boolean;
 }
 
 export interface PessoaPorDocumento {

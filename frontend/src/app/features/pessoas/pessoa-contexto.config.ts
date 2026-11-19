@@ -2,7 +2,7 @@ import { PapelVinculoCodigo } from './pessoa-contexto-codigos';
 
 export type TipoPessoaContexto = 'PF' | 'PF_OU_PJ' | 'ANY';
 export type EscopoPapelContexto = 'unidade' | 'condominio' | 'pessoa' | 'qualquer';
-export type AbaPessoa = 'dados' | 'contatos' | 'enderecos' | 'vinculoContexto' | 'vinculos' | 'autorizacoes';
+export type AbaPessoa = 'dados' | 'foto' | 'contatos' | 'enderecos' | 'vinculoContexto' | 'vinculos' | 'autorizacoes';
 export type TipoDadoVinculo = 'colaborador' | 'fornecedor';
 
 export interface CamposObrigatoriosContexto {
@@ -30,7 +30,7 @@ export interface PessoaContextoConfig {
   abasDetalhe: AbaPessoa[];
   vinculoContexto: { tiposDado: TipoDadoVinculo[] };
   camposObrigatorios: CamposObrigatoriosContexto;
-  inclusao: { codigoPapelPadrao: number; documento: 'cpf' | 'cpf_ou_cnpj'; tipoColaborador?: 1 | 2 } | null;
+  inclusao: { codigoPapelPadrao: number; documento: 'cpf' | 'cpf_ou_cnpj' | 'cnpj'; tipoColaborador?: 1 | 2 } | null;
 }
 
 const vinculoUnidade = ['codigoPapelVinculo', 'idUnidade', 'dataInicio'];
@@ -69,26 +69,10 @@ export const PESSOA_CONTEXTOS: PessoaContextoConfig[] = [
     tipoPessoa: 'ANY',
     escopoPapel: 'qualquer',
     codigosPapel: [],
-    abasDetalhe: ['dados', 'contatos', 'enderecos', 'vinculos', 'autorizacoes'],
+    abasDetalhe: ['dados', 'foto', 'contatos', 'enderecos', 'vinculos', 'autorizacoes'],
     vinculoContexto: { tiposDado: [] },
     camposObrigatorios: campos([], []),
     inclusao: null,
-  }),
-  ctx({
-    id: 'proprietario',
-    routeLista: '/proprietarios',
-    routeDetalhe: '/proprietarios/:idPessoa',
-    routeNovo: '/proprietarios/novo',
-    permissionKey: 'PROPRIETARIOS',
-    tituloLista: 'Proprietários',
-    subtituloLista: 'Pessoas com vínculo de proprietário na unidade',
-    tipoPessoa: 'PF_OU_PJ',
-    escopoPapel: 'unidade',
-    codigosPapel: [PapelVinculoCodigo.proprietario],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto', 'enderecos'],
-    vinculoContexto: { tiposDado: [] },
-    camposObrigatorios: campos(pessoaPjOuPf, vinculoUnidade),
-    inclusao: { codigoPapelPadrao: PapelVinculoCodigo.proprietario, documento: 'cpf_ou_cnpj' },
   }),
   ctx({
     id: 'prestador-unidade',
@@ -101,42 +85,31 @@ export const PESSOA_CONTEXTOS: PessoaContextoConfig[] = [
     tipoPessoa: 'PF',
     escopoPapel: 'unidade',
     codigosPapel: [PapelVinculoCodigo.prestadorUnidade],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto', 'enderecos'],
+    abasDetalhe: ['dados', 'foto', 'contatos', 'vinculoContexto', 'enderecos'],
     vinculoContexto: { tiposDado: [] },
     camposObrigatorios: campos(pessoaPf, vinculoUnidade),
     inclusao: { codigoPapelPadrao: PapelVinculoCodigo.prestadorUnidade, documento: 'cpf' },
   }),
   ctx({
-    id: 'morador',
-    routeLista: '/moradores',
-    routeDetalhe: '/moradores/:idPessoa',
-    routeNovo: '/moradores/novo',
-    permissionKey: 'MORADORES',
-    tituloLista: 'Moradores',
-    subtituloLista: 'Pessoas físicas com vínculo de morador na unidade',
-    tipoPessoa: 'PF',
-    escopoPapel: 'unidade',
-    codigosPapel: [PapelVinculoCodigo.morador],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto', 'enderecos'],
-    vinculoContexto: { tiposDado: [] },
-    camposObrigatorios: campos(pessoaPf, vinculoUnidade),
-    inclusao: { codigoPapelPadrao: PapelVinculoCodigo.morador, documento: 'cpf' },
-  }),
-  ctx({
-    id: 'locatario',
-    routeLista: '/locatarios',
-    routeDetalhe: '/locatarios/:idPessoa',
-    routeNovo: '/locatarios/novo',
-    permissionKey: 'LOCATARIOS',
-    tituloLista: 'Locatários',
-    subtituloLista: 'Pessoas com vínculo de locatário na unidade',
+    id: 'ocupante-proprietario',
+    routeLista: '/ocupantes-proprietarios',
+    routeDetalhe: '/ocupantes-proprietarios/:idPessoa',
+    routeNovo: '/ocupantes-proprietarios/novo',
+    permissionKey: 'OCUPANTESPROPRIETARIOS',
+    tituloLista: 'Ocupantes e Proprietários',
+    subtituloLista: 'Proprietários, locatários, dependentes e vínculo de morador na unidade',
     tipoPessoa: 'PF_OU_PJ',
     escopoPapel: 'unidade',
-    codigosPapel: [PapelVinculoCodigo.locatario],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto', 'enderecos'],
+    codigosPapel: [
+      PapelVinculoCodigo.proprietario,
+      PapelVinculoCodigo.morador,
+      PapelVinculoCodigo.locatario,
+      PapelVinculoCodigo.dependenteUnidade,
+    ],
+    abasDetalhe: ['dados', 'foto', 'contatos', 'vinculoContexto', 'enderecos'],
     vinculoContexto: { tiposDado: [] },
     camposObrigatorios: campos(pessoaPjOuPf, vinculoUnidade),
-    inclusao: { codigoPapelPadrao: PapelVinculoCodigo.locatario, documento: 'cpf_ou_cnpj' },
+    inclusao: { codigoPapelPadrao: PapelVinculoCodigo.proprietario, documento: 'cpf_ou_cnpj' },
   }),
   ctx({
     id: 'visitante',
@@ -149,7 +122,7 @@ export const PESSOA_CONTEXTOS: PessoaContextoConfig[] = [
     tipoPessoa: 'PF',
     escopoPapel: 'unidade',
     codigosPapel: [PapelVinculoCodigo.visitante],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto', 'autorizacoes'],
+    abasDetalhe: ['dados', 'foto', 'contatos', 'vinculoContexto', 'autorizacoes'],
     vinculoContexto: { tiposDado: [] },
     camposObrigatorios: campos(pessoaPf, vinculoUnidade),
     inclusao: { codigoPapelPadrao: PapelVinculoCodigo.visitante, documento: 'cpf' },
@@ -165,7 +138,7 @@ export const PESSOA_CONTEXTOS: PessoaContextoConfig[] = [
     tipoPessoa: 'PF',
     escopoPapel: 'pessoa',
     codigosPapel: [PapelVinculoCodigo.representanteLegal],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto'],
+    abasDetalhe: ['dados', 'foto', 'contatos', 'vinculoContexto'],
     vinculoContexto: { tiposDado: [] },
     camposObrigatorios: campos(pessoaPf, vinculoPessoa),
     inclusao: { codigoPapelPadrao: PapelVinculoCodigo.representanteLegal, documento: 'cpf' },
@@ -181,7 +154,7 @@ export const PESSOA_CONTEXTOS: PessoaContextoConfig[] = [
     tipoPessoa: 'PF',
     escopoPapel: 'condominio',
     codigosPapel: [PapelVinculoCodigo.prestadorCondominio],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto', 'enderecos'],
+    abasDetalhe: ['dados', 'foto', 'contatos', 'vinculoContexto', 'enderecos'],
     vinculoContexto: { tiposDado: [] },
     camposObrigatorios: campos(pessoaPf, vinculoCondominio),
     inclusao: { codigoPapelPadrao: PapelVinculoCodigo.prestadorCondominio, documento: 'cpf' },
@@ -197,74 +170,31 @@ export const PESSOA_CONTEXTOS: PessoaContextoConfig[] = [
     tipoPessoa: 'PF_OU_PJ',
     escopoPapel: 'condominio',
     codigosPapel: [PapelVinculoCodigo.fornecedor],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto', 'enderecos'],
+    abasDetalhe: ['dados', 'foto', 'contatos', 'vinculoContexto', 'enderecos'],
     vinculoContexto: { tiposDado: [] },
     camposObrigatorios: campos(pessoaPjOuPf, vinculoCondominio),
     inclusao: { codigoPapelPadrao: PapelVinculoCodigo.fornecedor, documento: 'cpf_ou_cnpj' },
   }),
   ctx({
-    id: 'conselheiro',
-    routeLista: '/conselheiros',
-    routeDetalhe: '/conselheiros/:idPessoa',
-    routeNovo: '/conselheiros/novo',
-    permissionKey: 'CONSELHEIROS',
-    tituloLista: 'Conselheiros',
-    subtituloLista: 'Conselheiros do condomínio',
+    id: 'gestores',
+    routeLista: '/gestores',
+    routeDetalhe: '/gestores/:idPessoa',
+    routeNovo: '/gestores/novo',
+    permissionKey: 'GESTORES',
+    tituloLista: 'Gestores',
+    subtituloLista: 'Síndicos, subsíndicos, conselheiros e administradoras do condomínio',
     tipoPessoa: 'PF',
     escopoPapel: 'condominio',
-    codigosPapel: [PapelVinculoCodigo.conselheiro],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto'],
-    vinculoContexto: { tiposDado: [] },
-    camposObrigatorios: campos(pessoaPf, vinculoCondominio),
-    inclusao: { codigoPapelPadrao: PapelVinculoCodigo.conselheiro, documento: 'cpf' },
-  }),
-  ctx({
-    id: 'administradora',
-    routeLista: '/administradoras',
-    routeDetalhe: '/administradoras/:idPessoa',
-    routeNovo: '/administradoras/novo',
-    permissionKey: 'ADMINISTRADORAS',
-    tituloLista: 'Administradoras',
-    subtituloLista: 'Pessoas físicas com papel de administradora no condomínio',
-    tipoPessoa: 'PF',
-    escopoPapel: 'condominio',
-    codigosPapel: [PapelVinculoCodigo.administradora],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto'],
-    vinculoContexto: { tiposDado: [] },
-    camposObrigatorios: campos(pessoaPf, vinculoCondominio),
-    inclusao: { codigoPapelPadrao: PapelVinculoCodigo.administradora, documento: 'cpf' },
-  }),
-  ctx({
-    id: 'sindico',
-    routeLista: '/sindicos',
-    routeDetalhe: '/sindicos/:idPessoa',
-    routeNovo: '/sindicos/novo',
-    permissionKey: 'SINDICOS',
-    tituloLista: 'Síndicos',
-    subtituloLista: 'Síndicos do condomínio',
-    tipoPessoa: 'PF',
-    escopoPapel: 'condominio',
-    codigosPapel: [PapelVinculoCodigo.sindico],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto'],
+    codigosPapel: [
+      PapelVinculoCodigo.sindico,
+      PapelVinculoCodigo.subsindico,
+      PapelVinculoCodigo.conselheiro,
+      PapelVinculoCodigo.administradora,
+    ],
+    abasDetalhe: ['dados', 'foto', 'contatos', 'vinculoContexto'],
     vinculoContexto: { tiposDado: [] },
     camposObrigatorios: campos(pessoaPf, vinculoCondominio),
     inclusao: { codigoPapelPadrao: PapelVinculoCodigo.sindico, documento: 'cpf' },
-  }),
-  ctx({
-    id: 'subsindico',
-    routeLista: '/subsindicos',
-    routeDetalhe: '/subsindicos/:idPessoa',
-    routeNovo: '/subsindicos/novo',
-    permissionKey: 'SUBSINDICOS',
-    tituloLista: 'Subsíndicos',
-    subtituloLista: 'Subsíndicos do condomínio',
-    tipoPessoa: 'PF',
-    escopoPapel: 'condominio',
-    codigosPapel: [PapelVinculoCodigo.subsindico],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto'],
-    vinculoContexto: { tiposDado: [] },
-    camposObrigatorios: campos(pessoaPf, vinculoCondominio),
-    inclusao: { codigoPapelPadrao: PapelVinculoCodigo.subsindico, documento: 'cpf' },
   }),
   ctx({
     id: 'colaborador',
@@ -272,12 +202,12 @@ export const PESSOA_CONTEXTOS: PessoaContextoConfig[] = [
     routeDetalhe: '/colaboradores/:idPessoa',
     routeNovo: '/colaboradores/novo',
     permissionKey: 'COLABORADORES',
-    tituloLista: 'Colaborador',
+    tituloLista: 'Colaboradores',
     subtituloLista: 'Funcionários e terceirizados do condomínio',
     tipoPessoa: 'PF',
     escopoPapel: 'condominio',
     codigosPapel: [PapelVinculoCodigo.funcionario, PapelVinculoCodigo.terceirizado],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto', 'enderecos'],
+    abasDetalhe: ['dados', 'foto', 'contatos', 'vinculoContexto', 'enderecos'],
     vinculoContexto: { tiposDado: ['colaborador'] },
     camposObrigatorios: campos(pessoaPf, vinculoCondominio, colaboradorObrigatorio),
     inclusao: { codigoPapelPadrao: PapelVinculoCodigo.funcionario, documento: 'cpf', tipoColaborador: 1 },
@@ -293,7 +223,7 @@ export const PESSOA_CONTEXTOS: PessoaContextoConfig[] = [
     tipoPessoa: 'PF',
     escopoPapel: 'condominio',
     codigosPapel: [PapelVinculoCodigo.entregador],
-    abasDetalhe: ['dados', 'contatos', 'vinculoContexto', 'autorizacoes'],
+    abasDetalhe: ['dados', 'foto', 'contatos', 'vinculoContexto', 'autorizacoes'],
     vinculoContexto: { tiposDado: [] },
     camposObrigatorios: campos(pessoaPf, vinculoCondominio),
     inclusao: { codigoPapelPadrao: PapelVinculoCodigo.entregador, documento: 'cpf' },
@@ -314,6 +244,53 @@ export const CHAVES_PERMISSAO_COLABORADOR = ['COLABORADORES', 'FUNCIONARIOS', 'T
 
 export function ehContextoColaborador(id: string | null | undefined): boolean {
   return id === 'colaborador';
+}
+
+export const CHAVES_PERMISSAO_OCUPANTE = [
+  'OCUPANTESPROPRIETARIOS',
+  'MORADORES',
+  'PROPRIETARIOS',
+  'LOCATARIOS',
+] as const;
+
+export function ehContextoOcupante(id: string | null | undefined): boolean {
+  return id === 'ocupante-proprietario';
+}
+
+export const CHAVES_PERMISSAO_GESTOR = [
+  'GESTORES',
+  'SINDICOS',
+  'SUBSINDICOS',
+  'CONSELHEIROS',
+  'ADMINISTRADORAS',
+] as const;
+
+export function ehContextoGestor(id: string | null | undefined): boolean {
+  return id === 'gestores';
+}
+
+export function rotuloTipoOcupacao(codigoPapel?: number | null, papelResumo?: string | null): string {
+  if (codigoPapel === PapelVinculoCodigo.proprietario) return 'Proprietário';
+  if (codigoPapel === PapelVinculoCodigo.locatario) return 'Locatário';
+  if (codigoPapel === PapelVinculoCodigo.dependenteUnidade) return 'Dependente';
+  const p = (papelResumo ?? '').toLowerCase();
+  if (p.includes('propriet')) return 'Proprietário';
+  if (p.includes('locat')) return 'Locatário';
+  if (p.includes('depend')) return 'Dependente';
+  return papelResumo ?? '—';
+}
+
+export function rotuloTipoGestor(codigoPapel?: number | null, papelResumo?: string | null): string {
+  if (codigoPapel === PapelVinculoCodigo.sindico) return 'Síndico';
+  if (codigoPapel === PapelVinculoCodigo.subsindico) return 'Subsíndico';
+  if (codigoPapel === PapelVinculoCodigo.conselheiro) return 'Conselheiro';
+  if (codigoPapel === PapelVinculoCodigo.administradora) return 'Administração';
+  const p = (papelResumo ?? '').toLowerCase();
+  if (p.includes('subsínd') || p.includes('subsind')) return 'Subsíndico';
+  if (p.includes('sínd') || p.includes('sind')) return 'Síndico';
+  if (p.includes('conselh')) return 'Conselheiro';
+  if (p.includes('administr')) return 'Administração';
+  return papelResumo ?? '—';
 }
 
 export function rotuloTipoColaborador(codigoPapel?: number | null, papelResumo?: string | null): string {

@@ -77,7 +77,7 @@ public class ContaFotoStorageTests
         });
         var controller = new ContaController(
             db, tenant, new PermissaoVazia(), new SenhaNula(),
-            new ArquivoAplicacao(arquivos), chaves, new FaceEmbeddingSync(db));
+            new ArquivoAplicacao(arquivos), chaves, new FaceEmbeddingSync(db, arquivos, chaves, new GeradorEmbeddingVazio()));
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
@@ -179,4 +179,10 @@ public class ContaFotoStorageTests
         public void Clear() => IdCondominio = null;
         public uint RequireTenantId() => IdCondominio ?? throw new InvalidOperationException();
     }
+}
+
+internal sealed class GeradorEmbeddingVazio : IFaceEmbeddingGenerator
+{
+    public bool Disponivel => false;
+    public Task<float[]?> GerarAsync(Stream imagem, CancellationToken ct = default) => Task.FromResult<float[]?>(null);
 }

@@ -15,19 +15,22 @@ public class PessoaContextoInclusaoService : IPessoaContextoInclusaoService
     private readonly IPessoaCadastroService _cadastro;
     private readonly IPessoaVinculoService _vinculos;
     private readonly IColaboradorService _colaborador;
+    private readonly IPessoaFotoPerfilService _fotoPerfil;
 
     public PessoaContextoInclusaoService(
         AppDbContext db,
         ICondominioContext tenant,
         IPessoaCadastroService cadastro,
         IPessoaVinculoService vinculos,
-        IColaboradorService colaborador)
+        IColaboradorService colaborador,
+        IPessoaFotoPerfilService fotoPerfil)
     {
         _db = db;
         _tenant = tenant;
         _cadastro = cadastro;
         _vinculos = vinculos;
         _colaborador = colaborador;
+        _fotoPerfil = fotoPerfil;
     }
 
     public async Task<PessoaContextoGravacaoResponse> GravarAsync(
@@ -98,6 +101,9 @@ public class PessoaContextoInclusaoService : IPessoaContextoInclusaoService
         }
 
         var codigo = ResolverCodigoPapel(def, request);
+        if (codigo == PapelVinculoCodigos.DependenteUnidade && ehCnpj)
+            throw new InvalidOperationException("Dependente aceita somente pessoa física (CPF).");
+
         var vinculo = await LocalizarVinculoAbertoAsync(id, def, request, codigo, ct);
         var inclusaoVinculo = vinculo is null;
         vinculo ??= new PessoaVinculo
@@ -130,6 +136,23 @@ public class PessoaContextoInclusaoService : IPessoaContextoInclusaoService
 
         if (codigo == PapelVinculoCodigos.Fornecedor)
             await GarantirFornecedorAsync(id, ct);
+
+        if (string.Equals(def.Id, "ocupante-proprietario", StringComparison.OrdinalIgnoreCase)
+            && request.IdUnidade is uint idUnidadeCtx)
+        {
+            var ehMorador = request.EhMorador == true || codigo == PapelVinculoCodigos.DependenteUnidade;
+            await SincronizarVinculoMoradorAsync(id, idUnidadeCtx, request.DataInicio!.Value, request.DataFim, ehMorador, ct);
+        }
+
+        if (!ehCnpj)
+        {
+            await _fotoPerfil.AplicarAsync(
+                id,
+                request.FotoPerfilBase64,
+                request.FotoPerfilContentType,
+                request.FotoPerfilRemover == true,
+                ct);
+        }
 
         return new PessoaContextoGravacaoResponse
         {
@@ -167,10 +190,61 @@ public class PessoaContextoInclusaoService : IPessoaContextoInclusaoService
         await _db.SaveChangesAsync(ct);
     }
 
+    private async Task SincronizarVinculoMoradorAsync(
+        uint idPessoa, uint idUnidade, DateOnly dataInicio, DateOnly? dataFim, bool ehMorador, CancellationToken ct)
+    {
+        var tenantId = _tenant.RequireTenantId();
+        var aberto = await _db.PessoaVinculo.FirstOrDefaultAsync(v =>
+            v.IdPessoa == idPessoa
+            && v.IdCondominio == tenantId
+            && v.IdUnidade == idUnidade
+            && v.CodigoPapelVinculo == PapelVinculoCodigos.Morador
+            && v.DataFim == null, ct);
+
+        if (ehMorador)
+        {
+            if (aberto is null)
+            {
+                aberto = new PessoaVinculo
+                {
+                    IdPessoa = idPessoa,
+                    IdCondominio = tenantId,
+                    IdUnidade = idUnidade,
+                    CodigoPapelVinculo = PapelVinculoCodigos.Morador,
+                    DataInicio = dataInicio,
+                    DataFim = dataFim,
+                    Responsavel = 0
+                };
+                await _vinculos.ValidarAntesGravarAsync(aberto, true, ct);
+                _db.PessoaVinculo.Add(aberto);
+            }
+            else
+            {
+                aberto.DataInicio = dataInicio;
+                aberto.DataFim = dataFim;
+            }
+            await _db.SaveChangesAsync(ct);
+            await _vinculos.AplicarAjustesAposGravarAsync(aberto, ct);
+            return;
+        }
+
+        if (aberto is null) return;
+        aberto.DataFim = dataFim ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        await _db.SaveChangesAsync(ct);
+    }
+
     private static uint ResolverCodigoPapel(PessoaContextoDefinicao def, PessoaContextoGravacaoRequest request)
     {
         if (request.CodigoPapelVinculo is uint escolhido && def.CodigosPapel.Contains(escolhido))
-            return escolhido;
+        {
+            if (string.Equals(def.Id, "ocupante-proprietario", StringComparison.OrdinalIgnoreCase)
+                && escolhido == PapelVinculoCodigos.Morador)
+            { /* morador é vínculo complementar */ }
+            else
+                return escolhido;
+        }
+        if (string.Equals(def.Id, "ocupante-proprietario", StringComparison.OrdinalIgnoreCase))
+            return PapelVinculoCodigos.Proprietario;
         if (def.CodigosPapel.Length == 1)
             return def.CodigosPapel[0];
         if (request.TipoColaborador == TipoColaboradorCodigos.Terceirizado)

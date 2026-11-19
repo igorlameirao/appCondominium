@@ -13,12 +13,12 @@ import { PessoaJuridicaIntegradaRequest } from '../../core/services/pessoa-cadas
   template: `
     <ng-container [ngSwitch]="secao">
       <div *ngSwitchCase="'dados'" class="form-grid pessoa-pj-dados">
-        <div class="form-group pessoa-pj-dados__doc">
+        <div class="form-group pessoa-pj-dados__doc" *ngIf="!ocultarDocumento">
           <label>CNPJ *</label>
           <app-documento-input [(ngModel)]="model.cpfcnpj" name="cpfcnpjPj" tipo="cnpj"
             [disabled]="documentoBloqueado" [required]="true" (blurCommit)="documentoInformado.emit($event)" />
         </div>
-        <div class="form-group pessoa-pj-dados__razao">
+        <div class="form-group pessoa-pj-dados__razao" *ngIf="!ocultarNome">
           <label>Razão social *</label>
           <input type="text" [(ngModel)]="model.nome" name="nomePj" required maxlength="255"
             [readonly]="desabilitado" />
@@ -109,5 +109,7 @@ export class PessoaPjCamposComponent {
   @Input() documentoBloqueado = false;
   @Input() desabilitado = false;
   @Input() responsaveis: ComboboxOption[] = [];
+  @Input() ocultarDocumento = false;
+  @Input() ocultarNome = false;
   @Output() documentoInformado = new EventEmitter<string>();
 }

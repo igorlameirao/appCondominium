@@ -14,17 +14,17 @@ import { Icone } from '../../shared/icone';
   template: `
     <ng-container [ngSwitch]="secao">
       <div *ngSwitchCase="'dados'" class="form-grid pessoa-pf-dados">
-        <div class="form-group pessoa-pf-dados__doc">
+        <div class="form-group pessoa-pf-dados__doc" *ngIf="!ocultarDocumento">
           <label>CPF *</label>
           <app-documento-input [(ngModel)]="model.cpfcnpj" name="cpfcnpjPf" tipo="cpf"
             [disabled]="documentoBloqueado" [required]="true" (blurCommit)="documentoInformado.emit($event)" />
         </div>
-        <div class="form-group pessoa-pf-dados__nome">
+        <div class="form-group pessoa-pf-dados__nome" *ngIf="!ocultarNome">
           <label>Nome *</label>
           <input type="text" [(ngModel)]="model.nome" name="nomePf" required maxlength="255"
             [readonly]="desabilitado" />
         </div>
-        <div class="form-group pessoa-pf-dados__nasc">
+        <div class="form-group pessoa-pf-dados__nasc" *ngIf="!ocultarDataNascimento">
           <label>Data de nascimento *</label>
           <app-campo-data [(ngModel)]="model.dataNascimento" name="dataNascimentoPf"
             [feedbackVisual]="true" [nascimento]="true" [required]="true" [disabled]="desabilitado" />
@@ -113,6 +113,12 @@ export class PessoaPfCamposComponent {
   @Input() secao: 'dados' | 'contatos' | 'completo' = 'completo';
   @Input() documentoBloqueado = false;
   @Input() desabilitado = false;
+  /** Documento preenchido no shell (detecção CPF/CNPJ). */
+  @Input() ocultarDocumento = false;
+  /** Nome na linha 1 do shell (aba Dados gerais). */
+  @Input() ocultarNome = false;
+  /** Data de nascimento abaixo do CPF no shell (aba Dados gerais). */
+  @Input() ocultarDataNascimento = false;
   @Input() exibirSenha = false;
   @Output() documentoInformado = new EventEmitter<string>();
 

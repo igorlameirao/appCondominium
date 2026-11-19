@@ -38,6 +38,7 @@ function valorCnpjAlfa(c: string): number {
 export function validarCnpjAlfanumerico(cnpj: string): boolean {
   const raw = (cnpj || '').replace(/[^0-9A-Za-z]/g, '').toUpperCase();
   if (raw.length !== 14) return false;
+  if (!/^\d$/.test(raw[12]) || !/^\d$/.test(raw[13])) return false;
   const w1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
   const w2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
   let s = 0;
@@ -58,9 +59,26 @@ export function validarCnpj(cnpj: string): boolean {
   return validarCnpjAlfanumerico(raw);
 }
 
+export function normalizarDocumento(valor: string): string {
+  return (valor || '').replace(/[^0-9A-Za-z]/g, '').toUpperCase();
+}
+
+/** 11 dígitos → PF; letras ou mais de 11 caracteres → PJ (14 sem máscara). */
+export function inferirTipoPessoaPorDocumento(valor: string): 'PF' | 'PJ' | null {
+  const raw = normalizarDocumento(valor);
+  if (!raw) return null;
+  if (/[A-Z]/.test(raw) || raw.length > 11) return 'PJ';
+  return 'PF';
+}
+
 export function validarCpfCnpj(valor: string): boolean {
-  const raw = (valor || '').replace(/[^0-9A-Za-z]/g, '');
-  if (raw.length <= 11) return validarCpf(raw.padStart(11, '0').slice(-11));
+  const raw = normalizarDocumento(valor);
+  if (!raw) return false;
+  if (inferirTipoPessoaPorDocumento(valor) === 'PF') {
+    if (raw.length !== 11) return false;
+    return validarCpf(raw);
+  }
+  if (raw.length !== 14) return false;
   return validarCnpj(valor);
 }
 
@@ -79,6 +97,19 @@ export function mascaraCnpj(v: string): string {
   if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
   if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
   return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
+}
+
+/** Máscara CPF ou CNPJ (numérico ou alfanumérico) conforme o conteúdo digitado. */
+export function mascaraDocumentoUnificado(v: string): string {
+  const raw = normalizarDocumento(v);
+  if (!raw) return '';
+  if (/[A-Z]/.test(raw) || raw.length > 11) return mascaraCnpj(v);
+  return mascaraCpf(v);
+}
+
+/** Até 14 caracteres alfanuméricos (CNPJ novo); CPF válido continua com 11 dígitos na validação. */
+export function limiteDocumentoUnificado(v: string): string {
+  return normalizarDocumento(v).slice(0, 14);
 }
 
 /** Máscara de exibição 99.999-999. No banco o CEP fica só com os dígitos. */
