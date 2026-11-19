@@ -3,9 +3,15 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
+import { LookupService } from '../../core/services/lookup.service';
 import { ToastService } from '../../core/services/toast.service';
 import { environment } from '../../../environments/environment';
 import { TenantHostService } from '../../core/services/tenant-host.service';
+import {
+  LOGIN_ARTE_LATERAL_PADRAO,
+  LOGIN_PAINEL_IMAGEM_PADRAO,
+  urlImagemLoginPainel
+} from './login-condominio-tema.util';
 import { LoginPassosComponent } from './login-passos.component';
 import { LoginSelecaoPerfilComponent } from './login-selecao-perfil.component';
 import { CondominioVinculo, PerfilVinculo, destinoNoTenant, mensagemErroLogin } from './login-fluxo';
@@ -29,7 +35,7 @@ import { LoginTrilha } from './login-trilha';
         <aside class="login-art" aria-hidden="true">
           <img
             class="login-art-img"
-            src="/assets/login/condominio-login.jpg"
+            [src]="loginArteLateral"
             alt=""
             width="1024"
             height="1024"
@@ -109,12 +115,13 @@ import { LoginTrilha } from './login-trilha';
               <div class="login-card-panel">
                 <div class="login-panel-logo-frame">
                   <img
-                    class="login-panel-logo"
-                    src="/assets/login/logo-appcondominium.jpg"
-                    alt="AppCondominium"
+                    class="login-panel-logo login-panel-logo--config"
+                    [src]="imagemPainelSrc"
+                    [alt]="nomeCondominio || 'AppCondominium'"
                     width="1024"
                     height="506"
-                    decoding="async" />
+                    decoding="async"
+                    (error)="imagemPainelSrc = imagemPainelPadrao" />
                 </div>
               </div>
             </div>
@@ -132,6 +139,9 @@ export class LoginCondominioComponent implements OnInit, OnDestroy {
   perfisTenant: PerfilVinculo[] = [];
   enviando = false;
   readonly trilha: LoginTrilha;
+  readonly loginArteLateral = LOGIN_ARTE_LATERAL_PADRAO;
+  readonly imagemPainelPadrao = LOGIN_PAINEL_IMAGEM_PADRAO;
+  imagemPainelSrc = LOGIN_PAINEL_IMAGEM_PADRAO;
 
   private vinculos: CondominioVinculo[] = [];
 
@@ -140,6 +150,7 @@ export class LoginCondominioComponent implements OnInit, OnDestroy {
     private auth: AuthService,
     private router: Router,
     private http: HttpClient,
+    private lookup: LookupService,
     private toast: ToastService,
     public tenantHost: TenantHostService,
     cd: ChangeDetectorRef
@@ -176,6 +187,7 @@ export class LoginCondominioComponent implements OnInit, OnDestroy {
 
     this.nomeCondominio = this.tenantHost.nomeCondominio;
     this.carregarNomeCondominio();
+    this.carregarImagemPainel();
   }
 
   ngOnDestroy(): void {
@@ -264,5 +276,18 @@ export class LoginCondominioComponent implements OnInit, OnDestroy {
         next: c => (this.nomeCondominio = c.nome ?? ''),
         error: () => {}
       });
+  }
+
+  private carregarImagemPainel(): void {
+    if (!this.idCondominio) return;
+    const id = this.idCondominio;
+    this.lookup.configuracaoPorCondominio(id).subscribe({
+      next: cfg => {
+        this.imagemPainelSrc = urlImagemLoginPainel(id, cfg) ?? this.imagemPainelPadrao;
+      },
+      error: () => {
+        this.imagemPainelSrc = this.imagemPainelPadrao;
+      }
+    });
   }
 }

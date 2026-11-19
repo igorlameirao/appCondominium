@@ -6,10 +6,12 @@ using AppCondominium.Application.Interfaces;
 using AppCondominium.Application.Storage;
 using AppCondominium.Domain.Entities;
 using AppCondominium.Infrastructure.Persistence;
+using AppCondominium.Infrastructure.Services;
 using AppCondominium.Infrastructure.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace AppCondominium.API.Tests;
@@ -77,7 +79,14 @@ public class ContaFotoStorageTests
         });
         var controller = new ContaController(
             db, tenant, new PermissaoVazia(), new SenhaNula(),
-            new ArquivoAplicacao(arquivos), chaves, new FaceEmbeddingSync(db, arquivos, chaves, new GeradorEmbeddingVazio()));
+
+        new ArquivoAplicacao(arquivos),
+           chaves,
+           new FaceEmbeddingSync(db, arquivos, chaves, new GeradorEmbeddingVazio()),
+           new EmailSenderVazio(),
+           new PreferenciaNotificacaoService(db),
+           NullLogger<ContaController>.Instance);
+      
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
@@ -170,6 +179,12 @@ public class ContaFotoStorageTests
     {
         public string Hash(string password) => password;
         public bool Verify(string password, string stored) => password == stored;
+    }
+
+    private sealed class EmailSenderVazio : IEmailSender
+    {
+        public Task<long> EnviarAsync(EmailMessage mensagem, CancellationToken ct = default) =>
+            Task.FromResult(0L);
     }
 
     private sealed class MutableTenant : ICondominioContext

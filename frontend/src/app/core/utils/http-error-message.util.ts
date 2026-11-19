@@ -21,7 +21,13 @@ export function mensagemErroHttp(erro: unknown, fallback = 'Não foi possível s
   }
 
   const eHttp = erro as { status?: number };
-  if (eHttp.status === 403) return 'Sem permissão para gravar arquivos nesta funcionalidade.';
+  if (eHttp.status === 401) {
+    return 'Sessão inválida ou expirada. Saia e entre novamente.';
+  }
+  if (eHttp.status === 403) return fallback;
+  if (eHttp.status === 0) {
+    return 'Não foi possível contactar a API. Verifique se ela está rodando em http://localhost:5000.';
+  }
   if (eHttp.status === 503) return 'Armazenamento S3 não configurado neste ambiente.';
   if (eHttp.status === 502) return 'Não foi possível gravar o arquivo no S3. Verifique credenciais e permissões do bucket.';
 

@@ -11,14 +11,17 @@ import { Icone } from '../icone';
   imports: [UsuarioFotoComponent, Icone],
   template: `
     <div class="sidebar-user-block">
-      <app-usuario-foto
-        layout="sidebar"
-        [fotoUrl]="conta.fotoUrl()"
-        [nome]="nome"
-        (irConta)="irConta()"
-        (fotoSelecionada)="enviarFoto($event)"
-        (fotoRemovida)="removerFoto()"
-      />
+      <div class="sidebar-user-block__avatar-menu">
+        <app-usuario-foto
+          layout="sidebar"
+          avatarAcao="conta"
+          [fotoUrl]="conta.fotoUrl()"
+          [nome]="nome"
+          (irConta)="irConta()"
+          (fotoSelecionada)="enviarFoto($event)"
+          (fotoRemovida)="removerFoto()"
+        />
+      </div>
       <div class="sidebar-user-block__texto">
         <div class="sidebar-user-block__nome">{{ nome }}</div>
         <div class="sidebar-user-block__perfil">{{ perfil }}</div>
@@ -27,7 +30,7 @@ import { Icone } from '../icone';
         type="button"
         class="sidebar-user-block__settings"
         title="Minha conta"
-        aria-label="Minha conta e configurações"
+        aria-label="Minha conta"
         (click)="irConta()">
         <app-icone nome="settings" [tamanho]="18" />
       </button>

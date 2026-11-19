@@ -9,11 +9,13 @@ class AuthGradientButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.icon,
+    this.compact = false,
   });
 
   final String label;
   final VoidCallback onPressed;
   final IconData? icon;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +41,8 @@ class AuthGradientButton extends StatelessWidget {
             child: Ink(
               decoration: const BoxDecoration(gradient: AppGradients.primaryButton),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.sm + 1,
+                padding: EdgeInsets.symmetric(
+                  vertical: compact ? 13 : AppSpacing.sm + 1,
                   horizontal: AppSpacing.md,
                 ),
                 child: Stack(

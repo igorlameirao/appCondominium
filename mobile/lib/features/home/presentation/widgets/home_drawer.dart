@@ -10,8 +10,7 @@ import '../../../context/presentation/context_switch_sheets.dart';
 import '../../../../shared/widgets/auth/coming_soon_message.dart';
 import '../providers/home_providers.dart';
 import '../theme/home_surface.dart';
-import 'home_drawer_appearance_selector.dart';
-import 'home_drawer_footer.dart';
+import 'home_drawer_bottom_section.dart';
 import 'home_drawer_header.dart';
 import 'home_drawer_nav_group.dart';
 import '../../domain/models/home_models.dart';
@@ -80,8 +79,7 @@ class HomeDrawer extends ConsumerWidget {
                 ],
               ),
             ),
-            const HomeDrawerAppearanceSelector(),
-            HomeDrawerFooter(onSignOut: () => _signOut(context, ref)),
+            HomeDrawerBottomSection(onSignOut: () => _signOut(context, ref)),
           ],
         ),
       ),

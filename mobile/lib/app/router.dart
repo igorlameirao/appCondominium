@@ -11,6 +11,9 @@ import '../features/splash/presentation/splash_page.dart';
 import '../features/convite/presentation/convite_aceite_page.dart';
 import '../features/auth/presentation/forgot_password_page.dart';
 import '../features/auth/presentation/reset_password_page.dart';
+import '../features/conta/presentation/account_settings_page.dart';
+import '../features/conta/presentation/change_password_page.dart';
+import '../features/conta/presentation/notification_preferences_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -21,7 +24,10 @@ enum AppRoute {
   homePendencias('/home/pendencias'),
   conviteAceitar('/convite/aceitar'),
   recuperacaoSenhaEsqueci('/recuperacao-senha/esqueci'),
-  recuperacaoSenhaRedefinir('/recuperacao-senha/redefinir');
+  recuperacaoSenhaRedefinir('/recuperacao-senha/redefinir'),
+  contaConfiguracoes('/home/configuracoes-conta'),
+  contaAlterarSenha('/home/alterar-senha'),
+  contaNotificacoes('/home/notificacoes');
 
   const AppRoute(this.path);
   final String path;
@@ -110,6 +116,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'pendencias',
             name: AppRoute.homePendencias.name,
             builder: (context, state) => const HomePendingListPage(),
+          ),
+          GoRoute(
+            path: 'configuracoes-conta',
+            name: AppRoute.contaConfiguracoes.name,
+            builder: (context, state) => const AccountSettingsPage(),
+          ),
+          GoRoute(
+            path: 'alterar-senha',
+            name: AppRoute.contaAlterarSenha.name,
+            builder: (context, state) => const ChangePasswordPage(),
+          ),
+          GoRoute(
+            path: 'notificacoes',
+            name: AppRoute.contaNotificacoes.name,
+            builder: (context, state) => const NotificationPreferencesPage(),
           ),
         ],
       ),

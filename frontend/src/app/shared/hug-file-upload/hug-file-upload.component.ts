@@ -43,7 +43,8 @@ export type { HugImageLayout };
           [alt]="label"
           [layout]="layout"
           [iconePlaceholder]="iconeZona"
-          [tituloVazio]="tituloVazio"
+          [tituloVazio]="tituloVazioEfetivo"
+          [textoCarregando]="textoCarregando"
           [disabled]="disabled"
           [somenteLeitura]="somenteLeitura"
           [carregando]="carregando"
@@ -109,6 +110,9 @@ export class HugFileUploadComponent {
   @Input() compacta = false;
   /** Quando true, comportamento estritamente de imagem (Configuração do Condomínio). */
   @Input() modoImagem = false;
+  /** Sobrescreve o título do estado vazio; vazio usa o padrão do modo. */
+  @Input() tituloVazioPersonalizado = '';
+  @Input() textoCarregando = 'Carregando…';
 
   @Output() arquivoSelecionado = new EventEmitter<File>();
   @Output() removido = new EventEmitter<void>();
@@ -124,7 +128,9 @@ export class HugFileUploadComponent {
 
   private static proximoId = 0;
 
-  get tituloVazio(): string {
+  get tituloVazioEfetivo(): string {
+    const personalizado = this.tituloVazioPersonalizado?.trim();
+    if (personalizado) return personalizado;
     return this.modoImagem ? 'Nenhuma imagem' : 'Nenhum arquivo';
   }
 

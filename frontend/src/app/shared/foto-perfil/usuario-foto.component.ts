@@ -31,8 +31,11 @@ export class UsuarioFotoComponent implements OnChanges, OnDestroy {
   @Input() nome = '';
   @Input() layout: 'sidebar' | 'pagina' = 'pagina';
   @Input() somenteLeitura = false;
+  /** No sidebar: `menu` abre o menu da conta em vez de navegar para Minha conta. */
+  @Input() avatarAcao: 'conta' | 'menu' = 'conta';
 
   @Output() irConta = new EventEmitter<void>();
+  @Output() menuConta = new EventEmitter<void>();
   @Output() fotoSelecionada = new EventEmitter<File>();
   @Output() fotoRemovida = new EventEmitter<void>();
 
@@ -86,6 +89,10 @@ export class UsuarioFotoComponent implements OnChanges, OnDestroy {
     if (this.layout !== 'sidebar') return;
     evento.preventDefault();
     this.fecharMenuFoto();
+    if (this.avatarAcao === 'menu') {
+      this.menuConta.emit();
+      return;
+    }
     this.irConta.emit();
   }
 

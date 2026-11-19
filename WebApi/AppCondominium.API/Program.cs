@@ -16,6 +16,12 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddInMemoryCollection(
+        new Dictionary<string, string?> { ["AllowedHosts"] = "*" });
+}
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
 {
@@ -110,6 +116,20 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
+    options.AddPolicy("conta-alterar-senha", httpContext =>
+    {
+        var chave = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? httpContext.Connection.RemoteIpAddress?.ToString()
+            ?? "anon";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            chave,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(15),
+                QueueLimit = 0
+            });
+    });
 });
 
 var app = builder.Build();
@@ -137,4 +157,4 @@ app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+    app.Run();
